@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/i18n.php';
 
 session_name(SESSION_NAME);
 session_set_cookie_params([
@@ -12,17 +13,19 @@ session_start();
 
 function fail(string $msg, int $code = 400): void {
   http_response_code($code);
-  echo "<h1>Giriş Hatası</h1><p>" . htmlspecialchars($msg) . "</p><p><a href='index.php'>Geri dön</a></p>";
+  $title = t('callback_error_title');
+  $back = t('callback_back');
+  echo "<h1>" . htmlspecialchars($title) . "</h1><p>" . htmlspecialchars($msg) . "</p><p><a href='index.php'>" . htmlspecialchars($back) . "</a></p>";
   exit;
 }
 
 if (!isset($_GET['state'], $_SESSION['oauth_state']) || $_GET['state'] !== $_SESSION['oauth_state']) {
-  fail('Geçersiz state (CSRF koruması).');
+  fail(t('callback_err_invalid_state'));
 }
 unset($_SESSION['oauth_state']);
 
 if (!isset($_GET['code'])) {
-  fail('Authorization code alınamadı.');
+  fail(t('callback_err_no_code'));
 }
 
 $code = $_GET['code'];
@@ -49,12 +52,12 @@ $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
 if ($tokenResp === false || $httpCode >= 400) {
-  fail('Token alınamadı. HTTP: ' . $httpCode);
+  fail(t('callback_err_token_http', ['code' => $httpCode]));
 }
 
 $tokenJson = json_decode($tokenResp, true);
 if (!is_array($tokenJson) || empty($tokenJson['access_token'])) {
-  fail('Token yanıtı geçersiz.');
+  fail(t('callback_err_token_invalid'));
 }
 
 $accessToken = $tokenJson['access_token'];
@@ -71,12 +74,12 @@ $uHttp = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
 if ($userResp === false || $uHttp >= 400) {
-  fail('Userinfo alınamadı. HTTP: ' . $uHttp);
+  fail(t('callback_err_userinfo_http', ['code' => $uHttp]));
 }
 
 $userJson = json_decode($userResp, true);
 if (!is_array($userJson) || empty($userJson['email'])) {
-  fail('E-posta bilgisi alınamadı.');
+  fail(t('callback_err_no_email'));
 }
 
 $email = strtolower(trim($userJson['email']));

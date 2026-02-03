@@ -93,11 +93,26 @@ if ($isCorrect) {
 }
 
 $players = list_room_players($roomId);
+$activeCount = 0;
+foreach ($players as $p) {
+  if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
+}
 pusher_trigger('presence-room-' . $guid, 'room:update', [
   'guid' => $guid,
   'round' => $round,
   'players' => $players,
   'eliminated' => $isCorrect ? null : $email,
 ]);
+
+if ($activeCount === 0) {
+  room_end_round($roomId, $round);
+  pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
+    'guid' => $guid,
+    'round' => $round,
+    'players' => $players,
+  ]);
+  set_room_finished($roomId);
+  pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+}
 
 echo json_encode(['ok' => true, 'correct' => $isCorrect, 'score_delta' => $scoreDelta]);

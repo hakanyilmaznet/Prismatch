@@ -769,6 +769,20 @@ function list_room_players($roomId) {
   return $stmt->fetchAll() ?: [];
 }
 
+function room_winner_email($roomId) {
+  $pdo = db();
+  $stmt = $pdo->prepare("
+    SELECT email
+    FROM room_players
+    WHERE room_id = :rid
+    ORDER BY score DESC, correct DESC, joined_at ASC
+    LIMIT 1
+  ");
+  $stmt->execute([':rid' => $roomId]);
+  $email = $stmt->fetchColumn();
+  return $email ? (string)$email : null;
+}
+
 function add_room_player($roomId, $email) {
   $pdo = db();
   upsert_user_login($email);
@@ -914,4 +928,3 @@ function room_add_score($roomId, $email, $scoreDelta, $correctDelta) {
     ':email'=> $email,
   ]);
 }
-

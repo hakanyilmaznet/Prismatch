@@ -23,6 +23,25 @@ function tt(string $key, string $fallback = ''): string {
   return $v;
 }
 
+function room_status_label($status) {
+  switch ((string)$status) {
+    case 'waiting': return tt('room_status_waiting', 'Waiting');
+    case 'active': return tt('room_status_active', 'Active');
+    case 'finished': return tt('room_status_finished', 'Finished');
+    default: return (string)$status;
+  }
+}
+
+function format_room_dt($utcIso) {
+  if (!$utcIso) return '-';
+  try {
+    $dt = new DateTimeImmutable($utcIso, new DateTimeZone('UTC'));
+    return $dt->format('d/m/Y H:i');
+  } catch (Exception $e) {
+    return '-';
+  }
+}
+
 if (!$email) {
   header('Location: login.php');
   exit;
@@ -136,17 +155,25 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               <th><?= htmlspecialchars(tt('rooms_name', 'Name')) ?></th>
               <th><?= htmlspecialchars(tt('rooms_status', 'Status')) ?></th>
               <th><?= htmlspecialchars(tt('rooms_rounds', 'Rounds')) ?></th>
+              <th><?= htmlspecialchars(tt('rooms_winner', 'Winner')) ?></th>
               <th><?= htmlspecialchars(tt('rooms_created', 'Created')) ?></th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($rooms as $r): ?>
+              <?php
+                $winner = null;
+                if (($r['status'] ?? '') === 'finished') {
+                  $winner = room_winner_email((int)$r['id']);
+                }
+              ?>
               <tr>
                 <td><?= htmlspecialchars($r['name'] ?: '-') ?></td>
-                <td><?= htmlspecialchars($r['status']) ?></td>
+                <td><?= htmlspecialchars(room_status_label($r['status'] ?? '')) ?></td>
                 <td><?= (int)$r['rounds_total'] ?></td>
-                <td><?= htmlspecialchars($r['created_at']) ?></td>
+                <td><?= htmlspecialchars($winner ?: '-') ?></td>
+                <td><?= htmlspecialchars(format_room_dt($r['created_at'])) ?></td>
                 <td class="text-end">
                   <div class="btn-group btn-group-sm" role="group">
                     <a class="btn btn-outline-primary" href="room_play.php?guid=<?= urlencode($r['guid']) ?>"><?= htmlspecialchars(tt('rooms_open', 'Open')) ?></a>

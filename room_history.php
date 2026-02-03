@@ -22,6 +22,16 @@ function tt(string $key, string $fallback = ''): string {
   return $v;
 }
 
+function room_status_label($status) {
+  switch ((string)$status) {
+    case 'waiting': return tt('room_status_waiting', 'Waiting');
+    case 'active': return tt('room_status_active', 'Active');
+    case 'finished': return tt('room_status_finished', 'Finished');
+    case 'eliminated': return tt('room_status_eliminated', 'Eliminated');
+    default: return (string)$status;
+  }
+}
+
 if (!$userEmail) {
   header('Location: login.php');
   exit;
@@ -31,7 +41,7 @@ $guid = trim((string)($_GET['guid'] ?? ''));
 $room = $guid ? get_room_by_guid($guid) : null;
 if (!$room) {
   http_response_code(404);
-  echo "Room not found";
+  echo htmlspecialchars(tt('room_not_found', 'Room not found'));
   exit;
 }
 
@@ -116,7 +126,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <div class="panel">
     <div class="h5 m-0"><?= htmlspecialchars(tt('room_history_title', 'Room History')) ?></div>
     <div class="muted small">
-      <?= htmlspecialchars($room['name'] ?: tt('rooms_name', 'Room')) ?> • GUID: <?= htmlspecialchars($room['guid']) ?> • <?= htmlspecialchars($room['status']) ?>
+      <?= htmlspecialchars($room['name'] ?: tt('rooms_name', 'Room')) ?> • <?= htmlspecialchars(tt('room_guid', 'GUID')) ?>: <?= htmlspecialchars($room['guid']) ?> • <?= htmlspecialchars(room_status_label($room['status'] ?? '')) ?>
     </div>
   </div>
 
@@ -140,7 +150,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               <td><?= htmlspecialchars($p['email']) ?></td>
               <td><?= (int)$p['score'] ?></td>
               <td><?= (int)$p['correct'] ?></td>
-              <td><?= htmlspecialchars($p['status']) ?></td>
+              <td><?= htmlspecialchars(room_status_label($p['status'] ?? '')) ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>
@@ -156,16 +166,32 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       <?php foreach ($rounds as $r): ?>
         <?php $q = json_decode($r['question_json'], true); $target = $q['target'] ?? ''; ?>
         <div class="mb-3">
-          <div class="fw-semibold">Round <?= (int)$r['round_index'] ?></div>
+          <?php
+            $roundLabel = tt('room_round_label', 'Round {n}');
+            $roundLabel = str_replace('{n}', (string)(int)$r['round_index'], $roundLabel);
+          ?>
+          <div class="fw-semibold"><?= htmlspecialchars($roundLabel) ?></div>
           <?php if ($target): ?>
-            <div class="muted small">Target: <span class="color-swatch" style="background:<?= htmlspecialchars($target) ?>"></span> <?= htmlspecialchars($target) ?></div>
+            <div class="muted small"><?= htmlspecialchars(tt('room_target_label', 'Target')) ?>: <span class="color-swatch" style="background:<?= htmlspecialchars($target) ?>"></span> <?= htmlspecialchars($target) ?></div>
           <?php endif; ?>
           <div class="mt-2">
             <?php foreach (($byRound[(int)$r['round_index']] ?? []) as $ev): ?>
               <?php if ($ev['type'] === 'eliminate'): ?>
-                <div class="small text-danger">✖ <?= htmlspecialchars($ev['email']) ?> eliminated (picked <?= htmlspecialchars($ev['payload']['picked'] ?? '') ?>)</div>
+                <?php
+                  $picked = (string)($ev['payload']['picked'] ?? '');
+                  $msg = $picked !== ''
+                    ? tt('room_event_eliminated_pick', 'eliminated (picked {color})')
+                    : tt('room_event_eliminated', 'eliminated');
+                  $msg = str_replace('{color}', $picked, $msg);
+                ?>
+                <div class="small text-danger">✖ <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
               <?php elseif ($ev['type'] === 'answer'): ?>
-                <div class="small">✓ <?= htmlspecialchars($ev['email']) ?> correct (+<?= (int)($ev['payload']['score_delta'] ?? 0) ?>)</div>
+                <?php
+                  $score = (int)($ev['payload']['score_delta'] ?? 0);
+                  $msg = tt('room_event_correct', 'correct (+{score})');
+                  $msg = str_replace('{score}', (string)$score, $msg);
+                ?>
+                <div class="small">✓ <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
               <?php endif; ?>
             <?php endforeach; ?>
           </div>

@@ -440,17 +440,6 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       50%{ transform: translateY(-6px); }
     }
 
-    .leaderboard{
-      position: fixed;
-      inset: 0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      backdrop-filter: blur(6px);
-      background: rgba(0,0,0,0.45);
-      z-index: 30000;
-    }
-    .leaderboard.show{ display:flex; }
     .leaderboard-card{
       width: min(520px, 92vw);
       background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
@@ -565,29 +554,6 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
   </section>
 </main>
 
-<div class="leaderboard" id="leaderboard">
-  <div class="leaderboard-card">
-    <div class="h6"><?= htmlspecialchars(tt('room_leaderboard', 'Leaderboard')) ?></div>
-    <div class="leaderboard-result" id="leaderboardResult">
-      <img id="leaderboardResultIcon" src="" alt="" aria-hidden="true" />
-      <span id="leaderboardResultText"></span>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-sm align-middle mb-0">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th><?= htmlspecialchars(tt('room_player', 'Player')) ?></th>
-            <th><?= htmlspecialchars(tt('room_score', 'Score')) ?></th>
-            <th><?= htmlspecialchars(tt('room_status', 'Status')) ?></th>
-          </tr>
-        </thead>
-        <tbody id="leaderboardBody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
 <div class="answerOverlay" id="answerOverlay" hidden role="dialog" aria-modal="true" aria-live="polite">
   <div class="answerCard" id="answerCard">
     <div class="answerIconWrap">
@@ -633,6 +599,11 @@ const STR = {
   roomActive: <?= json_encode(tt('room_active', 'Active')) ?>,
   roomEliminated: <?= json_encode(tt('room_eliminated', 'Eliminated')) ?>,
   roomFinished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
+  roomLeaderboard: <?= json_encode(tt('room_leaderboard', 'Leaderboard')) ?>,
+  roomPlayer: <?= json_encode(tt('room_player', 'Player')) ?>,
+  roomScore: <?= json_encode(tt('room_score', 'Score')) ?>,
+  roomStatus: <?= json_encode(tt('room_status', 'Status')) ?>,
+  roomFinishedTitle: <?= json_encode(tt('room_finished_title', 'Game finished')) ?>,
   roomTitle: <?= json_encode(tt('room_live_title', 'Room Match')) ?>,
   joinFailed: <?= json_encode(tt('error_generic', 'Error')) ?>,
 };
@@ -644,11 +615,6 @@ const hudLevel = document.getElementById('hudLevel');
 const hudTime = document.getElementById('hudTime');
 const hudCorrect = document.getElementById('hudCorrect');
 const hudShow = document.getElementById('hudShow');
-const leaderboard = document.getElementById('leaderboard');
-const leaderboardBody = document.getElementById('leaderboardBody');
-const leaderboardResult = document.getElementById('leaderboardResult');
-const leaderboardResultIcon = document.getElementById('leaderboardResultIcon');
-const leaderboardResultText = document.getElementById('leaderboardResultText');
 const playersBadge = document.getElementById('playersBadge');
 const selfStatusBadge = document.getElementById('selfStatusBadge');
 const roomInfo = document.getElementById('roomInfo');
@@ -670,6 +636,7 @@ const state = {
   lastAnswerCorrect: null,
   roundQuestionStartTs: 0,
   leaderboardPrev: new Map(),
+  lastLeaderboardPlayers: [],
   timers: { timeoutIds: new Set(), intervalIds: new Set() },
 };
 
@@ -783,11 +750,106 @@ function p(text){
   return d;
 }
 
+function buildLeaderboardCard(players){
+  const wrap = document.createElement('div');
+  wrap.className = 'leaderboard-card';
+
+  const title = document.createElement('div');
+  title.className = 'h6';
+  title.textContent = STR.roomLeaderboard || 'Leaderboard';
+  wrap.appendChild(title);
+
+  const result = buildLeaderboardResult();
+  if (result) wrap.appendChild(result);
+
+  const tableWrap = document.createElement('div');
+  tableWrap.className = 'table-responsive';
+  const table = document.createElement('table');
+  table.className = 'table table-sm align-middle mb-0';
+  const thead = document.createElement('thead');
+  thead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th>${STR.roomPlayer || 'Player'}</th>
+      <th>${STR.roomScore || 'Score'}</th>
+      <th>${STR.roomStatus || 'Status'}</th>
+    </tr>
+  `;
+  const tbody = document.createElement('tbody');
+  const next = new Map();
+  const ordered = (players || []).map((p, idx) => ({...p, __idx: idx}))
+    .sort((a, b) => {
+      const aElim = a.status === 'eliminated' ? 1 : 0;
+      const bElim = b.status === 'eliminated' ? 1 : 0;
+      if (aElim !== bElim) return aElim - bElim;
+      return a.__idx - b.__idx;
+    });
+  ordered.forEach((p, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'rank-row';
+    if (p.email === ME) {
+      tr.classList.add('self');
+      tr.classList.add(p.status === 'eliminated' ? 'eliminated' : 'active');
+    }
+    tr.dataset.email = p.email;
+    const statusLabel = p.status === 'eliminated' ? STR.roomEliminated : STR.roomActive;
+    const statusClass = p.status === 'eliminated' ? 'eliminated' : 'active';
+    const statusHtml = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
+    tr.innerHTML = `<td>${idx+1}</td><td>${p.email}</td><td>${p.score}</td><td>${statusHtml}</td>`;
+    if (p.status === 'eliminated') tr.classList.add('eliminated');
+    const prevRow = state.leaderboardPrev.get(p.email);
+    if (!prevRow || prevRow.rank !== idx || prevRow.score !== p.score || prevRow.status !== p.status) {
+      tr.classList.add('flash');
+    }
+    next.set(p.email, {rank: idx, score: p.score, status: p.status});
+    tbody.appendChild(tr);
+  });
+  state.leaderboardPrev = next;
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+  wrap.appendChild(tableWrap);
+  return wrap;
+}
+
+function buildLeaderboardResult(){
+  if (state.lastAnswerCorrect === true) {
+    const row = document.createElement('div');
+    row.className = 'leaderboard-result';
+    row.innerHTML = `<img src="success-checkmark.svg" alt="" aria-hidden="true" /><span>${STR.badgeCorrect}</span>`;
+    return row;
+  }
+  if (state.lastAnswerCorrect === false) {
+    const row = document.createElement('div');
+    row.className = 'leaderboard-result';
+    const msg = state.eliminated ? STR.badgeWrong : STR.badgeTimeUp;
+    row.innerHTML = `<img src="error-x.svg" alt="" aria-hidden="true" /><span>${msg}</span>`;
+    return row;
+  }
+  return null;
+}
+
 function renderIntermission(){
-  render(makeStack(
+  const nodes = [
     h1(STR.roomTitle),
-    p(STR.intermission)
-  ));
+    p(STR.intermission),
+  ];
+  if (state.lastLeaderboardPlayers && state.lastLeaderboardPlayers.length) {
+    nodes.push(buildLeaderboardCard(state.lastLeaderboardPlayers));
+  }
+  render(makeStack(...nodes));
+}
+
+function renderFinished(){
+  const nodes = [
+    h1(STR.roomTitle),
+    p(STR.roomFinishedTitle),
+  ];
+  if (state.lastLeaderboardPlayers && state.lastLeaderboardPlayers.length) {
+    nodes.push(buildLeaderboardCard(state.lastLeaderboardPlayers));
+  }
+  render(makeStack(...nodes));
 }
 
 function setSelfStatus(stateLabel){
@@ -1002,59 +1064,6 @@ async function onTimeUp(buttons){
   renderIntermission();
 }
 
-function renderLeaderboard(players){
-  const prev = state.leaderboardPrev;
-  leaderboardBody.innerHTML = '';
-  const next = new Map();
-  const ordered = (players || []).map((p, idx) => ({...p, __idx: idx}))
-    .sort((a, b) => {
-      const aElim = a.status === 'eliminated' ? 1 : 0;
-      const bElim = b.status === 'eliminated' ? 1 : 0;
-      if (aElim !== bElim) return aElim - bElim;
-      return a.__idx - b.__idx;
-    });
-  ordered.forEach((p, idx) => {
-    const tr = document.createElement('tr');
-    tr.className = 'rank-row';
-    if (p.email === ME) {
-      tr.classList.add('self');
-      tr.classList.add(p.status === 'eliminated' ? 'eliminated' : 'active');
-    }
-    tr.dataset.email = p.email;
-    const statusLabel = p.status === 'eliminated' ? STR.roomEliminated : STR.roomActive;
-    const statusClass = p.status === 'eliminated' ? 'eliminated' : 'active';
-    const statusHtml = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
-    tr.innerHTML = `<td>${idx+1}</td><td>${p.email}</td><td>${p.score}</td><td>${statusHtml}</td>`;
-    if (p.status === 'eliminated') tr.classList.add('eliminated');
-    const prevRow = prev.get(p.email);
-    if (!prevRow || prevRow.rank !== idx || prevRow.score !== p.score || prevRow.status !== p.status) {
-      tr.classList.add('flash');
-    }
-    next.set(p.email, {rank: idx, score: p.score, status: p.status});
-    leaderboardBody.appendChild(tr);
-  });
-  state.leaderboardPrev = next;
-}
-
-function updateLeaderboardResult(){
-  if (!leaderboardResult || !leaderboardResultIcon || !leaderboardResultText) return;
-  if (state.lastAnswerCorrect === true) {
-    leaderboardResultIcon.src = 'success-checkmark.svg';
-    leaderboardResultIcon.alt = 'Correct';
-    leaderboardResultText.textContent = STR.badgeCorrect;
-    leaderboardResult.style.display = 'flex';
-    return;
-  }
-  if (state.lastAnswerCorrect === false) {
-    leaderboardResultIcon.src = 'error-x.svg';
-    leaderboardResultIcon.alt = 'Wrong';
-    leaderboardResultText.textContent = state.eliminated ? STR.badgeWrong : STR.badgeTimeUp;
-    leaderboardResult.style.display = 'flex';
-    return;
-  }
-  leaderboardResult.style.display = 'none';
-}
-
 function renderPlayers(players){
   if (!playersBadge) return;
   const names = players.map(p => p.email + (p.status === 'eliminated' ? ' ✕' : '')).join(' • ');
@@ -1127,7 +1136,6 @@ channel.bind('room:round', async (data) => {
 });
 
 channel.bind('room:update', (data) => {
-  renderLeaderboard(data.players || []);
   renderPlayers(data.players || []);
   const meRow = (data.players || []).find(p => p.email === ME);
   if ((meRow && meRow.status === 'eliminated') || data.eliminated === ME) {
@@ -1140,15 +1148,14 @@ channel.bind('room:update', (data) => {
 });
 
 channel.bind('room:leaderboard', (data) => {
-  renderLeaderboard(data.players || []);
-  updateLeaderboardResult();
-  leaderboard.classList.add('show');
-  setTimeout(() => leaderboard.classList.remove('show'), 5000);
+  state.lastLeaderboardPlayers = data.players || [];
+  renderIntermission();
 });
 
 channel.bind('room:finished', () => {
   setBadge(STR.statusFinished);
   setSelfStatus('finished');
+  renderFinished();
 });
 
 joinRoom().catch(() => setBadge(STR.joinFailed, 'error'));
