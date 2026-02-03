@@ -86,11 +86,10 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
     background: linear-gradient(135deg, #ff7d5d, #ffd08a);
     border-color: rgba(255,125,93,0.6);
     color:#101318;
-    box-shadow: 0 16px 36px rgba(255,125,93,0.35);
   }
   .pm-btn.active{
     border-color: rgba(20,120,92,0.45);
-    box-shadow: 0 0 0 2px rgba(20,120,92,0.18), 0 10px 20px rgba(10,12,18,0.14);
+    box-shadow: 0 16px 36px rgba(255,125,93,0.35), 0 10px 20px rgba(10,12,18,0.14);
   }
   [data-bs-theme="dark"] .pm-btn{
     border-color: rgba(255,255,255,0.16);

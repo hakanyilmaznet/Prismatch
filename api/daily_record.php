@@ -42,7 +42,7 @@ try {
     'rounds'         => $data['rounds'] ?? [],
   ];
 
-  $payload['reached_level'] = max(1, min(25, (int)$payload['reached_level']));
+  $payload['reached_level'] = max(1, min(50, (int)$payload['reached_level']));
   $payload['total_correct'] = max(0, (int)$payload['total_correct']);
   $payload['duration_ms'] = max(0, (int)$payload['duration_ms']);
 
