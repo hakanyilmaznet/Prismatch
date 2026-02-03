@@ -157,7 +157,7 @@ function get_user_stats($email) {
  * Full game payload kaydı:
  * payload = {
  *   reachedLevel, correct, won, startedAt, endedAt, durationMs,
- *   rounds: [{ level, targetColor, gridColors[9], pickedColor|null, responseMs, isCorrect }]
+ *   rounds: [{ level, targetColor, gridColors[9|16|25], pickedColor|null, responseMs, isCorrect }]
  * }
  */
  
@@ -180,7 +180,7 @@ function get_user_stats($email) {
   $score = compute_daily_score($gamePayload);
 
   if ($reached < 1) $reached = 1;
-  if ($reached > 25) $reached = 25;
+  if ($reached > 50) $reached = 50;
   if ($totalCorrect < 0) $totalCorrect = 0;
   if ($durationMs < 0) $durationMs = 0;
 
@@ -238,12 +238,12 @@ function get_user_stats($email) {
         $respMs = (int)(isset($r['responseMs']) ? $r['responseMs'] : 0);
         $isCorrect = !empty($r['isCorrect']) ? 1 : 0;
 
-        if ($level < 1 || $level > 25) continue;
+        if ($level < 1 || $level > 50) continue;
         if ($target === '') continue;
-        if (!is_array($grid) || count($grid) !== 9) continue;
+        if (!is_array($grid) || !in_array(count($grid), [9,16,25], true)) continue;
 
         $gridVals = array_values($grid);
-        if (count(array_unique($gridVals)) !== 9) continue;
+        if (count(array_unique($gridVals)) !== count($gridVals)) continue;
 
         $gridJson = json_encode($gridVals, JSON_UNESCAPED_SLASHES);
 
@@ -446,7 +446,7 @@ function country_flag_icon_url($cc) {
 function daily_target_show_ms_for_level($level) {
   $level = (int)$level;
   if ($level < 1) $level = 1;
-  if ($level > 25) $level = 25;
+  if ($level > 50) $level = 50;
 
   $startMs = 3000;
   $decay = 0.9;
@@ -460,7 +460,7 @@ function daily_target_show_ms_for_level($level) {
 function compute_daily_score($payload) {
   $reached = (int)(isset($payload['reached_level']) ? $payload['reached_level'] : (isset($payload['reachedLevel']) ? $payload['reachedLevel'] : 0));
   if ($reached < 1) $reached = 1;
-  if ($reached > 25) $reached = 25;
+  if ($reached > 50) $reached = 50;
 
   $rounds = isset($payload['rounds']) && is_array($payload['rounds']) ? $payload['rounds'] : [];
   $sumRatio = 0.0;
@@ -469,7 +469,7 @@ function compute_daily_score($payload) {
   foreach ($rounds as $r) {
     if (!is_array($r)) continue;
     $level = (int)(isset($r['level']) ? $r['level'] : 0);
-    if ($level < 1 || $level > 25) continue;
+    if ($level < 1 || $level > 50) continue;
 
     $isCorrect = !empty($r['isCorrect']) ? true : false;
     if (!$isCorrect) continue;
@@ -487,7 +487,7 @@ function compute_daily_score($payload) {
 
   $avgRatio = $count > 0 ? ($sumRatio / $count) : 0.0;
   $timeFactor = min(1.0, $avgRatio / 1.5);
-  $levelFactor = $reached / 25;
+  $levelFactor = $reached / 50;
 
   $score = (int)round(1000 * ((0.7 * $levelFactor) + (0.3 * $timeFactor)));
   if ($score < 0) $score = 0;

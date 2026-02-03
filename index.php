@@ -335,7 +335,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         <div class="score-card">
           <strong><?= htmlspecialchars(tt('home_score_rule_1', 'Level impact (70%)')) ?></strong>
           <p><?= htmlspecialchars(tt('home_score_rule_1_body', 'The higher the stage you reach, the higher your score.')) ?></p>
-          <code>levelFactor = reachedLevel / 25</code>
+          <code>levelFactor = reachedLevel / 50</code>
         </div>
         <div class="score-card">
           <strong><?= htmlspecialchars(tt('home_score_rule_2', 'Speed impact (30%)')) ?></strong>

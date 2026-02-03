@@ -437,7 +437,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
   <section class="hud" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
     <div class="chip" role="status" aria-live="polite">
       <span class="label"><?= htmlspecialchars(tt('hud_stage', 'Stage')) ?></span>
-      <span class="value" id="hudLevel">1 / 25</span>
+      <span class="value" id="hudLevel">1 / 50</span>
     </div>
     <div class="chip" role="status" aria-live="polite">
       <span class="label"><?= htmlspecialchars(tt('hud_answer_time', 'Answer Time')) ?></span>
@@ -551,7 +551,7 @@ const I18N = <?= json_encode([
   'toast_pick' => tt('toast_pick', '⏱️ Pick within 5 seconds'),
   'note_answer_window' => tt('note_answer_window', '⏱️ 5 seconds to answer'),
   'win_title' => tt('win_title', '🏆 You matched them all!'),
-  'win_body' => tt('win_body', 'You reached stage 25. Total perfect matches: {correct}'),
+  'win_body' => tt('win_body', 'You reached stage {level}. Total perfect matches: {correct}'),
   'gameover_title' => tt('gameover_title', 'Game over'),
   'gameover_body' => tt('gameover_body', '{reason} Tap to try again.'),
   'reason_wrong' => tt('reason_wrong', 'Wrong match.'),
@@ -614,7 +614,7 @@ const PALETTE = [
   "#FB7185","#FDA4AF","#FFF1F2","#FFF7ED","#FEF3C7","#ECFCCB","#D1FAE5","#E0F2FE"
 ];
 
-const MAX_LEVEL = 25;
+const MAX_LEVEL = 50;
 const COUNTDOWN_START = 3;
 
 const START_TARGET_SHOW_MS = 3000;
@@ -626,20 +626,27 @@ const DEFAULT_GRID_COUNT = 9; // 3x3
 const TOAST_HIDE_MS = 500;    // doğru/yanlış 500ms
 
 function targetShowMsForLevel(level){
-  const lvl = Math.max(1, Math.min(25, level));
+  const lvl = Math.max(1, Math.min(MAX_LEVEL, level));
+  if (lvl === 21 || lvl === 41) return 5000;
   const ms = Math.floor(START_TARGET_SHOW_MS * Math.pow(SHOW_DECAY_FACTOR, lvl - 1));
   return Math.max(MIN_TARGET_SHOW_MS, ms);
 }
 
+function gridCountForLevel(level){
+  if (level <= 20) return 9;
+  if (level <= 40) return 16;
+  return 25;
+}
+
 function computeScoreFromPayload(payload){
-  const reached = Math.max(1, Math.min(25, (payload.reachedLevel || 1)));
+  const reached = Math.max(1, Math.min(MAX_LEVEL, (payload.reachedLevel || 1)));
   const rounds = Array.isArray(payload.rounds) ? payload.rounds : [];
   let sumRatio = 0;
   let count = 0;
 
   for (const r of rounds){
     if (!r || typeof r !== 'object') continue;
-    const level = Math.max(1, Math.min(25, r.level || 0));
+    const level = Math.max(1, Math.min(MAX_LEVEL, r.level || 0));
     if (!r.isCorrect) continue;
     const responseMs = Math.max(1, (r.responseMs || 0));
     const showMs = targetShowMsForLevel(level);
@@ -652,7 +659,7 @@ function computeScoreFromPayload(payload){
 
   const avgRatio = count > 0 ? (sumRatio / count) : 0;
   const timeFactor = Math.min(1.0, avgRatio / 1.5);
-  const levelFactor = reached / 25;
+  const levelFactor = reached / MAX_LEVEL;
   let score = Math.round(1000 * ((0.7 * levelFactor) + (0.3 * timeFactor)));
   if (score < 0) score = 0;
   if (score > 1000) score = 1000;
@@ -690,8 +697,6 @@ const state = {
   dailyLocked: false,
   dailyLoginShown: false,
   gridCount: DEFAULT_GRID_COUNT,
-  bonusMode: false,
-  baseCompleted: false,
 
   // telemetry
   gameStartedAt: null,
@@ -986,9 +991,7 @@ function buildGamePayload(reachedLevel, won){
     endedAt: new Date(endedAt).toISOString(),
     durationMs: Math.max(0, endedAt - startedAt),
     rounds: state.rounds.slice(),
-    gridCount: state.gridCount,
-    bonusMode: state.bonusMode,
-    baseCompleted: state.baseCompleted
+    gridCount: state.gridCount
   };
   payload.score = computeScoreFromPayload(payload);
   return payload;
@@ -1009,9 +1012,7 @@ function startGame(){
   state.targetColor = null;
   state.isLocked = false;
   state.phase = "idle";
-  state.gridCount = DEFAULT_GRID_COUNT;
-  state.bonusMode = false;
-  state.baseCompleted = false;
+  state.gridCount = gridCountForLevel(1);
 
   // telemetry reset
   state.gameStartedAt = Date.now();
@@ -1086,7 +1087,7 @@ function runQuestionGrid(){
   state.phase = "question";
   state.isLocked = false;
 
-  const gridCount = state.gridCount || DEFAULT_GRID_COUNT;
+  const gridCount = gridCountForLevel(state.level);
   // benzersiz renkler: target + (gridCount - 1) diger
   const exclude = new Set([state.targetColor]);
   const others = pickUniqueColors(gridCount - 1, exclude);
@@ -1240,6 +1241,7 @@ function advanceLevel(){
   }
 
   state.level += 1;
+  state.gridCount = gridCountForLevel(state.level);
   state.targetShowMs = Math.max(MIN_TARGET_SHOW_MS, Math.floor(state.targetShowMs * SHOW_DECAY_FACTOR));
   updateHUD(state.answerMs);
   runCountdown();
@@ -1250,26 +1252,11 @@ async function win(){
   state.phase = "win";
   state.isLocked = true;
 
-  if (!state.bonusMode){
-    state.bonusMode = true;
-    state.baseCompleted = true;
-    state.level = 1;
-    state.targetShowMs = START_TARGET_SHOW_MS;
-    state.targetColor = null;
-    state.isLocked = false;
-    state.phase = "idle";
-    state.gridCount = 16;
-    updateHUD(state.answerMs);
-    setBadge(tjs('badge_ready', 'Ready. Countdown...'));
-    runCountdown();
-    return;
-  }
-
-  const payload = buildGamePayload(25, true);
+  const payload = buildGamePayload(MAX_LEVEL, true);
 
   const wrap = makeStack(
     h1(tjs('win_title', '🏆 You matched them all!')),
-    p(tf('win_body', {correct: state.correct}, `You reached stage 25. Total perfect matches: ${state.correct}`)),
+    p(tf('win_body', {correct: state.correct, level: MAX_LEVEL}, `You reached stage ${MAX_LEVEL}. Total perfect matches: ${state.correct}`)),
     p(`${tjs('th_score', 'Score')}: ${payload.score}`)
   );
 
@@ -1308,7 +1295,7 @@ async function gameOver(reason){
   state.phase = "gameover";
   state.isLocked = true;
 
-  const payload = buildGamePayload(state.baseCompleted ? 25 : state.level, false);
+  const payload = buildGamePayload(state.level, false);
 
   const wrap = makeStack(
     h1(tjs('gameover_title', 'Game over')),
