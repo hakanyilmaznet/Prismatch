@@ -101,15 +101,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       <div class="mb-2 muted"><?= htmlspecialchars(tt('rooms_name_label', 'Room name')) ?></div>
       <input type="text" id="roomNameInput" class="form-control mb-2" maxlength="80"
              placeholder="<?= htmlspecialchars(tt('rooms_name_placeholder', 'Give your room a name')) ?>" />
-      <div class="mb-2 muted"><?= htmlspecialchars(tt('rooms_rounds_label', 'Number of rounds (1-5)')) ?></div>
       <div class="input-group mb-2">
-        <select id="roundsInput" class="form-select">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3" selected>3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-        </select>
         <button class="btn btn-primary" id="createRoomBtn"><?= htmlspecialchars(tt('rooms_create_btn', 'Create')) ?></button>
       </div>
       <div id="createMsg" class="form-msg"></div>
@@ -174,7 +166,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 
 <script>
   const createBtn = document.getElementById('createRoomBtn');
-  const roundsInput = document.getElementById('roundsInput');
   const roomNameInput = document.getElementById('roomNameInput');
   const createMsg = document.getElementById('createMsg');
   const shareWrap = document.getElementById('shareWrap');
@@ -197,7 +188,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   createBtn?.addEventListener('click', async () => {
     setMsg(createMsg);
     setMsg(shareMsg);
-      const rounds = Math.max(1, Math.min(5, parseInt(roundsInput.value || '1', 10)));
       const name = (roomNameInput.value || '').trim();
       if (!name) {
         setMsg(createMsg, STR.nameRequired, 'error');
@@ -207,7 +197,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         const res = await fetch('api/rooms_create.php', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({rounds_total: rounds, name})
+          body: JSON.stringify({rounds_total: 50, name})
         });
       const data = await res.json();
       if (data.ok && data.guid) {

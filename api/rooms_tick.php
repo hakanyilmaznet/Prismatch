@@ -69,11 +69,21 @@ $elapsed = ($now->getTimestamp() - $startedAt->getTimestamp()) * 1000;
 if ($endedAt === null && $elapsed >= ($countdownMs + $showMs + $answerMs)) {
   room_end_round($roomId, $current);
   $players = list_room_players($roomId);
+  $activeCount = 0;
+  foreach ($players as $p) {
+    if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
+  }
   pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
     'guid' => $guid,
     'round' => $current,
     'players' => $players,
   ]);
+  if ($activeCount === 0) {
+    set_room_finished($roomId);
+    pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+    echo json_encode(['ok' => true, 'finished' => true]);
+    exit;
+  }
   echo json_encode(['ok' => true, 'ended' => true]);
   exit;
 }
@@ -83,6 +93,17 @@ if ($endedAt !== null) {
   if ($elapsedEnd >= $intermissionMs) {
     $total = (int)$room['rounds_total'];
     $next = $current + 1;
+    $players = list_room_players($roomId);
+    $activeCount = 0;
+    foreach ($players as $p) {
+      if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
+    }
+    if ($activeCount === 0) {
+      set_room_finished($roomId);
+      pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+      echo json_encode(['ok' => true, 'finished' => true]);
+      exit;
+    }
     if ($next > $total) {
       set_room_finished($roomId);
       pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);

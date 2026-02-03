@@ -43,11 +43,20 @@ if ($room['owner_email'] !== $email) {
 
 room_end_round((int)$room['id'], $round);
 $players = list_room_players((int)$room['id']);
+$activeCount = 0;
+foreach ($players as $p) {
+  if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
+}
 
 pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
   'guid' => $guid,
   'round' => $round,
   'players' => $players,
 ]);
+
+if ($activeCount === 0) {
+  set_room_finished((int)$room['id']);
+  pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+}
 
 echo json_encode(['ok' => true]);

@@ -20,14 +20,14 @@ if (!$email) {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-$rounds = (int)($input['rounds_total'] ?? ($_POST['rounds_total'] ?? 1));
+$rounds = 50;
 $name = (string)($input['name'] ?? ($_POST['name'] ?? ''));
 if (trim($name) === '') {
   http_response_code(400);
   echo json_encode(['error' => 'name_required']);
   exit;
 }
-if ($rounds < 1 || $rounds > 5) $rounds = max(1, min(5, $rounds));
+if ($rounds < 1) $rounds = 50;
 
 try {
   $room = create_room($email, $rounds, $name);

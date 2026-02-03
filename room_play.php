@@ -473,6 +473,43 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     .rank-row{ transition: transform 200ms ease, background 200ms ease; }
     .rank-row.flash{ background: rgba(46, 204, 113, 0.12); animation: flash 0.6s ease; }
+    .rank-row.self{
+      background: rgba(255,255,255,0.08);
+      box-shadow: inset 3px 0 0 rgba(255, 208, 138, 0.7);
+    }
+    .rank-row.self.active{
+      box-shadow: inset 3px 0 0 rgba(61, 214, 160, 0.8);
+    }
+    .rank-row.self.eliminated{
+      box-shadow: inset 3px 0 0 rgba(255, 77, 77, 0.8);
+      opacity: 0.85;
+    }
+    .rank-row.eliminated{
+      color: rgba(255,255,255,0.72);
+      opacity: 0.75;
+    }
+    .rank-row .status-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.1);
+    }
+    .rank-row .status-pill.eliminated{
+      color: #ff9c9c;
+      background: rgba(255, 77, 77, 0.15);
+      border: 1px solid rgba(255, 77, 77, 0.35);
+    }
+    .rank-row .status-pill.active{
+      color: #6ae6c0;
+      background: rgba(61, 214, 160, 0.15);
+      border: 1px solid rgba(61, 214, 160, 0.35);
+    }
     @keyframes flash{ from{ transform: translateY(-4px); } to{ transform: translateY(0); } }
 
     .room-meta{
@@ -522,6 +559,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
   <section class="footer" aria-label="<?= htmlspecialchars(tt('controls', 'Controls')) ?>">
     <span class="badge" id="statusBadge"><?= htmlspecialchars(tt('status_ready', 'Ready.')) ?></span>
     <div class="room-meta">
+      <span class="badge pm-success" id="selfStatusBadge"><?= htmlspecialchars(tt('room_active', 'Active')) ?></span>
       <span class="badge" id="playersBadge"></span>
     </div>
   </section>
@@ -591,6 +629,10 @@ const STR = {
   statusReady: <?= json_encode(tt('status_ready', 'Ready.')) ?>,
   statusFinished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
   waiting: <?= json_encode(tt('room_waiting', 'Waiting for host...')) ?>,
+  intermission: <?= json_encode(tt('room_intermission', 'Next stage...')) ?>,
+  roomActive: <?= json_encode(tt('room_active', 'Active')) ?>,
+  roomEliminated: <?= json_encode(tt('room_eliminated', 'Eliminated')) ?>,
+  roomFinished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
   roomTitle: <?= json_encode(tt('room_live_title', 'Room Match')) ?>,
   joinFailed: <?= json_encode(tt('error_generic', 'Error')) ?>,
 };
@@ -608,6 +650,7 @@ const leaderboardResult = document.getElementById('leaderboardResult');
 const leaderboardResultIcon = document.getElementById('leaderboardResultIcon');
 const leaderboardResultText = document.getElementById('leaderboardResultText');
 const playersBadge = document.getElementById('playersBadge');
+const selfStatusBadge = document.getElementById('selfStatusBadge');
 const roomInfo = document.getElementById('roomInfo');
 const startBtn = document.getElementById('startBtn');
 
@@ -626,6 +669,7 @@ const state = {
   answered: false,
   lastAnswerCorrect: null,
   roundQuestionStartTs: 0,
+  leaderboardPrev: new Map(),
   timers: { timeoutIds: new Set(), intervalIds: new Set() },
 };
 
@@ -647,8 +691,7 @@ function clearAllTimers(){
 }
 
 function updateHUD(answerLeftMs = null){
-  const total = state.roundsTotal || '-';
-  hudLevel.textContent = `${state.round || '-'} / ${total}`;
+  hudLevel.textContent = `${state.round || '-'}`;
   hudCorrect.textContent = String(state.correct);
   hudShow.textContent = `${(state.targetShowMs / 1000).toFixed(2)}s`;
 
@@ -738,6 +781,30 @@ function p(text){
   d.className = "subtitle";
   d.textContent = text;
   return d;
+}
+
+function renderIntermission(){
+  render(makeStack(
+    h1(STR.roomTitle),
+    p(STR.intermission)
+  ));
+}
+
+function setSelfStatus(stateLabel){
+  if (!selfStatusBadge) return;
+  selfStatusBadge.classList.remove('pm-error', 'pm-success');
+  if (stateLabel === 'eliminated') {
+    selfStatusBadge.textContent = STR.roomEliminated;
+    selfStatusBadge.classList.add('pm-error');
+    return;
+  }
+  if (stateLabel === 'finished') {
+    selfStatusBadge.textContent = STR.roomFinished;
+    selfStatusBadge.classList.add('pm-success');
+    return;
+  }
+  selfStatusBadge.textContent = STR.roomActive;
+  selfStatusBadge.classList.add('pm-success');
 }
 
 function tf(template, vars){
@@ -914,10 +981,12 @@ async function onPick(btn, buttons){
     btn.classList.add("wrong");
     setBadge(STR.badgeWrong);
     state.eliminated = true;
+    setSelfStatus('eliminated');
     state.lastAnswerCorrect = false;
   }
   submitAnswer(picked, false).catch(() => {});
   await showAnswerPopup(isCorrect ? 'right' : 'wrong');
+  renderIntermission();
 }
 
 async function onTimeUp(buttons){
@@ -926,22 +995,45 @@ async function onTimeUp(buttons){
   lockButtons(buttons, true);
   setBadge(STR.badgeTimeUp);
   state.eliminated = true;
+  setSelfStatus('eliminated');
   state.lastAnswerCorrect = false;
   submitAnswer('', true).catch(() => {});
   await showAnswerPopup('wrong');
+  renderIntermission();
 }
 
 function renderLeaderboard(players){
-  const prev = Array.from(leaderboardBody.querySelectorAll('tr')).map(tr => tr.dataset.email);
+  const prev = state.leaderboardPrev;
   leaderboardBody.innerHTML = '';
-  players.forEach((p, idx) => {
+  const next = new Map();
+  const ordered = (players || []).map((p, idx) => ({...p, __idx: idx}))
+    .sort((a, b) => {
+      const aElim = a.status === 'eliminated' ? 1 : 0;
+      const bElim = b.status === 'eliminated' ? 1 : 0;
+      if (aElim !== bElim) return aElim - bElim;
+      return a.__idx - b.__idx;
+    });
+  ordered.forEach((p, idx) => {
     const tr = document.createElement('tr');
     tr.className = 'rank-row';
+    if (p.email === ME) {
+      tr.classList.add('self');
+      tr.classList.add(p.status === 'eliminated' ? 'eliminated' : 'active');
+    }
     tr.dataset.email = p.email;
-    tr.innerHTML = `<td>${idx+1}</td><td>${p.email}</td><td>${p.score}</td><td>${p.status}</td>`;
-    if (prev.indexOf(p.email) !== idx) tr.classList.add('flash');
+    const statusLabel = p.status === 'eliminated' ? STR.roomEliminated : STR.roomActive;
+    const statusClass = p.status === 'eliminated' ? 'eliminated' : 'active';
+    const statusHtml = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
+    tr.innerHTML = `<td>${idx+1}</td><td>${p.email}</td><td>${p.score}</td><td>${statusHtml}</td>`;
+    if (p.status === 'eliminated') tr.classList.add('eliminated');
+    const prevRow = prev.get(p.email);
+    if (!prevRow || prevRow.rank !== idx || prevRow.score !== p.score || prevRow.status !== p.status) {
+      tr.classList.add('flash');
+    }
+    next.set(p.email, {rank: idx, score: p.score, status: p.status});
     leaderboardBody.appendChild(tr);
   });
+  state.leaderboardPrev = next;
 }
 
 function updateLeaderboardResult(){
@@ -988,7 +1080,12 @@ async function joinRoom(){
   state.roundsTotal = room.rounds_total || state.roundsTotal;
   renderPlayers(data.players || []);
   const meRow = (data.players || []).find(p => p.email === ME);
-  if (meRow && meRow.status === 'eliminated') state.eliminated = true;
+  if (meRow && meRow.status === 'eliminated') {
+    state.eliminated = true;
+    setSelfStatus('eliminated');
+  } else {
+    setSelfStatus('active');
+  }
   updateHUD(state.answerMs);
 }
 
@@ -1036,6 +1133,9 @@ channel.bind('room:update', (data) => {
   if ((meRow && meRow.status === 'eliminated') || data.eliminated === ME) {
     state.eliminated = true;
     setBadge(STR.badgeWrong);
+    setSelfStatus('eliminated');
+  } else {
+    setSelfStatus('active');
   }
 });
 
@@ -1043,11 +1143,12 @@ channel.bind('room:leaderboard', (data) => {
   renderLeaderboard(data.players || []);
   updateLeaderboardResult();
   leaderboard.classList.add('show');
-  setTimeout(() => leaderboard.classList.remove('show'), 3000);
+  setTimeout(() => leaderboard.classList.remove('show'), 5000);
 });
 
 channel.bind('room:finished', () => {
   setBadge(STR.statusFinished);
+  setSelfStatus('finished');
 });
 
 joinRoom().catch(() => setBadge(STR.joinFailed, 'error'));
