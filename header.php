@@ -19,6 +19,7 @@ $isPlay = ($currentPage === 'play.php' && empty($_GET['daily']));
 $isDaily = ($currentPage === 'play.php' && !empty($_GET['daily']));
 $isLeaderboard = ($currentPage === 'daily_leaderboard.php');
 $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
+$isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || $currentPage === 'room_history.php');
 ?>
 <style>
   :root{ --pm-header-offset: 0px; --pm-icon-filter: none; }
@@ -195,6 +196,14 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
           <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
         </a>
       </li>
+      <?php if (!empty($userEmail)): ?>
+      <li class="nav-item">
+        <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isRooms ? ' active' : '' ?>" href="rooms.php">
+          <img class="bi-icon" src="bootstrap-icons/people-fill.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('rooms_title', 'Rooms')) ?>
+        </a>
+      </li>
+      <?php endif; ?>
       <?php if (!empty($userEmail)): ?>
         <li class="nav-item">
           <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isSessions ? ' active' : '' ?>" href="games.php">

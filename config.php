@@ -9,6 +9,7 @@ define('APP_BASE_URL', 'https://www.prismatch.online/');
 // Session
 define('SESSION_NAME', 'colorcatch_sess');
 define('COOKIE_SECURE', true);
+define('DEBUG_MODE', true);
 
 // MySQL
 define('DB_HOST', 'localhost');
@@ -16,3 +17,9 @@ define('DB_NAME', 'mukerre_colorcatch');
 define('DB_USER', 'mukerre_colorcatch');
 define('DB_PASS', ')R$pN[pusK&PpSOl');
 define('DB_CHARSET', 'utf8mb4');
+
+// Pusher (Room mode realtime)
+define('PUSHER_APP_ID', '2110554');
+define('PUSHER_KEY', '016ee80e7fbe5c66b878');
+define('PUSHER_SECRET', 'f515a114b9557941cc0c');
+define('PUSHER_CLUSTER', 'eu');

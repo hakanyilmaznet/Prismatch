@@ -113,6 +113,85 @@ function init_schema(PDO $pdo) {
 
   // Daily tables (idempotent)
   ensure_daily_schema($pdo);
+
+  // Room mode tables (idempotent)
+  $pdo->exec("
+    CREATE TABLE IF NOT EXISTS rooms (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      guid CHAR(36) NOT NULL,
+      name VARCHAR(80) NULL,
+      owner_email VARCHAR(320) NOT NULL,
+      status VARCHAR(16) NOT NULL DEFAULT 'waiting',
+      rounds_total INT NOT NULL,
+      current_round INT NOT NULL DEFAULT 0,
+      max_players INT NOT NULL DEFAULT 25,
+      created_at DATETIME(3) NOT NULL,
+      started_at DATETIME(3) NULL,
+      finished_at DATETIME(3) NULL,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_rooms_guid (guid),
+      KEY idx_rooms_owner (owner_email),
+      KEY idx_rooms_status (status),
+      CONSTRAINT fk_rooms_owner FOREIGN KEY (owner_email) REFERENCES users(email)
+        ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  ");
+  ensure_column($pdo, 'rooms', 'name', 'VARCHAR(80) NULL');
+
+  $pdo->exec("
+    CREATE TABLE IF NOT EXISTS room_players (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      room_id BIGINT UNSIGNED NOT NULL,
+      email VARCHAR(320) NOT NULL,
+      joined_at DATETIME(3) NOT NULL,
+      status VARCHAR(16) NOT NULL DEFAULT 'active',
+      eliminated_round INT NULL,
+      score INT NOT NULL DEFAULT 0,
+      correct INT NOT NULL DEFAULT 0,
+      last_active DATETIME(3) NULL,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_room_player (room_id, email),
+      KEY idx_room_players_room (room_id),
+      KEY idx_room_players_email (email),
+      CONSTRAINT fk_room_players_room FOREIGN KEY (room_id) REFERENCES rooms(id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+      CONSTRAINT fk_room_players_email FOREIGN KEY (email) REFERENCES users(email)
+        ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  ");
+
+  $pdo->exec("
+    CREATE TABLE IF NOT EXISTS room_rounds (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      room_id BIGINT UNSIGNED NOT NULL,
+      round_index INT NOT NULL,
+      question_json LONGTEXT NOT NULL,
+      started_at DATETIME(3) NOT NULL,
+      ended_at DATETIME(3) NULL,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_room_round (room_id, round_index),
+      KEY idx_room_rounds_room (room_id),
+      CONSTRAINT fk_room_rounds_room FOREIGN KEY (room_id) REFERENCES rooms(id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  ");
+
+  $pdo->exec("
+    CREATE TABLE IF NOT EXISTS room_events (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      room_id BIGINT UNSIGNED NOT NULL,
+      round_index INT NOT NULL,
+      email VARCHAR(320) NOT NULL,
+      event_type VARCHAR(32) NOT NULL,
+      payload_json LONGTEXT NOT NULL,
+      created_at DATETIME(3) NOT NULL,
+      PRIMARY KEY (id),
+      KEY idx_room_events_room (room_id),
+      KEY idx_room_events_type (event_type),
+      CONSTRAINT fk_room_events_room FOREIGN KEY (room_id) REFERENCES rooms(id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  ");
 }
 
 function now_utc_mysql() {
@@ -594,5 +673,245 @@ function daily_leaderboard($challengeDate, $country = null, $limit = 50) {
     $st->execute([':d'=>$challengeDate]);
   }
   return $st->fetchAll();
+}
+
+/* ================================
+   Room Mode (Realtime) helpers
+   ================================ */
+
+function cleanup_old_rooms(PDO $pdo = null) {
+  $pdo = $pdo ?: db();
+  $cutoff = (new DateTimeImmutable('now', new DateTimeZone('UTC')))
+    ->modify('-30 days')
+    ->format('Y-m-d H:i:s.v');
+  $pdo->prepare("DELETE FROM rooms WHERE created_at < :cutoff")->execute([':cutoff' => $cutoff]);
+}
+
+function room_guid(): string {
+  $data = random_bytes(16);
+  $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
+  $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
+  return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+function create_room($ownerEmail, $roundsTotal, $name = '') {
+  $pdo = db();
+  cleanup_old_rooms($pdo);
+  upsert_user_login($ownerEmail);
+
+  $rounds = max(1, min(50, (int)$roundsTotal));
+  $name = trim((string)$name);
+  if ($name !== '') {
+    $name = mb_substr($name, 0, 80, 'UTF-8');
+  }
+  $guid = room_guid();
+
+  $stmt = $pdo->prepare("
+    INSERT INTO rooms (guid, name, owner_email, rounds_total, created_at)
+    VALUES (:guid, :name, :owner, :rounds, :created_at)
+  ");
+  $stmt->execute([
+    ':guid' => $guid,
+    ':name' => ($name !== '' ? $name : null),
+    ':owner' => $ownerEmail,
+    ':rounds' => $rounds,
+    ':created_at' => now_utc_mysql(),
+  ]);
+  $roomId = (int)$pdo->lastInsertId();
+
+  $stmtP = $pdo->prepare("
+    INSERT INTO room_players (room_id, email, joined_at, status, last_active)
+    VALUES (:room_id, :email, :joined_at, 'active', :last_active)
+  ");
+  $stmtP->execute([
+    ':room_id' => $roomId,
+    ':email' => $ownerEmail,
+    ':joined_at' => now_utc_mysql(),
+    ':last_active' => now_utc_mysql(),
+  ]);
+
+  return ['id' => $roomId, 'guid' => $guid];
+}
+
+function get_room_by_guid($guid) {
+  $pdo = db();
+  $stmt = $pdo->prepare("SELECT * FROM rooms WHERE guid = :g LIMIT 1");
+  $stmt->execute([':g' => $guid]);
+  return $stmt->fetch() ?: null;
+}
+
+function list_user_rooms($email, $limit = 100) {
+  $pdo = db();
+  cleanup_old_rooms($pdo);
+  $stmt = $pdo->prepare("
+    SELECT r.*
+    FROM rooms r
+    JOIN room_players p ON p.room_id = r.id
+    WHERE p.email = :email
+    ORDER BY r.id DESC
+    LIMIT :lim
+  ");
+  $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+  $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+  $stmt->execute();
+  return $stmt->fetchAll() ?: [];
+}
+
+function list_room_players($roomId) {
+  $pdo = db();
+  $stmt = $pdo->prepare("
+    SELECT email, status, eliminated_round, score, correct, joined_at
+    FROM room_players
+    WHERE room_id = :rid
+    ORDER BY score DESC, correct DESC, joined_at ASC
+  ");
+  $stmt->execute([':rid' => $roomId]);
+  return $stmt->fetchAll() ?: [];
+}
+
+function add_room_player($roomId, $email) {
+  $pdo = db();
+  upsert_user_login($email);
+
+  $room = $pdo->prepare("SELECT max_players FROM rooms WHERE id = :id");
+  $room->execute([':id' => $roomId]);
+  $maxPlayers = (int)($room->fetchColumn() ?: 25);
+
+  $countStmt = $pdo->prepare("SELECT COUNT(*) FROM room_players WHERE room_id = :rid");
+  $countStmt->execute([':rid' => $roomId]);
+  $count = (int)$countStmt->fetchColumn();
+  if ($count >= $maxPlayers) return false;
+
+  $stmt = $pdo->prepare("
+    INSERT INTO room_players (room_id, email, joined_at, status, last_active)
+    VALUES (:room_id, :email, :joined_at, 'active', :last_active)
+    ON DUPLICATE KEY UPDATE last_active = VALUES(last_active)
+  ");
+  $stmt->execute([
+    ':room_id' => $roomId,
+    ':email' => $email,
+    ':joined_at' => now_utc_mysql(),
+    ':last_active' => now_utc_mysql(),
+  ]);
+  return true;
+}
+
+function set_room_started($roomId) {
+  $pdo = db();
+  $stmt = $pdo->prepare("UPDATE rooms SET status='active', started_at=:t WHERE id=:id AND status='waiting'");
+  $stmt->execute([':t' => now_utc_mysql(), ':id' => $roomId]);
+  return $stmt->rowCount() > 0;
+}
+
+function set_room_finished($roomId) {
+  $pdo = db();
+  $stmt = $pdo->prepare("UPDATE rooms SET status='finished', finished_at=:t WHERE id=:id");
+  $stmt->execute([':t' => now_utc_mysql(), ':id' => $roomId]);
+}
+
+function grid_count_for_round($roundIndex, $roundsTotal) {
+  $lvl = max(1, (int)$roundIndex);
+  if ($lvl <= 20) return 9;
+  if ($lvl <= 40) return 16;
+  return 25;
+}
+
+function room_timing_for_round($roundIndex) {
+  $lvl = max(1, (int)$roundIndex);
+  $countdownMs = 3000;
+  $answerMs = 5000;
+  if ($lvl === 21 || $lvl === 41) {
+    $showMs = 5000;
+  } else {
+    $showMs = (int)floor(3000 * pow(0.9, $lvl - 1));
+    if ($showMs < 250) $showMs = 250;
+  }
+  return ['countdown_ms' => $countdownMs, 'show_ms' => $showMs, 'answer_ms' => $answerMs];
+}
+
+function room_generate_question($roundIndex, $roundsTotal) {
+  $palette = [
+    "#000000","#FFFFFF","#FF0000","#00FF00","#0000FF","#FFFF00","#00FFFF","#FF00FF",
+    "#FFA500","#800080","#00FF7F","#1E90FF","#DC143C","#FFD700","#8A2BE2","#00CED1",
+    "#FF1493","#7FFF00","#FF8C00","#20B2AA","#ADFF2F","#FF69B4","#40E0D0","#B22222","#6A5ACD"
+  ];
+  $count = grid_count_for_round($roundIndex, $roundsTotal);
+  shuffle($palette);
+  $grid = array_slice($palette, 0, $count);
+  $target = $grid[array_rand($grid)];
+  return ['target' => $target, 'grid' => $grid, 'gridCount' => $count];
+}
+
+function room_create_round($roomId, $roundIndex, $roundsTotal) {
+  $pdo = db();
+  $question = room_generate_question($roundIndex, $roundsTotal);
+  $stmt = $pdo->prepare("
+    INSERT INTO room_rounds (room_id, round_index, question_json, started_at)
+    VALUES (:room_id, :round_index, :question_json, :started_at)
+  ");
+  $stmt->execute([
+    ':room_id' => $roomId,
+    ':round_index' => $roundIndex,
+    ':question_json' => json_encode($question, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+    ':started_at' => now_utc_mysql(),
+  ]);
+  $pdo->prepare("UPDATE rooms SET current_round = :r WHERE id = :id")->execute([':r'=>$roundIndex, ':id'=>$roomId]);
+  return $question;
+}
+
+function room_round_question($roomId, $roundIndex) {
+  $pdo = db();
+  $stmt = $pdo->prepare("SELECT question_json FROM room_rounds WHERE room_id=:rid AND round_index=:r LIMIT 1");
+  $stmt->execute([':rid'=>$roomId, ':r'=>$roundIndex]);
+  $row = $stmt->fetchColumn();
+  return $row ? json_decode($row, true) : null;
+}
+
+function room_end_round($roomId, $roundIndex) {
+  $pdo = db();
+  $stmt = $pdo->prepare("UPDATE room_rounds SET ended_at=:t WHERE room_id=:rid AND round_index=:r");
+  $stmt->execute([':t'=>now_utc_mysql(), ':rid'=>$roomId, ':r'=>$roundIndex]);
+}
+
+function room_log_event($roomId, $roundIndex, $email, $type, $payload) {
+  $pdo = db();
+  $stmt = $pdo->prepare("
+    INSERT INTO room_events (room_id, round_index, email, event_type, payload_json, created_at)
+    VALUES (:room_id, :round_index, :email, :event_type, :payload_json, :created_at)
+  ");
+  $stmt->execute([
+    ':room_id'=>$roomId,
+    ':round_index'=>$roundIndex,
+    ':email'=>$email,
+    ':event_type'=>$type,
+    ':payload_json'=>json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+    ':created_at'=>now_utc_mysql(),
+  ]);
+}
+
+function room_mark_eliminated($roomId, $email, $roundIndex) {
+  $pdo = db();
+  $stmt = $pdo->prepare("
+    UPDATE room_players
+    SET status='eliminated', eliminated_round=:r
+    WHERE room_id=:rid AND email=:email
+  ");
+  $stmt->execute([':r'=>$roundIndex, ':rid'=>$roomId, ':email'=>$email]);
+}
+
+function room_add_score($roomId, $email, $scoreDelta, $correctDelta) {
+  $pdo = db();
+  $stmt = $pdo->prepare("
+    UPDATE room_players
+    SET score = score + :score, correct = correct + :correct, last_active=:t
+    WHERE room_id=:rid AND email=:email
+  ");
+  $stmt->execute([
+    ':score'=> (int)$scoreDelta,
+    ':correct'=> (int)$correctDelta,
+    ':t'=> now_utc_mysql(),
+    ':rid'=> $roomId,
+    ':email'=> $email,
+  ]);
 }
 

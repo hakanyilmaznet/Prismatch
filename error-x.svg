@@ -1,0 +1,39 @@
+<svg class="error-x-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="150" height="150">
+  <style>
+    /* Çarpı işaretinin çizgileri */
+    .x-path {
+      fill: none;
+      stroke: #F44336; /* Hata Kırmızısı */
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 100; /* Çizgi uzunluğu kadar */
+      stroke-dashoffset: 100; /* Başlangıçta gizli */
+      transform-origin: center;
+    }
+
+    /* İlk çizginin animasyonu */
+    .line1 {
+      animation: drawLine 0.3s ease-out forwards, shakeX 0.4s 0.6s ease-in-out;
+    }
+
+    /* İkinci çizginin animasyonu (biraz gecikmeli) */
+    .line2 {
+      animation: drawLine 0.3s 0.3s ease-out forwards, shakeX 0.4s 0.6s ease-in-out;
+    }
+
+    /* Çizme efekti */
+    @keyframes drawLine {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Sonundaki titreme efekti */
+    @keyframes shakeX {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+  </style>
+  
+  <line class="x-path line1" x1="25" y1="25" x2="75" y2="75"/>
+  <line class="x-path line2" x1="75" y1="25" x2="25" y2="75"/>
+</svg>

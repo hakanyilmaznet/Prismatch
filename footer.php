@@ -83,3 +83,20 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
   window.addEventListener('resize', setOffset, {passive:true});
 })();
 </script>
+<?php if (function_exists('pm_debug_enabled') && pm_debug_enabled() && function_exists('pm_should_output_debug') && pm_should_output_debug()): ?>
+  <?php $GLOBALS['PM_DEBUG_LOGGED'] = true; ?>
+  <script>
+  (function(){
+    try{
+      var errs = window.__pmDebugErrors || <?=
+        json_encode($GLOBALS['PM_DEBUG_ERRORS'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+      ?>;
+      if (Array.isArray(errs) && errs.length){
+        errs.forEach(function(e){
+          console.error('[PHP]', e.message, '@', e.file + ':' + e.line, '(type ' + e.type + ')');
+        });
+      }
+    }catch(_){}
+  })();
+  </script>
+<?php endif; ?>

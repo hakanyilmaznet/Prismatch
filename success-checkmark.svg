@@ -1,0 +1,45 @@
+<svg class="success-checkmark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="150" height="150">
+  <style>
+    /* Dairenin çizilme efekti */
+    .circle-path {
+      fill: none;
+      stroke: #4CAF50; /* Başarı Yeşili */
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 283; /* 2 * pi * r (r=45) */
+      stroke-dashoffset: 283;
+      animation: drawCircle 0.6s ease-in-out forwards;
+      transform-origin: center;
+    }
+
+    /* Onay işaretinin çizilme efekti */
+    .check-path {
+      fill: none;
+      stroke: #4CAF50;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 60;
+      stroke-dashoffset: 60;
+      animation: drawCheck 0.4s 0.4s ease-in-out forwards, bounceCheck 0.3s 0.8s ease-in-out;
+    }
+
+    @keyframes drawCircle {
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Sonundaki küçük titreme efekti */
+    @keyframes bounceCheck {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+  </style>
+
+  <circle class="circle-path" cx="50" cy="50" r="45"/>
+  <path class="check-path" d="M28 52 L45 68 L72 35"/>
+</svg>
