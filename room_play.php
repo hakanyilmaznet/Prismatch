@@ -30,6 +30,9 @@ $guid = trim((string)($_GET['guid'] ?? ''));
 $seoTitle = tt('room_play_title', 'Room Match');
 $seoDescription = tt('room_play_desc', 'Compete live in a room.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
+$dict = translations();
+$rightAnswerMessages = $dict[$lang]['right_answer_messages'] ?? ($dict['en']['right_answer_messages'] ?? []);
+$wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wrong_answer_messages'] ?? []);
 ?>
 <!doctype html>
 <html lang="<?= htmlspecialchars($lang) ?>" dir="<?= htmlspecialchars($dir) ?>">
@@ -295,6 +298,94 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       transform: translateX(-50%) translateY(2px);
     }
 
+    .answerOverlay{
+      position:fixed;
+      inset:0;
+      background: radial-gradient(circle at top, rgba(61,214,160,0.15), transparent 45%), rgba(8,16,23,0.7);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 20px;
+      z-index: 32000;
+      backdrop-filter: blur(10px);
+    }
+    .answerOverlay[hidden]{ display:none; }
+    .answerCard{
+      width: min(520px, 92vw);
+      border-radius: 28px;
+      padding: 24px 22px;
+      text-align:center;
+      border: 1px solid rgba(255,255,255,0.2);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(255,255,255,0.16), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      box-shadow: 0 32px 80px rgba(0,0,0,0.55);
+      position:relative;
+      overflow:hidden;
+    }
+    .answerCard.success{
+      border-color: rgba(46, 204, 113, 0.6);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(46, 204, 113, 0.18), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    }
+    .answerCard.error{
+      border-color: rgba(255,77,77,0.7);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(255,77,77,0.18), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    }
+    .answerCard::after{
+      content:"";
+      position:absolute;
+      inset:-40% -20% auto auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255,208,138,0.35), transparent 70%);
+      opacity: 0.9;
+      pointer-events:none;
+    }
+    .answerIconWrap{
+      width: 120px;
+      height: 120px;
+      border-radius: 32px;
+      margin: 0 auto 14px auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 16px 36px rgba(0,0,0,0.35);
+    }
+    .answerIcon{
+      width: 78px;
+      height: 78px;
+      animation: popIn 320ms ease;
+    }
+    .answerMessage{
+      font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif;
+      font-size: clamp(18px, 3.8vw, 22px);
+      font-weight: 700;
+      line-height: 1.4;
+      margin: 6px 0 2px 0;
+    }
+    .answerSub{
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0;
+    }
+    .answerCard.success .answerIcon{ animation: popIn 320ms ease, floaty 4s ease-in-out infinite; }
+    .answerCard.error .answerIcon{ animation: popIn 320ms ease, shake 420ms ease; }
+    @keyframes popIn{ from{ transform: scale(0.75); opacity:0; } to{ transform: scale(1); opacity:1; } }
+    @keyframes shake{
+      0%,100%{ transform: translateX(0); }
+      20%{ transform: translateX(-6px); }
+      40%{ transform: translateX(6px); }
+      60%{ transform: translateX(-4px); }
+      80%{ transform: translateX(4px); }
+    }
+
     .footer{
       display:flex;
       gap: 10px;
@@ -459,6 +550,16 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   </div>
 </div>
 
+<div class="answerOverlay" id="answerOverlay" hidden role="dialog" aria-modal="true" aria-live="polite">
+  <div class="answerCard" id="answerCard">
+    <div class="answerIconWrap">
+      <img class="answerIcon" id="answerIcon" src="success-checkmark.svg" alt="" aria-hidden="true" />
+    </div>
+    <div class="answerMessage" id="answerText"></div>
+    <p class="answerSub"><?= htmlspecialchars(tt('badge_answer', 'Pick the match!')) ?></p>
+  </div>
+</div>
+
 <?php include __DIR__ . '/footer.php'; ?>
 
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
@@ -485,6 +586,8 @@ const STR = {
   questionTitle: <?= json_encode(tt('question_pick_target', 'Which color was shown? Pick the target.')) ?>,
   questionHint: <?= json_encode(tt('question_hint', 'Use Tab/Shift+Tab and Enter/Space to pick.')) ?>,
   a11yColorOption: <?= json_encode(tt('a11y_color_option', 'Color option {n}')) ?>,
+  rightMessages: <?= json_encode($rightAnswerMessages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+  wrongMessages: <?= json_encode($wrongAnswerMessages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
   statusReady: <?= json_encode(tt('status_ready', 'Ready.')) ?>,
   statusFinished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
   waiting: <?= json_encode(tt('room_waiting', 'Waiting for host...')) ?>,
@@ -566,6 +669,49 @@ function toast(msg, autoHideMs = 1100){
   setSafeTimeout(() => elToast.classList.remove("show"), autoHideMs);
 }
 function toastQuick(msg){ toast(msg, 1100); }
+
+const RIGHT_MESSAGES = Array.isArray(STR.rightMessages) ? STR.rightMessages : [];
+const WRONG_MESSAGES = Array.isArray(STR.wrongMessages) ? STR.wrongMessages : [];
+const answerOverlay = document.getElementById('answerOverlay');
+const answerCard = document.getElementById('answerCard');
+const answerIcon = document.getElementById('answerIcon');
+const answerText = document.getElementById('answerText');
+let answerPopupTimer = null;
+let answerPopupResolve = null;
+let answerPopupPromise = Promise.resolve();
+
+function pickRandomMessage(list){
+  if (!list || !list.length) return '';
+  const idx = Math.floor(Math.random() * list.length);
+  return list[idx] || '';
+}
+
+function showAnswerPopup(type){
+  if (!answerOverlay || !answerCard || !answerIcon || !answerText) return Promise.resolve();
+  if (answerPopupTimer) clearTimeout(answerPopupTimer);
+  if (answerPopupResolve) {
+    answerPopupResolve();
+    answerPopupResolve = null;
+  }
+
+  const isRight = type === 'right';
+  const msg = pickRandomMessage(isRight ? RIGHT_MESSAGES : WRONG_MESSAGES) || (isRight ? STR.toastCorrect : STR.toastWrong);
+  answerText.textContent = msg;
+  answerIcon.src = isRight ? 'success-checkmark.svg' : 'error-x.svg';
+  answerCard.classList.toggle('success', isRight);
+  answerCard.classList.toggle('error', !isRight);
+  answerOverlay.hidden = false;
+
+  answerPopupPromise = new Promise((resolve) => {
+    answerPopupResolve = resolve;
+    answerPopupTimer = setTimeout(() => {
+      answerOverlay.hidden = true;
+      answerPopupResolve && answerPopupResolve();
+      answerPopupResolve = null;
+    }, 3000);
+  });
+  return answerPopupPromise;
+}
 
 function render(node){
   elCenter.innerHTML = "";
@@ -747,7 +893,7 @@ async function submitAnswer(picked, timeout = false){
   });
 }
 
-function onPick(btn, buttons){
+async function onPick(btn, buttons){
   if (state.phase !== "question" || state.isLocked || state.eliminated) return;
   state.isLocked = true;
   lockButtons(buttons, true);
@@ -757,29 +903,28 @@ function onPick(btn, buttons){
 
   if (isCorrect){
     btn.classList.add("correct");
-    toastQuick(STR.toastCorrect);
     setBadge(STR.badgeCorrect);
     state.correct += 1;
     state.lastAnswerCorrect = true;
   } else {
     btn.classList.add("wrong");
-    toastQuick(STR.toastWrong);
     setBadge(STR.badgeWrong);
     state.eliminated = true;
     state.lastAnswerCorrect = false;
   }
   submitAnswer(picked, false).catch(() => {});
+  await showAnswerPopup(isCorrect ? 'right' : 'wrong');
 }
 
-function onTimeUp(buttons){
+async function onTimeUp(buttons){
   if (state.phase !== "question" || state.isLocked || state.eliminated) return;
   state.isLocked = true;
   lockButtons(buttons, true);
-  toastQuick(STR.toastTimeUp);
   setBadge(STR.badgeTimeUp);
   state.eliminated = true;
   state.lastAnswerCorrect = false;
   submitAnswer('', true).catch(() => {});
+  await showAnswerPopup('wrong');
 }
 
 function renderLeaderboard(players){
@@ -865,7 +1010,7 @@ channel.bind('pusher:subscription_succeeded', () => {
   setBadge(STR.statusReady);
 });
 
-channel.bind('room:round', (data) => {
+channel.bind('room:round', async (data) => {
   state.answered = false;
   state.lastAnswerCorrect = null;
   state.round = data.round;
@@ -876,6 +1021,7 @@ channel.bind('room:round', (data) => {
   state.answerMs = data.answer_ms || 5000;
   state.countdownMs = data.countdown_ms || 3000;
   updateHUD(state.answerMs);
+  await answerPopupPromise;
   runCountdown();
 });
 

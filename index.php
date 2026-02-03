@@ -250,10 +250,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 <body>
   <div class="page">
     <?php include __DIR__ . '/header.php'; ?>
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
         <section class="hero reveal" style="animation-delay:.04s">
       <div>
         <span class="eyebrow"><?= htmlspecialchars(tt('home_showcase_badge', 'Mini eğitim • 3 adım')) ?></span>

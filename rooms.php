@@ -121,6 +121,9 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     <div class="cardx">
       <h2 class="h6"><?= htmlspecialchars(tt('rooms_join', 'Join room')) ?></h2>
       <div class="muted"><?= htmlspecialchars(tt('rooms_join_hint', 'Join by opening the room link.')) ?></div>
+      <a class="btn btn-outline-primary mt-3" id="openRoomBtn" href="#" hidden>
+        <?= htmlspecialchars(tt('rooms_open', 'Open')) ?>
+      </a>
     </div>
   </div>
 
@@ -173,6 +176,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   const shareLink = document.getElementById('shareLink');
   const copyLinkBtn = document.getElementById('copyLinkBtn');
   const shareMsg = document.getElementById('shareMsg');
+  const openRoomBtn = document.getElementById('openRoomBtn');
   const STR = {
     shareCopied: <?= json_encode(tt('rooms_share_copied', 'Link copied.')) ?>,
     shareFailed: <?= json_encode(tt('rooms_share_failed', 'Copy failed.')) ?>,
@@ -195,6 +199,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       const data = await res.json();
       if (data.ok && data.guid) {
         const url = 'room_play.php?guid=' + encodeURIComponent(data.guid);
+        if (openRoomBtn) {
+          openRoomBtn.hidden = false;
+          openRoomBtn.href = url;
+        }
         if (shareWrap && shareLink) {
           shareWrap.hidden = false;
           shareLink.value = new URL(url, window.location.href).toString();
