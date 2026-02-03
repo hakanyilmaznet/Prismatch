@@ -79,6 +79,11 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
     .grid{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
     .muted{ opacity:.7; }
+    .form-msg{
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
   </style>
 </head>
 <body>
@@ -107,14 +112,14 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         </select>
         <button class="btn btn-primary" id="createRoomBtn"><?= htmlspecialchars(tt('rooms_create_btn', 'Create')) ?></button>
       </div>
-      <div id="createMsg" class="small muted"></div>
+      <div id="createMsg" class="form-msg"></div>
       <div id="shareWrap" class="mt-3" hidden>
         <div class="small muted mb-2"><?= htmlspecialchars(tt('rooms_share_label', 'Share room link')) ?></div>
         <div class="input-group">
           <input type="text" id="shareLink" class="form-control" readonly />
           <button class="btn btn-outline-primary" id="copyLinkBtn"><?= htmlspecialchars(tt('rooms_share_copy', 'Copy link')) ?></button>
         </div>
-        <div id="shareMsg" class="small muted mt-1"></div>
+        <div id="shareMsg" class="form-msg mt-1"></div>
       </div>
     </div>
 
@@ -177,17 +182,25 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   const copyLinkBtn = document.getElementById('copyLinkBtn');
   const shareMsg = document.getElementById('shareMsg');
   const openRoomBtn = document.getElementById('openRoomBtn');
+  const setMsg = (el, text = '', type = '') => {
+    if (!el) return;
+    el.textContent = text || '';
+    el.classList.remove('pm-error', 'pm-success');
+    if (text && type) el.classList.add(`pm-${type}`);
+  };
   const STR = {
     shareCopied: <?= json_encode(tt('rooms_share_copied', 'Link copied.')) ?>,
     shareFailed: <?= json_encode(tt('rooms_share_failed', 'Copy failed.')) ?>,
+    nameRequired: <?= json_encode(tt('rooms_name_required', 'Room name required')) ?>,
+    errorGeneric: <?= json_encode(tt('error_generic', 'Error')) ?>,
   };
   createBtn?.addEventListener('click', async () => {
-    createMsg.textContent = '';
-    shareMsg.textContent = '';
+    setMsg(createMsg);
+    setMsg(shareMsg);
       const rounds = Math.max(1, Math.min(5, parseInt(roundsInput.value || '1', 10)));
       const name = (roomNameInput.value || '').trim();
       if (!name) {
-        createMsg.textContent = <?= json_encode(tt('rooms_name_required', 'Room name required')) ?>;
+        setMsg(createMsg, STR.nameRequired, 'error');
         return;
       }
       try {
@@ -206,15 +219,15 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         if (shareWrap && shareLink) {
           shareWrap.hidden = false;
           shareLink.value = new URL(url, window.location.href).toString();
-          createMsg.textContent = '';
+          setMsg(createMsg);
           return;
         }
         window.location.href = url;
       } else {
-        createMsg.textContent = 'Error';
+        setMsg(createMsg, STR.errorGeneric, 'error');
       }
     } catch(e){
-      createMsg.textContent = 'Error';
+      setMsg(createMsg, STR.errorGeneric, 'error');
     }
   });
 
@@ -222,14 +235,14 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     if (!shareLink || !shareLink.value) return;
     try {
       await navigator.clipboard.writeText(shareLink.value);
-      if (shareMsg) shareMsg.textContent = STR.shareCopied;
+      setMsg(shareMsg, STR.shareCopied, 'success');
     } catch (e) {
       try {
         shareLink.select();
         document.execCommand('copy');
-        if (shareMsg) shareMsg.textContent = STR.shareCopied;
+        setMsg(shareMsg, STR.shareCopied, 'success');
       } catch (err) {
-        if (shareMsg) shareMsg.textContent = STR.shareFailed;
+        setMsg(shareMsg, STR.shareFailed, 'error');
       }
     }
   });

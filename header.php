@@ -68,6 +68,14 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
   .pm-brand .pm-name{ font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; font-size: 19px; font-weight: 700; letter-spacing:.2px; }
   .pm-brand .pm-tag{ color: rgba(30,35,50,0.62); font-size: 12px; }
   [data-bs-theme="dark"] .pm-brand .pm-tag{ color: rgba(230,234,245,0.75); }
+  .pm-error{
+    color: #dc3545 !important;
+    font-weight: 600;
+  }
+  .pm-success{
+    color: #198754 !important;
+    font-weight: 600;
+  }
 
   .pm-nav{ gap:10px; }
   .navbar-toggler{

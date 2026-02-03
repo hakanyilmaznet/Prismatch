@@ -656,7 +656,11 @@ function updateHUD(answerLeftMs = null){
   hudTime.textContent = `${(shown / 1000).toFixed(1)}s`;
 }
 
-function setBadge(text){ elBadge.textContent = text; }
+function setBadge(text, type = ''){
+  elBadge.textContent = text;
+  elBadge.classList.remove('pm-error', 'pm-success');
+  if (type) elBadge.classList.add(`pm-${type}`);
+}
 
 function toast(msg, autoHideMs = 1100){
   if (!msg) {
@@ -973,7 +977,7 @@ async function joinRoom(){
   });
   const data = await res.json();
   if (!data.ok) {
-    setBadge(STR.joinFailed);
+    setBadge(STR.joinFailed, 'error');
     return;
   }
   const room = data.room;
@@ -1046,7 +1050,7 @@ channel.bind('room:finished', () => {
   setBadge(STR.statusFinished);
 });
 
-joinRoom().catch(() => setBadge(STR.joinFailed));
+joinRoom().catch(() => setBadge(STR.joinFailed, 'error'));
 setInterval(() => {
   fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID)).catch(() => {});
 }, 2000);

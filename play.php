@@ -923,7 +923,11 @@ function updateHUD(answerLeftMs = null){
   hudTime.textContent = `${(shown / 1000).toFixed(1)}s`;
 }
 
-function setBadge(text){ elBadge.textContent = text; }
+function setBadge(text, type = ''){
+  elBadge.textContent = text;
+  elBadge.classList.remove('pm-error', 'pm-success');
+  if (type) elBadge.classList.add(`pm-${type}`);
+}
 
 function toast(msg, autoHideMs = 1100){
   if (!msg) {
@@ -1133,7 +1137,7 @@ function lockDaily(message, showModal = false){
   if (btnStart) btnStart.disabled = true;
   if (message){
     try { toastQuick(message); } catch(e) {}
-    setBadge(message);
+    setBadge(message, 'error');
   }
   if (showModal) showDailyCompletedModal(message || tjs('daily_completed', 'You already played today. Come back tomorrow!'));
 }
