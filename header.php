@@ -66,13 +66,38 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
   .pm-brand .pm-tag{ color: rgba(30,35,50,0.62); font-size: 12px; }
   [data-bs-theme="dark"] .pm-brand .pm-tag{ color: rgba(230,234,245,0.75); }
 
-  .pm-nav{
-    display:flex; gap:14px; flex-wrap:nowrap; align-items:center; white-space:nowrap;
-    overflow-x:auto; scrollbar-width: none; width:100%;
+  .pm-nav{ gap:10px; }
+  .pm-nav .nav-link{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    border:1px solid rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.04);
+    color: #101318;
+    font-weight: 600;
+    letter-spacing:.2px;
+    transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+    white-space: nowrap;
+    text-decoration:none;
   }
-  .pm-nav::-webkit-scrollbar{ height:0; }
-  .pm-nav__group{ display:flex; gap:8px; align-items:center; flex-wrap:nowrap; }
-  .pm-nav .pm-btn, .pm-nav .langWrap{ flex:0 0 auto; }
+  .pm-nav .nav-link:hover{ transform: translateY(-1px); border-color: rgba(0,0,0,0.2); box-shadow: 0 10px 20px rgba(10,12,18,0.12); }
+  .pm-nav .nav-link.active{
+    border-color: rgba(20,120,92,0.45);
+    box-shadow: 0 0 0 2px rgba(20,120,92,0.18), 0 10px 20px rgba(10,12,18,0.12);
+  }
+  .pm-nav .nav-link.pm-primary{
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #ff6f52 0%, #ffd08a 100%);
+    border-color: rgba(255,111,82,0.7);
+    color:#101318;
+    box-shadow: 0 18px 36px rgba(255,111,82,0.35), 0 0 0 2px rgba(255,111,82,0.18) inset;
+  }
+  [data-bs-theme="dark"] .pm-nav .nav-link{
+    border-color: rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.08);
+    color: #f6f7fb;
+  }
+  [data-bs-theme="dark"] .pm-nav .nav-link:hover{ border-color: rgba(255,255,255,0.28); box-shadow: 0 12px 24px rgba(0,0,0,0.35); }
   .navbar-toggler{
     border:1px solid rgba(0,0,0,0.1);
     background: rgba(0,0,0,0.04);
@@ -92,45 +117,14 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
   [data-bs-theme="dark"] .navbar-toggler-icon{
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='white' stroke-linecap='round' stroke-width='2' viewBox='0 0 24 24'><path d='M4 7h16'/><path d='M4 12h16'/><path d='M4 17h16'/></svg>");
   }
-  .pm-btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    padding: 9px 14px;
-    border-radius: 999px;
-    border:1px solid rgba(0,0,0,0.1);
-    background: rgba(0,0,0,0.04);
-    color: #101318;
-    font-weight: 600;
-    letter-spacing:.2px;
-    transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
-    white-space: nowrap;
-    text-decoration:none;
-  }
   .bi-icon{
     width:16px;
     height:16px;
     display:inline-block;
     filter: var(--pm-icon-filter);
   }
-  .pm-btn.primary .bi-icon,
+  .pm-nav .nav-link.pm-primary .bi-icon,
   .btn.primary .bi-icon{ filter: none; }
-  .pm-btn:hover{ transform: translateY(-1px); border-color: rgba(0,0,0,0.2); box-shadow: 0 10px 20px rgba(10,12,18,0.12); }
-  .pm-btn.primary{
-    padding: 10px 18px;
-    background: linear-gradient(135deg, #ff6f52 0%, #ffd08a 100%);
-    border-color: rgba(255,111,82,0.7);
-    color:#101318;
-    box-shadow: 0 18px 36px rgba(255,111,82,0.35), 0 0 0 2px rgba(255,111,82,0.18) inset;
-  }
-  .pm-btn.active{
-    border-color: rgba(20,120,92,0.45);
-    box-shadow: 0 0 0 2px rgba(20,120,92,0.18), 0 10px 20px rgba(10,12,18,0.12);
-  }
-  [data-bs-theme="dark"] .pm-btn{
-    border-color: rgba(255,255,255,0.16);
-    background: rgba(255,255,255,0.08);
-    color: #f6f7fb;
-  }
-  [data-bs-theme="dark"] .pm-btn:hover{ border-color: rgba(255,255,255,0.28); box-shadow: 0 12px 24px rgba(0,0,0,0.35); }
   .pm-theme-toggle{ padding: 8px 12px; border-radius: 999px; }
   .pm-theme-toggle svg{ width:16px; height:16px; }
 
@@ -187,17 +181,10 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
   .langNoRes{ padding:12px; color: rgba(15,17,23,.6); font-size:13px; }
   [data-bs-theme="dark"] .langItem{ color:#fff; }
   [data-bs-theme="dark"] .langNoRes{ color: rgba(255,255,255,.72); }
-  @media (min-width: 992px){
-    .pm-nav{ justify-content: space-between; padding-left: 16px; }
-    .pm-nav__group{ gap:10px; }
-  }
   @media (max-width: 991.98px){
     .pm-header{ border-radius: 16px; padding: 10px 12px; }
-    .pm-nav{ flex-direction:column; align-items:stretch; gap:10px; padding: 14px 0 6px; overflow: visible; }
-    .pm-nav__group{ flex-direction:column; align-items:stretch; }
-    .pm-nav__group + .pm-nav__group{ border-top: 1px dashed rgba(0,0,0,0.12); padding-top: 10px; }
-    [data-bs-theme="dark"] .pm-nav__group + .pm-nav__group{ border-top-color: rgba(255,255,255,0.12); }
-    .pm-nav .pm-btn, .pm-theme-toggle, .langWrap, .langBtn{ width:100%; }
+    .pm-nav{ flex-direction:column; align-items:stretch; gap:10px; padding: 14px 0 6px; }
+    .pm-nav .nav-link, .pm-theme-toggle, .langWrap, .langBtn{ width:100%; }
   }
 </style>
 
@@ -211,40 +198,52 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#pmNav" aria-controls="pmNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div class="pm-nav collapse navbar-collapse" id="pmNav">
-    <div class="pm-nav__group">
-      <a class="pm-btn primary<?= $isPlay ? ' active' : '' ?>" href="play.php">
-        <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
-        <?= htmlspecialchars(tt('home_cta_play', 'Play now')) ?>
-      </a>
-      <a class="pm-btn<?= $isDaily ? ' active' : '' ?>" href="play.php?daily=1">
-        <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" />
-        <?= htmlspecialchars(tt('home_cta_daily', 'Daily Challenge')) ?>
-      </a>
-      <a class="pm-btn<?= $isLeaderboard ? ' active' : '' ?>" href="daily_leaderboard.php">
-        <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
-        <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
-      </a>
+  <div class="collapse navbar-collapse" id="pmNav">
+    <ul class="navbar-nav pm-nav me-auto gap-2">
+      <li class="nav-item">
+        <a class="nav-link pm-primary<?= $isPlay ? ' active' : '' ?>" href="play.php">
+          <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('home_cta_play', 'Play now')) ?>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link<?= $isDaily ? ' active' : '' ?>" href="play.php?daily=1">
+          <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('home_cta_daily', 'Daily Challenge')) ?>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link<?= $isLeaderboard ? ' active' : '' ?>" href="daily_leaderboard.php">
+          <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
+        </a>
+      </li>
       <?php if (!empty($userEmail)): ?>
-        <a class="pm-btn<?= $isSessions ? ' active' : '' ?>" href="games.php">
-          <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
-          <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
-        </a>
-        <a class="pm-btn" href="logout.php">
-          <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
-          <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
-        </a>
+        <li class="nav-item">
+          <a class="nav-link<?= $isSessions ? ' active' : '' ?>" href="games.php">
+            <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="logout.php">
+            <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
+          </a>
+        </li>
       <?php else: ?>
-        <a class="pm-btn" href="login.php">
-          <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
-          <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
-        </a>
+        <li class="nav-item">
+          <a class="nav-link" href="login.php">
+            <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
+          </a>
+        </li>
       <?php endif; ?>
-    </div>
+    </ul>
 
-    <div class="pm-nav__group">
+    <div class="d-flex align-items-center gap-2 ms-lg-3">
       <?php if ($currentPage === 'index.php'): ?>
-        <button class="pm-btn pm-theme-toggle" type="button" id="themeToggle"
+        <button class="btn btn-outline-secondary btn-sm pm-theme-toggle" type="button" id="themeToggle"
                 aria-label="<?= htmlspecialchars(tt('theme_toggle', 'Toggle theme')) ?>"
                 data-label-light="<?= htmlspecialchars(tt('theme_light', 'Light')) ?>"
                 data-label-dark="<?= htmlspecialchars(tt('theme_dark', 'Dark')) ?>"
