@@ -627,6 +627,7 @@ const TOAST_HIDE_MS = 500;    // doğru/yanlış 500ms
 
 function targetShowMsForLevel(level){
   const lvl = Math.max(1, Math.min(MAX_LEVEL, level));
+  if (lvl === 21 || lvl === 41) return 5000;
   const ms = Math.floor(START_TARGET_SHOW_MS * Math.pow(SHOW_DECAY_FACTOR, lvl - 1));
   return Math.max(MIN_TARGET_SHOW_MS, ms);
 }
