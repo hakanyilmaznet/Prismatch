@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/i18n.php';
 
@@ -253,44 +253,44 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 
         <section class="hero reveal" style="animation-delay:.04s">
       <div>
-        <span class="eyebrow"><?= htmlspecialchars(tt('home_showcase_badge', 'Mini e?itim ? 3 ad?m')) ?></span>
-        <h1><?= htmlspecialchars(tt('home_hero_title', 'Renkleri hat?rla, do?ru tonu yakala.')) ?></h1>
-        <p><?= htmlspecialchars(tt('home_hero_subtitle', 'Prismatch, h?zla de?i?en renkleri k?sa s?reli haf?zanda tutman? ister. Her turda s?re k?sal?r, grid yo?unla??r ve tek bir do?ru renk seni bir sonraki a?amaya ta??r.')) ?></p>
-        <p class="lead"><?= htmlspecialchars(tt('home_creative', 'Renklerin haf?zada ?iir gibi kald??? bir ritme gir: ?pucu kaybolur, zihnin tonu yakalar. Her do?ru se?im, bir sonraki sahneyi a?ar.')) ?></p>
+        <span class="eyebrow"><?= htmlspecialchars(tt('home_showcase_badge', 'Mini eğitim • 3 adım')) ?></span>
+        <h1><?= htmlspecialchars(tt('home_hero_title', 'Renkleri hatırla, doğru tonu yakala.')) ?></h1>
+        <p><?= htmlspecialchars(tt('home_hero_subtitle', 'Prismatch, hızla değişen renkleri kısa süreli hafızanda tutmanı ister. Her turda süre kısalır, grid yoğunlaşır ve tek bir doğru renk seni bir sonraki aşamaya taşır.')) ?></p>
+        <p class="lead"><?= htmlspecialchars(tt('home_creative', 'Renklerin hafızada şiir gibi kaldığı bir ritme gir: İpucu kaybolur, zihnin tonu yakalar. Her doğru seçim, bir sonraki sahneyi açar.')) ?></p>
         <div class="cta">
           <a class="btn primary" href="play.php"><?= htmlspecialchars(tt('home_cta_play', 'Hemen oyna')) ?></a>
-          <a class="btn" href="play.php?daily=1"><?= htmlspecialchars(tt('home_cta_daily', 'G?nl?k Meydan Okuma')) ?></a>
+          <a class="btn" href="play.php?daily=1"><?= htmlspecialchars(tt('home_cta_daily', 'Günlük Meydan Okuma')) ?></a>
           <a class="btn" href="daily_leaderboard.php"><?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?></a>
         </div>
         <div class="quick">
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin a?an k?sa turlar')) ?></span>
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_2_title', 'G?nl?k meydan okuma')) ?></span>
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_3_title', '?ok dil ve istatistik')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin açan kısa turlar')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_2_title', 'Günlük meydan okuma')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_3_title', 'Çok dil ve istatistik')) ?></span>
         </div>
       </div>
       <div class="showcase">
-        <strong><?= htmlspecialchars(tt('home_showcase_title', 'Bir tur nas?l i?ler?')) ?></strong>
-        <div><?= htmlspecialchars(tt('home_showcase_body', 'Hedef rengi g?r, haf?zanda tut ve 5 saniye i?inde gridde bul.')) ?></div>
+        <strong><?= htmlspecialchars(tt('home_showcase_title', 'Bir tur nasıl işler?')) ?></strong>
+        <div><?= htmlspecialchars(tt('home_showcase_body', 'Hedef rengi gör, hafızanda tut ve 5 saniye içinde gridde bul.')) ?></div>
         <div class="steps" style="margin-top:8px">
           <div class="step">
             <div class="num">1</div>
             <div>
               <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_1_title', 'Hedef rengi izle')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_1_body', 'Ekranda k?sa s?re g?sterilen rengi dikkatle akl?nda tut.')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_1_body', 'Ekranda kısa süre gösterilen rengi dikkatle aklında tut.')) ?></div>
             </div>
           </div>
           <div class="step">
             <div class="num">2</div>
             <div>
-              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_2_title', 'Gridde do?ru rengi se?')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_2_body', 'Zaman bitmeden, hat?rlad???n rengi 9 se?enek aras?nda bul.')) ?></div>
+              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_2_title', 'Gridde doğru rengi seç')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_2_body', 'Zaman bitmeden, hatırladığın rengi 9 seçenek arasında bul.')) ?></div>
             </div>
           </div>
           <div class="step">
             <div class="num">3</div>
             <div>
-              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_3_title', 'A?amalar? ge?, skoru y?kselt')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_3_body', 'Her do?ru e?le?me seni bir ?st a?amaya ta??r.')) ?></div>
+              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_3_title', 'Aşamaları geç, skoru yükselt')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_3_body', 'Her doğru eşleşme seni bir üst aşamaya taşır.')) ?></div>
             </div>
           </div>
         </div>
@@ -298,53 +298,53 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     </section>
 
     <section class="reveal" style="animation-delay:.1s">
-      <div class="section-title"><?= htmlspecialchars(tt('home_intro_title', 'Proje ne sa?l?yor?')) ?></div>
+      <div class="section-title"><?= htmlspecialchars(tt('home_intro_title', 'Proje ne sağlıyor?')) ?></div>
       <div class="grid cols-2">
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_intro_headline', 'H?zl? odak & haf?za egzersizi')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_intro_body', 'K?sa s?reli hat?rlama ve dikkat kontrol?n? ?l?en mikro turlar, g?n i?inde pratik yapmak i?in ideal.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_intro_headline', 'Hızlı odak & hafıza egzersizi')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_intro_body', 'Kısa süreli hatırlama ve dikkat kontrolünü ölçen mikro turlar, gün içinde pratik yapmak için ideal.')) ?></p>
         </div>
         <div class="card">
           <h3><?= htmlspecialchars(tt('home_intro_headline2', 'Geri bildirim ve ilerleme')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_intro_body2', 'A?ama, do?ru e?le?me ve s?re kay?tlar?yla geli?imini takip edebilir, g?nl?k hedef koyabilirsin.')) ?></p>
+          <p><?= htmlspecialchars(tt('home_intro_body2', 'Aşama, doğru eşleşme ve süre kayıtlarıyla gelişimini takip edebilir, günlük hedef koyabilirsin.')) ?></p>
         </div>
       </div>
     </section>
 
     <section class="reveal" style="animation-delay:.16s">
-      <div class="section-title"><?= htmlspecialchars(tt('home_benefits_title', '?ne ??kan faydalar')) ?></div>
+      <div class="section-title"><?= htmlspecialchars(tt('home_benefits_title', 'Öne çıkan faydalar')) ?></div>
       <div class="grid cols-3">
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin a?an k?sa turlar')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_1_body', 'Her tur birka? saniye s?rer; k?sa molalarda bile kolayca oynan?r.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin açan kısa turlar')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_1_body', 'Her tur birkaç saniye sürer; kısa molalarda bile kolayca oynanır.')) ?></p>
         </div>
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_2_title', 'G?nl?k meydan okuma')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_2_body', 'Her g?n tek deneme hakk?yla odak ve s?re y?netimini geli?tirir.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_2_title', 'Günlük meydan okuma')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_2_body', 'Her gün tek deneme hakkıyla odak ve süre yönetimini geliştirir.')) ?></p>
         </div>
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_3_title', '?ok dil ve istatistik')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_3_body', 'Farkl? dillerde oynar, performans?n? kay?t alt?na al?rs?n.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_3_title', 'Çok dil ve istatistik')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_3_body', 'Farklı dillerde oynar, performansını kayıt altına alırsın.')) ?></p>
         </div>
       </div>
     </section>
 
     <section class="reveal" style="animation-delay:.22s">
-      <div class="section-title"><?= htmlspecialchars(tt('home_score_title', 'Puanlama Algoritmas?')) ?></div>
+      <div class="section-title"><?= htmlspecialchars(tt('home_score_title', 'Scoring algorithm')) ?></div>
       <div class="score-grid">
         <div class="score-card">
-          <strong><?= htmlspecialchars(tt('home_score_rule_1', 'Seviye etkisi (70%)')) ?></strong>
-          <p><?= htmlspecialchars(tt('home_score_rule_1_body', 'Ula??t???n seviye ne kadar y?ksekse puan?n o kadar b?y?r.')) ?></p>
+          <strong><?= htmlspecialchars(tt('home_score_rule_1', 'Level impact (70%)')) ?></strong>
+          <p><?= htmlspecialchars(tt('home_score_rule_1_body', 'The higher the stage you reach, the higher your score.')) ?></p>
           <code>levelFactor = reachedLevel / 25</code>
         </div>
         <div class="score-card">
-          <strong><?= htmlspecialchars(tt('home_score_rule_2', 'H?z etkisi (30%)')) ?></strong>
-          <p><?= htmlspecialchars(tt('home_score_rule_2_body', 'Do?ru cevaplarda hedef g?sterim s?resi / tepki s?resi oran? ?l??l?r.')) ?></p>
+          <strong><?= htmlspecialchars(tt('home_score_rule_2', 'Speed impact (30%)')) ?></strong>
+          <p><?= htmlspecialchars(tt('home_score_rule_2_body', 'For correct answers, we use target show time / response time ratio.')) ?></p>
           <code>timeFactor = min(1, avgRatio / 1.5)</code>
         </div>
         <div class="score-card">
-          <strong><?= htmlspecialchars(tt('home_score_rule_3', 'Son form?l')) ?></strong>
-          <p><?= htmlspecialchars(tt('home_score_rule_3_body', 'Seviye ve h?z bile?imleri 0-1000 aral???na ?l?eklenir.')) ?></p>
+          <strong><?= htmlspecialchars(tt('home_score_rule_3', 'Final formula')) ?></strong>
+          <p><?= htmlspecialchars(tt('home_score_rule_3_body', 'Level and speed are scaled to a 0–1000 score.')) ?></p>
           <code>score = round(1000 * (0.7*levelFactor + 0.3*timeFactor))</code>
         </div>
       </div>
