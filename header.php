@@ -10,7 +10,7 @@ if (!function_exists('tt')) {
   }
 }
 
-$showLangPicker = isset($showLangPicker) ? (bool)$showLangPicker : false;
+$showLangPicker = isset($showLangPicker) ? (bool)$showLangPicker : true;
 if (!isset($userEmail)) {
   $userEmail = $_SESSION['user_email'] ?? null;
 }
@@ -39,6 +39,8 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
   }
+  .pm-header .navbar-collapse{ width:100%; }
+  .pm-header .navbar-nav{ width:100%; }
   [data-bs-theme="dark"] .pm-header{
     background: linear-gradient(180deg, rgba(10,12,18,0.94), rgba(10,12,18,0.82));
     border-color: rgba(255,255,255,0.10);
@@ -57,47 +59,16 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
   [data-bs-theme="dark"] .pm-header::after{ box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); opacity:.5; }
   .pm-brand{ display:flex; align-items:center; gap:12px; min-width:0; text-decoration:none; color: inherit; }
   .pm-brand img{
-    width:42px; height:42px; border-radius: 12px;
+    width:50px; height:50px; border-radius: 14px;
     border:1px solid rgba(0,0,0,0.1);
     box-shadow: 0 10px 24px rgba(10,12,18,0.18);
   }
   [data-bs-theme="dark"] .pm-brand img{ border-color: rgba(255,255,255,0.14); box-shadow: 0 12px 30px rgba(0,0,0,0.45); }
-  .pm-brand .pm-name{ font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; font-size: 18px; font-weight: 700; letter-spacing:.2px; }
+  .pm-brand .pm-name{ font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; font-size: 19px; font-weight: 700; letter-spacing:.2px; }
   .pm-brand .pm-tag{ color: rgba(30,35,50,0.62); font-size: 12px; }
   [data-bs-theme="dark"] .pm-brand .pm-tag{ color: rgba(230,234,245,0.75); }
 
   .pm-nav{ gap:10px; }
-  .pm-nav .nav-link{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    padding: 9px 14px;
-    border-radius: 999px;
-    border:1px solid rgba(0,0,0,0.1);
-    background: rgba(0,0,0,0.04);
-    color: #101318;
-    font-weight: 600;
-    letter-spacing:.2px;
-    transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
-    white-space: nowrap;
-    text-decoration:none;
-  }
-  .pm-nav .nav-link:hover{ transform: translateY(-1px); border-color: rgba(0,0,0,0.2); box-shadow: 0 10px 20px rgba(10,12,18,0.12); }
-  .pm-nav .nav-link.active{
-    border-color: rgba(20,120,92,0.45);
-    box-shadow: 0 0 0 2px rgba(20,120,92,0.18), 0 10px 20px rgba(10,12,18,0.12);
-  }
-  .pm-nav .nav-link.pm-primary{
-    padding: 10px 18px;
-    background: linear-gradient(135deg, #ff6f52 0%, #ffd08a 100%);
-    border-color: rgba(255,111,82,0.7);
-    color:#101318;
-    box-shadow: 0 18px 36px rgba(255,111,82,0.35), 0 0 0 2px rgba(255,111,82,0.18) inset;
-  }
-  [data-bs-theme="dark"] .pm-nav .nav-link{
-    border-color: rgba(255,255,255,0.16);
-    background: rgba(255,255,255,0.08);
-    color: #f6f7fb;
-  }
-  [data-bs-theme="dark"] .pm-nav .nav-link:hover{ border-color: rgba(255,255,255,0.28); box-shadow: 0 12px 24px rgba(0,0,0,0.35); }
   .navbar-toggler{
     border:1px solid rgba(0,0,0,0.1);
     background: rgba(0,0,0,0.04);
@@ -123,7 +94,6 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
     display:inline-block;
     filter: var(--pm-icon-filter);
   }
-  .pm-nav .nav-link.pm-primary .bi-icon,
   .btn.primary .bi-icon{ filter: none; }
   .pm-theme-toggle{ padding: 8px 12px; border-radius: 999px; }
   .pm-theme-toggle svg{ width:16px; height:16px; }
@@ -183,8 +153,14 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
   [data-bs-theme="dark"] .langNoRes{ color: rgba(255,255,255,.72); }
   @media (max-width: 991.98px){
     .pm-header{ border-radius: 16px; padding: 10px 12px; }
-    .pm-nav{ flex-direction:column; align-items:stretch; gap:10px; padding: 14px 0 6px; }
-    .pm-nav .nav-link, .pm-theme-toggle, .langWrap, .langBtn{ width:100%; }
+    .pm-header{ flex-wrap:wrap; }
+    .pm-nav{ flex-direction:column; align-items:stretch; gap:10px; padding: 12px 0 6px; }
+    .pm-nav .nav-link, .pm-theme-toggle, .langWrap, .langBtn{ width:100%; justify-content:center; }
+    .pm-header .navbar-collapse{ margin-top: 8px; }
+    .pm-header .navbar-nav{ gap:10px; }
+    .pm-header .d-flex.align-items-center{ width:100%; justify-content:space-between; }
+    .pm-brand{ flex:1 1 auto; }
+    .pm-brand .pm-name{ display:none; }
   }
 </style>
 
@@ -199,41 +175,42 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="pmNav">
-    <ul class="navbar-nav pm-nav me-auto gap-2">
+    <ul class="navbar-nav pm-nav gap-2 flex-column flex-lg-row flex-lg-wrap justify-content-center mx-lg-auto">
       <li class="nav-item">
-        <a class="nav-link pm-primary<?= $isPlay ? ' active' : '' ?>" href="play.php">
+        <a class="nav-link d-flex align-items-center gap-2 text-nowrap fw-semibold bg-body-tertiary border rounded-pill px-3 py-2 shadow-sm<?= $isPlay ? ' active' : '' ?>" href="play.php">
           <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
           <?= htmlspecialchars(tt('home_cta_play', 'Play now')) ?>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link<?= $isDaily ? ' active' : '' ?>" href="play.php?daily=1">
+        <a class="nav-link d-flex align-items-center gap-2 text-nowrap fw-semibold bg-body-tertiary border rounded-pill px-3 py-2 shadow-sm<?= $isDaily ? ' active' : '' ?>" href="play.php?daily=1">
           <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" />
           <?= htmlspecialchars(tt('home_cta_daily', 'Daily Challenge')) ?>
         </a>
       </li>
+      <li class="w-100 d-none d-lg-block"></li>
       <li class="nav-item">
-        <a class="nav-link<?= $isLeaderboard ? ' active' : '' ?>" href="daily_leaderboard.php">
+        <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isLeaderboard ? ' active' : '' ?>" href="daily_leaderboard.php">
           <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
           <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
         </a>
       </li>
       <?php if (!empty($userEmail)): ?>
         <li class="nav-item">
-          <a class="nav-link<?= $isSessions ? ' active' : '' ?>" href="games.php">
+          <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isSessions ? ' active' : '' ?>" href="games.php">
             <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
             <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="logout.php">
+          <a class="nav-link d-flex align-items-center gap-2 text-nowrap" href="logout.php">
             <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
             <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
           </a>
         </li>
       <?php else: ?>
         <li class="nav-item">
-          <a class="nav-link" href="login.php">
+          <a class="nav-link d-flex align-items-center gap-2 text-nowrap" href="login.php">
             <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
             <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
           </a>
@@ -241,18 +218,13 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
       <?php endif; ?>
     </ul>
 
-    <div class="d-flex align-items-center gap-2 ms-lg-3">
-      <?php if ($currentPage === 'index.php'): ?>
-        <button class="btn btn-outline-secondary btn-sm pm-theme-toggle" type="button" id="themeToggle"
-                aria-label="<?= htmlspecialchars(tt('theme_toggle', 'Toggle theme')) ?>"
-                data-label-light="<?= htmlspecialchars(tt('theme_light', 'Light')) ?>"
-                data-label-dark="<?= htmlspecialchars(tt('theme_dark', 'Dark')) ?>"
-                data-icon-light="bootstrap-icons/brightness-high-fill.svg"
-                data-icon-dark="bootstrap-icons/moon-stars-fill.svg">
-          <img class="bi-icon" id="themeToggleIcon" src="bootstrap-icons/moon-stars-fill.svg" alt="" aria-hidden="true" />
-          <span id="themeToggleText"><?= htmlspecialchars(tt('theme_light', 'Light')) ?></span>
-        </button>
-      <?php endif; ?>
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <button class="btn btn-outline-secondary btn-sm pm-theme-toggle" type="button" id="themeToggle"
+              aria-label="<?= htmlspecialchars(tt('theme_toggle', 'Toggle theme')) ?>"
+              data-icon-light="bootstrap-icons/brightness-high-fill.svg"
+              data-icon-dark="bootstrap-icons/moon-stars-fill.svg">
+        <img class="bi-icon" id="themeToggleIcon" src="bootstrap-icons/moon-stars-fill.svg" alt="" aria-hidden="true" />
+      </button>
 
       <?php if ($showLangPicker): ?>
         <div class="langWrap" id="langPicker" data-align="end" aria-label="<?= htmlspecialchars(tt('language', 'Language')) ?>">
@@ -305,17 +277,13 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
   window.addEventListener('resize', setOffset, {passive:true});
 
   const themeBtn = document.getElementById('themeToggle');
-  const themeTxt = document.getElementById('themeToggleText');
   const themeIcon = document.getElementById('themeToggleIcon');
   if (themeBtn){
-    const labelLight = themeBtn.getAttribute('data-label-light') || 'Light';
-    const labelDark = themeBtn.getAttribute('data-label-dark') || 'Dark';
     const iconLight = themeBtn.getAttribute('data-icon-light') || '';
     const iconDark = themeBtn.getAttribute('data-icon-dark') || '';
     const key = 'pm-theme';
     const applyTheme = (t) => {
       document.documentElement.setAttribute('data-bs-theme', t);
-      if (themeTxt) themeTxt.textContent = (t === 'dark') ? labelLight : labelDark;
       if (themeIcon) themeIcon.src = (t === 'dark') ? iconLight : iconDark;
     };
     const stored = localStorage.getItem(key);
@@ -327,5 +295,214 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
       applyTheme(next);
     });
   }
+
+  (function initLangPicker(){
+    const STR = { noResults: <?= json_encode(tt('no_results', 'No results')) ?> };
+    const select = document.getElementById('langSelect');
+    const root   = document.getElementById('langPicker');
+    const btn    = document.getElementById('langBtn');
+    const btnTxt = document.getElementById('langBtnText');
+    const pop    = document.getElementById('langPop');
+    const list   = document.getElementById('langList');
+    const search = document.getElementById('langSearch');
+    const title  = document.getElementById('langTitle');
+    if(!select || !root || !btn || !btnTxt || !pop || !list || !search || !title) return;
+
+    const items = Array.from(select.options).map(o => {
+      const name = (o.textContent || '').trim().replace(/\s+/g,' ') || o.value;
+      return { code: o.value, name };
+    });
+
+    let open = false;
+    let activeIndex = -1;
+    let filtered = items.slice();
+
+    let popWasPortaled = false;
+    let popHomeParent = null;
+    let popHomeNext = null;
+
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    function renderList(){
+      list.innerHTML = '';
+      if (!filtered.length) {
+        const d = document.createElement('div');
+        d.className = 'langNoRes';
+        d.textContent = STR.noResults;
+        list.appendChild(d);
+        return;
+      }
+      filtered.forEach((it, idx) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'langItem';
+        b.setAttribute('role','option');
+        b.dataset.code = it.code;
+        b.dataset.index = String(idx);
+
+        const selected = (select.value === it.code);
+        b.setAttribute('aria-selected', selected ? 'true' : 'false');
+
+        b.innerHTML = `
+          <span class="langLabelCell">${escapeHtml(it.name)}</span>
+          <span class="langMetaCell"><span>${escapeHtml(it.code)}</span>${selected ? '<span class="langCheck" aria-hidden="true">OK</span>' : ''}</span>
+        `;
+
+        b.addEventListener('mouseenter', () => setActive(idx));
+        b.addEventListener('click', () => choose(it.code));
+        list.appendChild(b);
+      });
+      syncActiveClass();
+    }
+
+    function setActive(idx){
+      activeIndex = Math.max(0, Math.min(idx, filtered.length-1));
+      syncActiveClass();
+      scrollActiveIntoView();
+    }
+    function syncActiveClass(){
+      Array.from(list.querySelectorAll('.langItem')).forEach((el, i) => {
+        el.classList.toggle('isActive', i === activeIndex);
+      });
+    }
+    function scrollActiveIntoView(){
+      const el = list.querySelectorAll('.langItem')[activeIndex];
+      if(!el) return;
+      const r = el.getBoundingClientRect();
+      const pr = list.getBoundingClientRect();
+      if (r.top < pr.top) el.scrollIntoView({block:'nearest'});
+      if (r.bottom > pr.bottom) el.scrollIntoView({block:'nearest'});
+    }
+
+    function placePopover() {
+      if (!popWasPortaled) {
+        popHomeParent = pop.parentNode;
+        popHomeNext = pop.nextSibling;
+        document.body.appendChild(pop);
+        popWasPortaled = true;
+      }
+      const r = btn.getBoundingClientRect();
+      const margin = 10;
+
+      pop.hidden = false;
+
+      const popRect = pop.getBoundingClientRect();
+      const alignEnd = root.getAttribute('data-align') !== 'start';
+
+      let top = Math.round(r.bottom + margin);
+      let left = alignEnd ? Math.round(r.right - popRect.width) : Math.round(r.left);
+
+      const minLeft = 12;
+      const maxLeft = window.innerWidth - popRect.width - 12;
+      left = Math.max(minLeft, Math.min(left, maxLeft));
+
+      const maxTop = window.innerHeight - popRect.height - 12;
+      if (top > maxTop) top = Math.max(12, Math.round(r.top - popRect.height - margin));
+
+      pop.style.top = top + 'px';
+      pop.style.left = left + 'px';
+
+      const selIdx = filtered.findIndex(x => x.code === select.value);
+      if (selIdx >= 0) setActive(selIdx);
+    }
+
+    function unportalPopover() {
+      if (popWasPortaled && popHomeParent) {
+        if (popHomeNext && popHomeNext.parentNode === popHomeParent) popHomeParent.insertBefore(pop, popHomeNext);
+        else popHomeParent.appendChild(pop);
+      }
+      popWasPortaled = false;
+      popHomeParent = null;
+      popHomeNext = null;
+      pop.style.top = '';
+      pop.style.left = '';
+    }
+
+    function setOpen(v){
+      open = v;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+      if(open){
+        search.value = '';
+        filtered = items.slice();
+        renderList();
+        placePopover();
+        setTimeout(()=> search.focus(), 0);
+      } else {
+        pop.hidden = true;
+        activeIndex = -1;
+        unportalPopover();
+      }
+    }
+
+    function choose(code){
+      select.value = code;
+      const it = items.find(x => x.code === code);
+      btnTxt.textContent = it ? `${it.name}` : code;
+
+      setOpen(false);
+
+      const url = new URL(window.location.href);
+      fetch('api/set_lang.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({lang: code}),
+        credentials: 'same-origin'
+      }).then(() => location.reload())
+        .catch(() => {
+          url.searchParams.set('lang', code);
+          window.location.href = url.toString();
+        });
+    }
+
+    function applyFilter(q){
+      const s = q.trim().toLowerCase();
+      if(!s) filtered = items.slice();
+      else filtered = items.filter(it =>
+        it.code.toLowerCase().includes(s) ||
+        it.name.toLowerCase().includes(s)
+      );
+      renderList();
+      if (filtered.length) setActive(0);
+    }
+
+    (function initSelected(){
+      const current = select.value || items[0]?.code || 'en';
+      const it = items.find(x => x.code === current) || items[0];
+      if (it) {
+        select.value = it.code;
+        btnTxt.textContent = `${it.name}`;
+      }
+    })();
+
+    btn.addEventListener('click', () => setOpen(!open));
+    document.addEventListener('pointerdown', (e) => {
+      if(!open) return;
+      if(root.contains(e.target) || pop.contains(e.target)) return;
+      setOpen(false);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if(!open) return;
+      if(e.key === 'Escape'){
+        e.preventDefault();
+        setOpen(false);
+        btn.focus();
+      }
+    });
+
+    search.addEventListener('input', () => applyFilter(search.value));
+    search.addEventListener('keydown', (e) => {
+      if(!open) return;
+      if(e.key === 'ArrowDown'){ e.preventDefault(); if(filtered.length) setActive((activeIndex + 1) % filtered.length); }
+      if(e.key === 'ArrowUp'){ e.preventDefault(); if(filtered.length) setActive((activeIndex - 1 + filtered.length) % filtered.length); }
+      if(e.key === 'Enter'){ e.preventDefault(); if(activeIndex >= 0 && filtered[activeIndex]) choose(filtered[activeIndex].code); }
+    });
+
+    window.addEventListener('resize', () => { if(open) placePopover(); }, {passive:true});
+    window.addEventListener('scroll',  () => { if(open) placePopover(); }, {passive:true});
+  })();
 })();
 </script>
