@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /game.php
+Disallow: /games.php
+Disallow: /login.php
+
+Sitemap: https://www.prismatch.online/sitemap.xml
