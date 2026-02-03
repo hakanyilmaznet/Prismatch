@@ -34,7 +34,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -257,11 +257,20 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         <h1><?= htmlspecialchars(tt('home_hero_title', 'Renkleri hatırla, doğru tonu yakala.')) ?></h1>
         <p><?= htmlspecialchars(tt('home_hero_subtitle', 'Prismatch, hızla değişen renkleri kısa süreli hafızanda tutmanı ister. Her turda süre kısalır, grid yoğunlaşır ve tek bir doğru renk seni bir sonraki aşamaya taşır.')) ?></p>
         <p class="lead"><?= htmlspecialchars(tt('home_creative', 'Renklerin hafızada şiir gibi kaldığı bir ritme gir: İpucu kaybolur, zihnin tonu yakalar. Her doğru seçim, bir sonraki sahneyi açar.')) ?></p>
-        <div class="cta">
-          <a class="btn primary" href="play.php"><?= htmlspecialchars(tt('home_cta_play', 'Hemen oyna')) ?></a>
-          <a class="btn" href="play.php?daily=1"><?= htmlspecialchars(tt('home_cta_daily', 'Günlük Meydan Okuma')) ?></a>
-          <a class="btn" href="daily_leaderboard.php"><?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?></a>
-        </div>
+          <div class="cta">
+            <a class="btn primary" href="play.php">
+              <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
+              <?= htmlspecialchars(tt('home_cta_play', 'Hemen oyna')) ?>
+            </a>
+            <a class="btn" href="play.php?daily=1">
+              <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" />
+              <?= htmlspecialchars(tt('home_cta_daily', 'Günlük Meydan Okuma')) ?>
+            </a>
+            <a class="btn" href="daily_leaderboard.php">
+              <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
+              <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
+            </a>
+          </div>
         <div class="quick">
           <span class="chip"><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin açan kısa turlar')) ?></span>
           <span class="chip"><?= htmlspecialchars(tt('home_benefit_2_title', 'Günlük meydan okuma')) ?></span>

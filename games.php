@@ -100,7 +100,7 @@ foreach ($rows as $g) {
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -236,10 +236,16 @@ foreach ($rows as $g) {
         <h1><?= h(TT('games_title','My Games')) ?></h1>
         <div class="sub"><?= h(t('logged_in_as', ['email'=>$userEmail])) ?></div>
       </div>
-      <div class="actions">
-        <a class="btn" href="play.php">← <?= h(TT('btn_back_to_game','Back to game')) ?></a>
-        <a class="btn" href="logout.php"><?= h(TT('logout','Logout')) ?></a>
-      </div>
+        <div class="actions">
+          <a class="btn" href="play.php">
+            <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+            <?= h(TT('btn_back_to_game','Back to game')) ?>
+          </a>
+          <a class="btn" href="logout.php">
+            <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
+            <?= h(TT('logout','Logout')) ?>
+          </a>
+        </div>
     </div>
 
     <div class="card">
@@ -286,6 +292,7 @@ foreach ($rows as $g) {
               </td>
               <td class="right" style="white-space:nowrap">
                 <a class="btn btn-detail" href="<?= h($g['detail_url']) ?>">
+                  <img class="bi-icon" src="bootstrap-icons/info-circle.svg" alt="" aria-hidden="true" />
                   <?= h(TT('btn_details','Details')) ?>
                 </a>
               </td>
@@ -338,9 +345,12 @@ foreach ($rows as $g) {
                   </div>
                 </div>
               </div>
-              <div style="margin-top:10px">
-                <a class="btn btn-detail" href="<?= h($g['detail_url']) ?>"><?= h(TT('btn_details','Details')) ?></a>
-              </div>
+                <div style="margin-top:10px">
+                  <a class="btn btn-detail" href="<?= h($g['detail_url']) ?>">
+                    <img class="bi-icon" src="bootstrap-icons/info-circle.svg" alt="" aria-hidden="true" />
+                    <?= h(TT('btn_details','Details')) ?>
+                  </a>
+                </div>
             </div>
           <?php endforeach; ?>
         </div>
@@ -367,4 +377,3 @@ foreach ($rows as $g) {
   </script>
 </body>
 </html>
-

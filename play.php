@@ -16,6 +16,15 @@ function tt(string $key, string $fallback = ''): string {
   return $v;
 }
 
+function google_badge_html(): string {
+  return '<span class="google-badge"><img src="google.svg" class="google-icon" alt="Google" /><span class="google-text">Google</span></span>';
+}
+
+function render_google_label(string $text): string {
+  $safe = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+  return str_replace('{google}', google_badge_html(), $safe);
+}
+
 $seoTitle = $isDailyMode
   ? tt('daily_meta_title', 'Daily Challenge - Prismatch')
   : tt('play_meta_title', 'Play Prismatch');
@@ -48,7 +57,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -348,10 +357,10 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       flex-wrap:wrap;
     }
 
-    .btn{
-      appearance:none;
-      border:none;
-      cursor:pointer;
+      .btn{
+        appearance:none;
+        border:none;
+        cursor:pointer;
       color: var(--text);
       background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
       border: 1px solid rgba(255,255,255,0.18);
@@ -363,10 +372,22 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       backdrop-filter: blur(12px);
       text-decoration:none;
       display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap: 8px;
-    }
+        align-items:center;
+        justify-content:center;
+        gap: 8px;
+      }
+      .google-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        font-weight:700;
+      }
+      .google-icon{
+        width:16px;
+        height:16px;
+        display:inline-block;
+      }
+      .google-text{ line-height:1; }
     .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,0.28); box-shadow: 0 10px 26px rgba(0,0,0,0.35); }
     .btn:active{ transform: translateY(0px); }
     .btn.primary{
@@ -484,22 +505,40 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
         </div>
 
         <div class="action-row">
-          <a class="btn" href="games.php"><?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?></a>
+          <a class="btn" href="games.php">
+            <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
+          </a>
           <?php if ($isDailyMode): ?>
-          <a class="btn" href="daily_leaderboard.php"><?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?></a>
+          <a class="btn" href="daily_leaderboard.php">
+            <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
+          </a>
           <?php endif; ?>
-          <a class="btn" href="logout.php"><?= htmlspecialchars(tt('btn_logout', 'Logout')) ?></a>
+          <a class="btn" href="logout.php">
+            <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
+          </a>
         </div>
       <?php else: ?>
-        <div class="action-row">
-          <a class="btn" href="login.php"><?= htmlspecialchars(tt('login_optional', 'Google Login (optional)')) ?></a>
+          <div class="action-row">
+            <a class="btn" href="login.php">
+              <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
+              <?= render_google_label(tt('login_optional', '{google} Login (optional)')) ?>
+            </a>
           <?php if ($isDailyMode): ?>
-          <a class="btn" href="daily_leaderboard.php"><?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?></a>
+          <a class="btn" href="daily_leaderboard.php">
+            <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
+          </a>
           <?php endif; ?>
         </div>
       <?php endif; ?>
 
-      <button class="btn primary" id="btnStart" type="button"><?= htmlspecialchars(tt('btn_start', 'Hemen Oyna')) ?></button>
+      <button class="btn primary" id="btnStart" type="button">
+        <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
+        <?= htmlspecialchars(tt('btn_start', 'Hemen Oyna')) ?>
+      </button>
     </div>
   </section>
 
@@ -514,7 +553,10 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     <h2 class="modalTitle" id="dailyCompletedTitle"><?= htmlspecialchars(tt('daily_title', 'Daily Challenge')) ?></h2>
     <p class="modalText" id="dailyCompletedText"><?= htmlspecialchars(tt('daily_completed', 'You already played today. Come back tomorrow!')) ?></p>
     <div class="modalActions">
-      <button class="btn primary" id="dailyCompletedOk" type="button"><?= htmlspecialchars(tt('btn_ok', 'OK')) ?></button>
+      <button class="btn primary" id="dailyCompletedOk" type="button">
+        <img class="bi-icon" src="bootstrap-icons/check-circle.svg" alt="" aria-hidden="true" />
+        <?= htmlspecialchars(tt('btn_ok', 'OK')) ?>
+      </button>
     </div>
   </div>
 </div>
@@ -524,8 +566,14 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     <h2 class="modalTitle" id="dailyLoginTitle"><?= htmlspecialchars(tt('daily_title', 'Daily Challenge')) ?></h2>
     <p class="modalText" id="dailyLoginText"><?= htmlspecialchars(tt('daily_login_required', 'Log in to play the daily challenge.')) ?></p>
     <div class="modalActions">
-      <a class="btn primary" id="dailyLoginGo" href="login.php"><?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?></a>
-      <button class="btn" id="dailyLoginBack" type="button"><?= htmlspecialchars(tt('btn_back_to_game', 'Back to Game')) ?></button>
+      <a class="btn primary" id="dailyLoginGo" href="login.php">
+        <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
+        <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
+      </a>
+      <button class="btn" id="dailyLoginBack" type="button">
+        <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+        <?= htmlspecialchars(tt('btn_back_to_game', 'Back to Game')) ?>
+      </button>
     </div>
   </div>
 </div>
@@ -566,8 +614,8 @@ const I18N = <?= json_encode([
   'daily_login_required' => tt('daily_login_required', 'Log in to play the daily challenge.'),
   'daily_completed' => tt('daily_completed', 'You already played today. Come back tomorrow!'),
   'save_after_title' => tt('save_after_title', 'Save your score?'),
-  'save_after_body' => tt('save_after_body', 'Log in with Google to save this session and view detailed stats.'),
-  'save_with_google' => tt('save_with_google', 'Save with Google'),
+  'save_after_body' => tt('save_after_body', 'Log in with {google} to save this session and view detailed stats.'),
+  'save_with_google' => tt('save_with_google', 'Save with {google}'),
   'continue_without_saving' => tt('continue_without_saving', 'Continue without saving'),
   'save_pending' => tt('save_pending', 'Save queued. It will sync on next load.'),
   'a11y_color_option' => tt('a11y_color_option', 'Color option {n}'),
@@ -822,9 +870,10 @@ function showSavePromptModal(payload){
   title.className = "modalTitle";
   title.textContent = tjs('save_after_title', 'Save your score?');
 
-  const msg = document.createElement("p");
-  msg.className = "modalText";
-  msg.textContent = tjs('save_after_body', 'Log in with Google to save this session and view detailed stats.');
+    const googleBadgeHtml = <?= json_encode(google_badge_html()) ?>;
+    const msg = document.createElement("p");
+    msg.className = "modalText";
+    msg.innerHTML = tjs('save_after_body', 'Log in with {google} to save this session and view detailed stats.').replace('{google}', googleBadgeHtml);
 
   const actions = document.createElement("div");
   actions.className = "modalActions";
@@ -832,13 +881,14 @@ function showSavePromptModal(payload){
   const btnSave = document.createElement("button");
   btnSave.className = "btn primary";
   btnSave.type = "button";
-  btnSave.textContent = tjs('save_with_google', 'Save with Google');
+    btnSave.innerHTML = '<img class="bi-icon" src="bootstrap-icons/cloud-arrow-up.svg" alt="" aria-hidden="true" /> ' +
+      tjs('save_with_google', 'Save with {google}').replace('{google}', googleBadgeHtml);
   btnSave.addEventListener("click", () => storePendingAndLogin(payload));
 
   const btnSkip = document.createElement("button");
   btnSkip.className = "btn";
   btnSkip.type = "button";
-  btnSkip.textContent = tjs('continue_without_saving', 'Continue without saving');
+    btnSkip.innerHTML = '<img class="bi-icon" src="bootstrap-icons/arrow-right.svg" alt="" aria-hidden="true" /> ' + tjs('continue_without_saving', 'Continue without saving');
   btnSkip.addEventListener("click", () => overlay.remove());
 
   actions.appendChild(btnSave);
@@ -1271,7 +1321,7 @@ async function win(){
     const btn = document.createElement("button");
     btn.className = "btn primary";
     btn.type = "button";
-    btn.textContent = tjs('btn_play_again', 'Play again');
+      btn.innerHTML = '<img class="bi-icon" src="bootstrap-icons/arrow-repeat.svg" alt="" aria-hidden="true" /> ' + tjs('btn_play_again', 'Play again');
     btn.addEventListener("click", startGame);
     row.appendChild(btn);
   }
@@ -1280,7 +1330,7 @@ async function win(){
     const a = document.createElement("a");
     a.className = "btn";
     a.href = "games.php";
-    a.textContent = tjs('btn_view_history', 'My Sessions');
+    a.innerHTML = '<img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" /> ' + tjs('btn_view_history', 'My Sessions');
     row.appendChild(a);
   }
 
@@ -1314,7 +1364,7 @@ async function gameOver(reason){
     const btn = document.createElement("button");
     btn.className = "btn primary";
     btn.type = "button";
-    btn.textContent = tjs('btn_restart', 'Restart');
+      btn.innerHTML = '<img class="bi-icon" src="bootstrap-icons/arrow-clockwise.svg" alt="" aria-hidden="true" /> ' + tjs('btn_restart', 'Restart');
     btn.addEventListener("click", startGame);
     row.appendChild(btn);
   }
@@ -1323,7 +1373,7 @@ async function gameOver(reason){
     const a = document.createElement("a");
     a.className = "btn";
     a.href = "games.php";
-    a.textContent = tjs('btn_view_history', 'My Sessions');
+    a.innerHTML = '<img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" /> ' + tjs('btn_view_history', 'My Sessions');
     row.appendChild(a);
   }
 

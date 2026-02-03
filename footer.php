@@ -65,7 +65,7 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
     </div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
 <script>
 (function(){
   const footer = document.querySelector('.pm-footer');

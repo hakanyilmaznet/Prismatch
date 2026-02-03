@@ -82,7 +82,7 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -200,10 +200,16 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
         </div>
         <div class="muted"><?= h(t('logged_in_as', ['email'=>$userEmail])) ?></div>
       </div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap">
-        <a class="btn" href="games.php">← <?= h(t('btn_back_to_history')) ?></a>
-        <a class="btn" href="play.php"><?= h(t('btn_back_to_game')) ?> →</a>
-      </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+          <a class="btn" href="games.php">
+            <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+            <?= h(t('btn_back_to_history')) ?>
+          </a>
+          <a class="btn" href="play.php">
+            <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
+            <?= h(t('btn_back_to_game')) ?>
+          </a>
+        </div>
     </div>
 
     <div class="card">
@@ -307,4 +313,3 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
   </script>
 </body>
 </html>
-

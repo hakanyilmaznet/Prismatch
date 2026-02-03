@@ -26,19 +26,19 @@ function L(string $k, array $vars = []): string {
         'back_home' => 'Back to game',
         'section_1' => '1. Information We Collect',
         's1_1' => '1.1 Personal Data',
-        's1_1_body' => "When you choose to sign in using Google Login, we collect:\n- Email address\n\nWe do not collect your name, profile photo, contacts, or any private Google data beyond email.\n\nLogin is optional. You can play without signing in.",
+        's1_1_body' => "When you choose to sign in using {google} Login, we collect:\n- Email address\n\nWe do not collect your name, profile photo, contacts, or any private {google} data beyond email.\n\nLogin is optional. You can play without signing in.",
         's1_2' => '1.2 Game & Usage Data',
         's1_2_body' => "When you play, we may store:\n- Game results (levels reached, correct/incorrect answers)\n- Reaction times\n- Color selections during rounds\n- Daily Challenge participation\n- Timestamps (start/end time)\n\nWe use this only to display your history, show detailed stats, and support Daily Challenge leaderboards.",
         's1_3' => '1.3 Technical Data',
         's1_3_body' => "We may collect limited technical data:\n- Browser language (for UI language)\n- Timezone (for correct date/time display)\n\nWe do not perform IP-based tracking or fingerprinting.",
         'section_2' => '2. How We Use Your Data',
-        's2_body' => "We use data strictly for:\n- Authentication (Google Login)\n- Saving and displaying game results\n- Providing statistics\n- Enabling Daily Challenge\n\nWe do not sell your data, share it with third parties, or use it for ads/profiling.",
+        's2_body' => "We use data strictly for:\n- Authentication ({google} Login)\n- Saving and displaying game results\n- Providing statistics\n- Enabling Daily Challenge\n\nWe do not sell your data, share it with third parties, or use it for ads/profiling.",
         'section_3' => '3. Data Storage & Security',
         's3_body' => "Data is stored on secure servers. Databases are not publicly accessible and access is restricted to application logic. We use standard security practices to prevent unauthorized access.",
         'section_4' => '4. Cookies & Local Storage',
         's4_body' => "We use:\n- Session cookies (login state)\n- LocalStorage (Daily Challenge participation for guests)\n\nNo advertising or tracking cookies are used.",
         'section_5' => '5. Third-Party Services',
-        's5_body' => "Google Login uses Google OAuth 2.0. Authentication is handled by Google and we receive only your email address. Google’s privacy policy applies independently.",
+        's5_body' => "{google} Login uses {google} OAuth 2.0. Authentication is handled by {google} and we receive only your email address. {google}’s privacy policy applies independently.",
         'section_6' => '6. Your Rights',
         's6_body' => "Depending on your jurisdiction (GDPR / KVKK), you may request access or deletion of your data and withdraw consent at any time. Contact us using the email below.",
         'section_7' => '7. Data Retention',
@@ -49,9 +49,9 @@ function L(string $k, array $vars = []): string {
         's9_body' => "We may update this Privacy Policy. Any changes will be reflected on this page with an updated date.",
         'section_10' => '10. Contact',
         'contact_body' => "Email: support@prismatch.online\nWebsite: https://prismatch.online",
-        'google_note_title' => 'Google OAuth Compliance Note',
-        'google_note_body' => "This application’s use and transfer of information received from Google APIs complies with the Google API Services User Data Policy, including the Limited Use requirements.",
-        'google_privacy' => 'Google Privacy Policy',
+        'google_note_title' => '{google} OAuth Compliance Note',
+        'google_note_body' => "This application’s use and transfer of information received from {google} APIs complies with the {google} API Services User Data Policy, including the Limited Use requirements.",
+        'google_privacy' => '{google} Privacy Policy',
         'tos' => 'Terms of Service',
       ],
       'tr' => [
@@ -61,19 +61,19 @@ function L(string $k, array $vars = []): string {
         'back_home' => 'Oyuna dön',
         'section_1' => '1. Topladığımız Bilgiler',
         's1_1' => '1.1 Kişisel Veriler',
-        's1_1_body' => "Google ile giriş yapmayı seçtiğinizde yalnızca şunu toplarız:\n- E‑posta adresi\n\nAdınız, profil fotoğrafınız, kişileriniz veya e‑posta dışında Google hesabınıza ait özel verileri toplamayız.\n\nGiriş zorunlu değildir. Giriş yapmadan da oynayabilirsiniz.",
+        's1_1_body' => "{google} ile giriş yapmayı seçtiğinizde yalnızca şunu toplarız:\n- E‑posta adresi\n\nAdınız, profil fotoğrafınız, kişileriniz veya e‑posta dışında {google} hesabınıza ait özel verileri toplamayız.\n\nGiriş zorunlu değildir. Giriş yapmadan da oynayabilirsiniz.",
         's1_2' => '1.2 Oyun ve Kullanım Verileri',
         's1_2_body' => "Oynadığınızda şunları kaydedebiliriz:\n- Oyun sonuçları (ulaşılan aşama, doğru/yanlış sayıları)\n- Tepki süreleri\n- Turlarda seçilen renkler\n- Daily Challenge katılımı\n- Zaman damgaları (başlangıç/bitiş)\n\nBu verileri yalnızca oyun geçmişinizi göstermek, detaylı istatistik sunmak ve Daily Challenge liderlik tablosunu sağlamak için kullanırız.",
         's1_3' => '1.3 Teknik Veriler',
         's1_3_body' => "Sınırlı bazı teknik verileri otomatik toplayabiliriz:\n- Tarayıcı dili (arayüz dili için)\n- Zaman dilimi (tarih/saatin doğru gösterimi için)\n\nIP tabanlı takip veya parmak izi (fingerprinting) yapmayız.",
         'section_2' => '2. Verilerinizi Nasıl Kullanırız',
-        's2_body' => "Veriler yalnızca şu amaçlarla kullanılır:\n- Kimlik doğrulama (Google Login)\n- Oyun sonuçlarını kaydetme ve gösterme\n- İstatistik sunma\n- Daily Challenge işlevleri\n\nVerilerinizi satmayız, üçüncü taraflarla paylaşmayız ve reklam/profil amaçlı kullanmayız.",
+        's2_body' => "Veriler yalnızca şu amaçlarla kullanılır:\n- Kimlik doğrulama ({google} Login)\n- Oyun sonuçlarını kaydetme ve gösterme\n- İstatistik sunma\n- Daily Challenge işlevleri\n\nVerilerinizi satmayız, üçüncü taraflarla paylaşmayız ve reklam/profil amaçlı kullanmayız.",
         'section_3' => '3. Saklama ve Güvenlik',
         's3_body' => "Veriler güvenli sunucularda saklanır. Veritabanı herkese açık değildir; erişim uygulama mantığıyla sınırlıdır. Yetkisiz erişimi engellemek için standart güvenlik önlemleri uygularız.",
         'section_4' => '4. Çerezler ve Local Storage',
         's4_body' => "Şunları kullanırız:\n- Oturum çerezleri (giriş durumu)\n- LocalStorage (misafir kullanıcılar için Daily Challenge tek hak yönetimi)\n\nReklam/izleme çerezleri kullanılmaz.",
         'section_5' => '5. Üçüncü Taraf Hizmetler',
-        's5_body' => "Google ile giriş, Google OAuth 2.0 üzerinden sağlanır. Kimlik doğrulama Google tarafından yapılır ve bize yalnızca e‑posta adresiniz iletilir. Google’ın gizlilik politikası ayrıca geçerlidir.",
+        's5_body' => "{google} ile giriş, {google} OAuth 2.0 üzerinden sağlanır. Kimlik doğrulama {google} tarafından yapılır ve bize yalnızca e‑posta adresiniz iletilir. {google}’ın gizlilik politikası ayrıca geçerlidir.",
         'section_6' => '6. Haklarınız',
         's6_body' => "Bulunduğunuz ülkeye göre (GDPR / KVKK) verilerinize erişim veya silme talep edebilir, rızanızı dilediğiniz zaman geri çekebilirsiniz. Aşağıdaki e‑posta ile bize ulaşın.",
         'section_7' => '7. Saklama Süresi',
@@ -84,9 +84,9 @@ function L(string $k, array $vars = []): string {
         's9_body' => "Bu politika zaman zaman güncellenebilir. Değişiklikler bu sayfada ve güncelleme tarihinde gösterilir.",
         'section_10' => '10. İletişim',
         'contact_body' => "E‑posta: support@prismatch.online\nWeb: https://prismatch.online",
-        'google_note_title' => 'Google OAuth Uyum Notu',
-        'google_note_body' => "Bu uygulama, Google API’lerinden alınan verilerin kullanımı ve aktarımında Google API Services User Data Policy (Limited Use dahil) hükümlerine uygundur.",
-        'google_privacy' => 'Google Gizlilik Politikası',
+        'google_note_title' => '{google} OAuth Uyum Notu',
+        'google_note_body' => "Bu uygulama, {google} API’lerinden alınan verilerin kullanımı ve aktarımında {google} API Services User Data Policy (Limited Use dahil) hükümlerine uygundur.",
+        'google_privacy' => '{google} Gizlilik Politikası',
         'tos' => 'Kullanım Şartları',
       ],
     ];
@@ -101,7 +101,14 @@ function L(string $k, array $vars = []): string {
   return $s;
 }
 
-function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function google_badge_html(): string {
+  return '<span class="google-badge"><img src="google.svg" class="google-icon" alt="Google" /><span class="google-text">Google</span></span>';
+}
+
+function h($s): string {
+  $safe = htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+  return str_replace('{google}', google_badge_html(), $safe);
+}
 
 $updated = '2026-01-30';
 $seoTitle = L('title') . ' - ' . L('app');
@@ -122,7 +129,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -183,6 +190,9 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       border:1px solid rgba(255,255,255,.18);
       color:#fff;
     }
+    .google-badge{ display:inline-flex; align-items:center; gap:6px; font-weight:600; }
+    .google-icon{ width:16px; height:16px; display:inline-block; }
+    .google-text{ line-height:1; }
     h1{ margin:0 0 6px 0; font-size:24px; font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; }
     h2{ margin:18px 0 10px 0; font-size:16px; font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; }
     .muted{ color:var(--mut); font-size:12px; }
@@ -203,10 +213,16 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         <h1><?= h(L('title')) ?></h1>
         <div class="muted"><?= h(L('last_updated')) ?>: <?= h($updated) ?></div>
       </div>
-      <div class="links">
-        <a class="btn" href="play.php">← <?= h(L('back_home')) ?></a>
-        <a class="btn" href="terms.php"><?= h(L('tos')) ?> →</a>
-      </div>
+        <div class="links">
+        <a class="btn" href="play.php">
+          <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+          <?= h(L('back_home')) ?>
+        </a>
+        <a class="btn" href="terms.php">
+          <img class="bi-icon" src="bootstrap-icons/journal-text.svg" alt="" aria-hidden="true" />
+          <?= h(L('tos')) ?>
+        </a>
+        </div>
     </div>
 
     <div class="card">
@@ -262,4 +278,3 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   </div>
 </body>
 </html>
-

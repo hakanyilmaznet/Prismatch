@@ -26,11 +26,11 @@ function L(string $k, array $vars = []): string {
         'privacy' => 'Privacy Policy',
         'intro' => "By accessing or using Prismatch on prismatch.online, you agree to these Terms of Service.",
         's1' => '1. Service Description',
-        's1_body' => "Prismatch is a color-matching memory/reaction game. You can play as a guest. If you choose to sign in with Google, you can save your results and view your history.",
+        's1_body' => "Prismatch is a color-matching memory/reaction game. You can play as a guest. If you choose to sign in with {google}, you can save your results and view your history.",
         's2' => '2. Eligibility',
         's2_body' => "The service is not intended for children under 13.",
         's3' => '3. Accounts & Login',
-        's3_body' => "Login is optional. If you sign in via Google, we store only your email address. You are responsible for maintaining the security of your account session on your device.",
+        's3_body' => "Login is optional. If you sign in via {google}, we store only your email address. You are responsible for maintaining the security of your account session on your device.",
         's4' => '4. Acceptable Use',
         's4_body' => "You agree not to misuse the service, attempt to disrupt it, reverse engineer, or use automated methods to manipulate leaderboards or results.",
         's5' => '5. Daily Challenge & Leaderboards',
@@ -56,11 +56,11 @@ function L(string $k, array $vars = []): string {
         'privacy' => 'Gizlilik Politikası',
         'intro' => "prismatch.online üzerinden Prismatch’i kullanarak bu Kullanım Şartları’nı kabul etmiş olursunuz.",
         's1' => '1. Hizmet Tanımı',
-        's1_body' => "Prismatch, renk eşleştirme tabanlı bir hafıza/reaksiyon oyunudur. Misafir olarak oynayabilirsiniz. Google ile giriş yapmayı seçerseniz sonuçlarınızı kaydedebilir ve geçmişinizi görüntüleyebilirsiniz.",
+        's1_body' => "Prismatch, renk eşleştirme tabanlı bir hafıza/reaksiyon oyunudur. Misafir olarak oynayabilirsiniz. {google} ile giriş yapmayı seçerseniz sonuçlarınızı kaydedebilir ve geçmişinizi görüntüleyebilirsiniz.",
         's2' => '2. Uygunluk',
         's2_body' => "Hizmet 13 yaş altı çocuklara yönelik değildir.",
         's3' => '3. Hesaplar ve Giriş',
-        's3_body' => "Giriş zorunlu değildir. Google ile giriş yaparsanız yalnızca e‑posta adresiniz saklanır. Kullandığınız cihazdaki oturum güvenliğinden siz sorumlusunuz.",
+        's3_body' => "Giriş zorunlu değildir. {google} ile giriş yaparsanız yalnızca e‑posta adresiniz saklanır. Kullandığınız cihazdaki oturum güvenliğinden siz sorumlusunuz.",
         's4' => '4. Kabul Edilebilir Kullanım',
         's4_body' => "Hizmeti kötüye kullanmayacağınızı; hizmeti bozma girişiminde bulunmayacağınızı, tersine mühendislik yapmayacağınızı veya leaderboard/sonuçları manipüle etmeye yönelik otomasyon kullanmayacağınızı kabul edersiniz.",
         's5' => '5. Daily Challenge ve Leaderboard',
@@ -90,7 +90,14 @@ function L(string $k, array $vars = []): string {
   return $s;
 }
 
-function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function google_badge_html(): string {
+  return '<span class="google-badge"><img src="google.svg" class="google-icon" alt="Google" /><span class="google-text">Google</span></span>';
+}
+
+function h($s): string {
+  $safe = htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+  return str_replace('{google}', google_badge_html(), $safe);
+}
 
 $updated = '2026-01-30';
 $seoTitle = L('title') . ' - ' . L('app');
@@ -111,7 +118,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+  <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -172,6 +179,9 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       border:1px solid rgba(255,255,255,.18);
       color:#fff;
     }
+    .google-badge{ display:inline-flex; align-items:center; gap:6px; font-weight:600; }
+    .google-icon{ width:16px; height:16px; display:inline-block; }
+    .google-text{ line-height:1; }
     h1{ margin:0 0 6px 0; font-size:24px; font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; }
     h2{ margin:18px 0 10px 0; font-size:16px; font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; }
     .muted{ color:var(--mut); font-size:12px; }
@@ -192,10 +202,16 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         <h1><?= h(L('title')) ?></h1>
         <div class="muted"><?= h(L('last_updated')) ?>: <?= h($updated) ?></div>
       </div>
-      <div class="links">
-        <a class="btn" href="play.php">← <?= h(L('back_home')) ?></a>
-        <a class="btn" href="privacy.php"><?= h(L('privacy')) ?> →</a>
-      </div>
+        <div class="links">
+        <a class="btn" href="play.php">
+          <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+          <?= h(L('back_home')) ?>
+        </a>
+        <a class="btn" href="privacy.php">
+          <img class="bi-icon" src="bootstrap-icons/shield-lock.svg" alt="" aria-hidden="true" />
+          <?= h(L('privacy')) ?>
+        </a>
+        </div>
     </div>
 
     <div class="card">
@@ -239,4 +255,3 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   </div>
 </body>
 </html>
-
