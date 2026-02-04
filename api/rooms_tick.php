@@ -91,7 +91,17 @@ if ($endedAt === null && $elapsed >= ($countdownMs + $showMs + $answerMs)) {
 if ($endedAt !== null) {
   $elapsedEnd = ($now->getTimestamp() - $endedAt->getTimestamp()) * 1000;
   if ($elapsedEnd >= $intermissionMs) {
-    $total = (int)$room['rounds_total'];
+    // Re-read room state to avoid advancing after it was finished by another request.
+    $roomFresh = get_room_by_guid($guid);
+    if (!$roomFresh) {
+      echo json_encode(['ok' => true, 'status' => 'not_found']);
+      exit;
+    }
+    if ($roomFresh['status'] === 'finished' || (int)$roomFresh['rounds_total'] <= 0) {
+      echo json_encode(['ok' => true, 'status' => 'finished']);
+      exit;
+    }
+    $total = (int)$roomFresh['rounds_total'];
     $next = $current + 1;
     $players = list_room_players($roomId);
     $activeCount = 0;
