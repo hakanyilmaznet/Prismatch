@@ -13,8 +13,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 header('Content-Type: application/json');
 
-$userId = $_SESSION['user_id'] ?? null;
-if (!$userId) {
+$email = $_SESSION['user_email'] ?? null;
+if (!$email) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;

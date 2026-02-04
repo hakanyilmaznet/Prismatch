@@ -93,21 +93,11 @@ if (!is_array($userJson) || empty($userJson['email'])) {
 
 $email = strtolower(trim($userJson['email']));
 
-// If user is linking a local account, attach email to that user id
-$linkUserId = $_SESSION['link_user_id'] ?? null;
-unset($_SESSION['link_user_id']);
+// DB login upsert
+upsert_user_login($email);
 
-if ($linkUserId) {
-  $user = link_user_email((string)$linkUserId, $email);
-} else {
-  $user = ensure_user_by_email($email);
-}
-
-// Session: user id + provider info
-$_SESSION['user_id'] = $user['id'];
+// Session'a sadece email koy
 $_SESSION['user_email'] = $email;
-$_SESSION['login_provider'] = 'google';
-$_SESSION['user_name'] = user_display_name_from_row($user);
 
 $next = $_SESSION['login_next'] ?? '';
 unset($_SESSION['login_next']);

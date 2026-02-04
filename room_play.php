@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/i18n.php';
 
 session_name(SESSION_NAME);
@@ -13,8 +12,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userEmail = $_SESSION['user_email'] ?? null;
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -23,7 +21,7 @@ function tt(string $key, string $fallback = ''): string {
   return $v;
 }
 
-if (!$userId) {
+if (!$userEmail) {
   $next = 'room_play.php?guid=' . rawurlencode($guid);
   header('Location: login.php?next=' . rawurlencode($next));
   exit;
@@ -589,8 +587,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 const GUID = <?= json_encode($guid) ?>;
-const ME = <?= json_encode($userId) ?>;
-const ME_NAME = <?= json_encode($userDisplay) ?>;
+const ME = <?= json_encode($userEmail) ?>;
 const P_KEY = <?= json_encode(PUSHER_KEY) ?>;
 const P_CLUSTER = <?= json_encode(PUSHER_CLUSTER) ?>;
 
@@ -810,21 +807,21 @@ function buildLeaderboardCard(players){
   ordered.forEach((p, idx) => {
     const tr = document.createElement('tr');
     tr.className = 'rank-row';
-    if (p.user_id === ME) {
+    if (p.email === ME) {
       tr.classList.add('self');
       tr.classList.add(p.status === 'eliminated' ? 'eliminated' : 'active');
     }
-    tr.dataset.userId = p.user_id;
+    tr.dataset.email = p.email;
     const statusLabel = p.status === 'eliminated' ? STR.roomEliminated : STR.roomActive;
     const statusClass = p.status === 'eliminated' ? 'eliminated' : 'active';
     const statusHtml = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
-    tr.innerHTML = `<td>${idx+1}</td><td>${p.display_name}</td><td>${p.score}</td><td>${statusHtml}</td>`;
+    tr.innerHTML = `<td>${idx+1}</td><td>${p.email}</td><td>${p.score}</td><td>${statusHtml}</td>`;
     if (p.status === 'eliminated') tr.classList.add('eliminated');
-    const prevRow = state.leaderboardPrev.get(p.user_id);
+    const prevRow = state.leaderboardPrev.get(p.email);
     if (!prevRow || prevRow.rank !== idx || prevRow.score !== p.score || prevRow.status !== p.status) {
       tr.classList.add('flash');
     }
-    next.set(p.user_id, {rank: idx, score: p.score, status: p.status});
+    next.set(p.email, {rank: idx, score: p.score, status: p.status});
     tbody.appendChild(tr);
   });
   state.leaderboardPrev = next;
@@ -1093,7 +1090,7 @@ async function onTimeUp(buttons){
 
 function renderPlayers(players){
   if (!playersBadge) return;
-  const names = players.map(p => p.display_name + (p.status === 'eliminated' ? ' ✕' : '')).join(' • ');
+  const names = players.map(p => p.email + (p.status === 'eliminated' ? ' ✕' : '')).join(' • ');
   playersBadge.textContent = names || '';
 }
 
@@ -1109,13 +1106,13 @@ async function joinRoom(){
     return;
   }
   const room = data.room;
-  const isHost = room.owner_id === ME;
+  const isHost = room.owner_email === ME;
   if (startBtn) startBtn.style.display = isHost ? 'inline-flex' : 'none';
   if (roomInfo) roomInfo.textContent = room.name ? room.name : STR.roomTitle;
   if (room.current_round > 0) state.round = room.current_round;
   state.roundsTotal = room.rounds_total || state.roundsTotal;
   renderPlayers(data.players || []);
-  const meRow = (data.players || []).find(p => p.user_id === ME);
+  const meRow = (data.players || []).find(p => p.email === ME);
   if (meRow && meRow.status === 'eliminated') {
     state.eliminated = true;
     setSelfStatus('eliminated');
@@ -1164,7 +1161,7 @@ channel.bind('room:round', async (data) => {
 
 channel.bind('room:update', (data) => {
   renderPlayers(data.players || []);
-  const meRow = (data.players || []).find(p => p.user_id === ME);
+  const meRow = (data.players || []).find(p => p.email === ME);
   if ((meRow && meRow.status === 'eliminated') || data.eliminated === ME) {
     state.eliminated = true;
     setBadge(STR.badgeWrong);
@@ -1192,9 +1189,3 @@ setInterval(() => {
 </script>
 </body>
 </html>
-
-
-
-
-
-

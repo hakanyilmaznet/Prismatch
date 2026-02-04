@@ -51,76 +51,25 @@ function ensure_column(PDO $pdo, $table, $col, $ddl) {
   }
 }
 
-function ensure_index(PDO $pdo, $table, $indexName, $ddl) {
-  $stmt = $pdo->prepare("
-    SELECT COUNT(*) AS c
-    FROM INFORMATION_SCHEMA.STATISTICS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = :t
-      AND INDEX_NAME = :i
-  ");
-  $stmt->execute([':t' => $table, ':i' => $indexName]);
-  $row = $stmt->fetch();
-  $exists = $row && (int)$row['c'] > 0;
-  if (!$exists) {
-    $pdo->exec("ALTER TABLE `{$table}` ADD {$ddl}");
-  }
-}
-
-function ensure_foreign_key(PDO $pdo, $table, $constraintName, $ddl) {
-  $stmt = $pdo->prepare("
-    SELECT COUNT(*) AS c
-    FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
-    WHERE CONSTRAINT_SCHEMA = DATABASE()
-      AND TABLE_NAME = :t
-      AND CONSTRAINT_NAME = :c
-  ");
-  $stmt->execute([':t' => $table, ':c' => $constraintName]);
-  $row = $stmt->fetch();
-  $exists = $row && (int)$row['c'] > 0;
-  if (!$exists) {
-    $pdo->exec("ALTER TABLE `{$table}` ADD {$ddl}");
-  }
-}
-
-function drop_foreign_key_if_exists(PDO $pdo, $table, $constraintName) {
-  $stmt = $pdo->prepare("
-    SELECT COUNT(*) AS c
-    FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
-    WHERE CONSTRAINT_SCHEMA = DATABASE()
-      AND TABLE_NAME = :t
-      AND CONSTRAINT_NAME = :c
-  ");
-  $stmt->execute([':t' => $table, ':c' => $constraintName]);
-  $row = $stmt->fetch();
-  $exists = $row && (int)$row['c'] > 0;
-  if ($exists) {
-    $pdo->exec("ALTER TABLE `{$table}` DROP FOREIGN KEY `{$constraintName}`");
-  }
-}
-
 function init_schema(PDO $pdo) {
   // users: kişisel veri sadece email
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS users (
-      id CHAR(36) NOT NULL,
-      username VARCHAR(30) NULL,
-      email VARCHAR(320) NULL,
+      email VARCHAR(320) NOT NULL,
       created_at DATETIME(3) NOT NULL,
       last_login DATETIME(3) NOT NULL,
       total_plays INT NOT NULL DEFAULT 0,
       total_wins INT NOT NULL DEFAULT 0,
       best_level INT NOT NULL DEFAULT 0,
       total_correct INT NOT NULL DEFAULT 0,
-      PRIMARY KEY (id),
-      UNIQUE KEY uq_users_email (email)
+      PRIMARY KEY (email)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ");
 
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS games (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      user_id CHAR(36) NOT NULL,
+      email VARCHAR(320) NOT NULL,
       created_at DATETIME(3) NOT NULL,
       finished_at DATETIME(3) NOT NULL,
       duration_ms INT NOT NULL,
@@ -131,115 +80,17 @@ function init_schema(PDO $pdo) {
       language VARCHAR(16) NULL,
       country VARCHAR(8) NULL,
       PRIMARY KEY (id),
-      INDEX idx_games_user_created (user_id, created_at),
-      CONSTRAINT fk_games_user FOREIGN KEY (user_id) REFERENCES users(id)
+      INDEX idx_games_email_created (email, created_at),
+      CONSTRAINT fk_games_email FOREIGN KEY (email) REFERENCES users(email)
         ON DELETE CASCADE ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ");
 
 
   // Migrations / backward compatible columns
-  ensure_column($pdo, 'users', 'id', 'CHAR(36) NULL');
-  ensure_column($pdo, 'users', 'username', 'VARCHAR(30) NULL');
-  ensure_column($pdo, 'users', 'email', 'VARCHAR(320) NULL');
-
-  ensure_column($pdo, 'games', 'user_id', 'CHAR(36) NULL');
   ensure_column($pdo, 'games', 'language', 'VARCHAR(16) NULL');
   ensure_column($pdo, 'games', 'country', 'VARCHAR(8) NULL');
   ensure_column($pdo, 'games', 'score', 'INT NOT NULL DEFAULT 0');
-
-  // Backfill user ids if needed
-  try {
-    $pdo->exec("UPDATE users SET id = UUID() WHERE id IS NULL OR id = ''");
-  } catch (Exception $e) {}
-
-  // Drop old email-based FKs if present
-  drop_foreign_key_if_exists($pdo, 'games', 'fk_games_email');
-  drop_foreign_key_if_exists($pdo, 'rooms', 'fk_rooms_owner');
-  drop_foreign_key_if_exists($pdo, 'room_players', 'fk_room_players_email');
-
-  // Ensure users.id is primary key
-  try {
-    $pdo->exec("ALTER TABLE users MODIFY id CHAR(36) NOT NULL");
-  } catch (Exception $e) {}
-  try {
-    $stmt = $pdo->query("
-      SELECT COLUMN_NAME
-      FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-      WHERE TABLE_SCHEMA = DATABASE()
-        AND TABLE_NAME = 'users'
-        AND CONSTRAINT_NAME = 'PRIMARY'
-      LIMIT 1
-    ");
-    $pkCol = $stmt ? $stmt->fetchColumn() : null;
-    if ($pkCol && $pkCol !== 'id') {
-      $pdo->exec("ALTER TABLE users DROP PRIMARY KEY, ADD PRIMARY KEY (id)");
-    }
-  } catch (Exception $e) {}
-
-  ensure_index($pdo, 'users', 'uq_users_email', 'UNIQUE KEY uq_users_email (email)');
-
-  // Backfill new user_id columns from legacy email fields
-  try {
-    $pdo->exec("
-      UPDATE games g
-      JOIN users u ON g.email = u.email
-      SET g.user_id = u.id
-      WHERE (g.user_id IS NULL OR g.user_id = '')
-        AND g.email IS NOT NULL AND g.email <> ''
-    ");
-  } catch (Exception $e) {}
-  try {
-    $pdo->exec("
-      UPDATE rooms r
-      JOIN users u ON r.owner_email = u.email
-      SET r.owner_id = u.id
-      WHERE (r.owner_id IS NULL OR r.owner_id = '')
-        AND r.owner_email IS NOT NULL AND r.owner_email <> ''
-    ");
-  } catch (Exception $e) {}
-  try {
-    $pdo->exec("
-      UPDATE room_players rp
-      JOIN users u ON rp.email = u.email
-      SET rp.user_id = u.id
-      WHERE (rp.user_id IS NULL OR rp.user_id = '')
-        AND rp.email IS NOT NULL AND rp.email <> ''
-    ");
-  } catch (Exception $e) {}
-  try {
-    $pdo->exec("
-      UPDATE room_events re
-      JOIN users u ON re.email = u.email
-      SET re.user_id = u.id
-      WHERE (re.user_id IS NULL OR re.user_id = '')
-        AND re.email IS NOT NULL AND re.email <> ''
-    ");
-  } catch (Exception $e) {}
-  try {
-    $pdo->exec("
-      UPDATE daily_scores ds
-      JOIN users u ON ds.email = u.email
-      SET ds.user_id = u.id
-      WHERE (ds.user_id IS NULL OR ds.user_id = '')
-        AND ds.email IS NOT NULL AND ds.email <> ''
-    ");
-  } catch (Exception $e) {}
-
-  // Ensure daily unique key is on (challenge_date, user_id)
-  try { $pdo->exec("ALTER TABLE daily_scores DROP INDEX uq_daily_user"); } catch (Exception $e) {}
-  ensure_index($pdo, 'daily_scores', 'uq_daily_user', 'UNIQUE KEY uq_daily_user (challenge_date, user_id)');
-  ensure_foreign_key($pdo, 'daily_scores', 'fk_daily_scores_user', 'CONSTRAINT fk_daily_scores_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE');
-
-  // Ensure new FKs and indexes
-  ensure_index($pdo, 'games', 'idx_games_user_created', 'INDEX idx_games_user_created (user_id, created_at)');
-  ensure_foreign_key($pdo, 'games', 'fk_games_user', 'CONSTRAINT fk_games_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE');
-
-  ensure_index($pdo, 'rooms', 'idx_rooms_owner', 'KEY idx_rooms_owner (owner_id)');
-  ensure_foreign_key($pdo, 'rooms', 'fk_rooms_owner', 'CONSTRAINT fk_rooms_owner FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE');
-
-  ensure_index($pdo, 'room_players', 'idx_room_players_user', 'KEY idx_room_players_user (user_id)');
-  ensure_foreign_key($pdo, 'room_players', 'fk_room_players_user', 'CONSTRAINT fk_room_players_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE');
 
   // ✅ MariaDB uyumluluğu: grid_colors_json LONGTEXT
   $pdo->exec("
@@ -262,16 +113,6 @@ function init_schema(PDO $pdo) {
 
   // Daily tables (idempotent)
   ensure_daily_schema($pdo);
-  ensure_column($pdo, 'daily_scores', 'user_id', 'CHAR(36) NULL');
-  try {
-    $pdo->exec("
-      UPDATE daily_scores ds
-      JOIN users u ON ds.email = u.email
-      SET ds.user_id = u.id
-      WHERE (ds.user_id IS NULL OR ds.user_id = '')
-        AND ds.email IS NOT NULL AND ds.email <> ''
-    ");
-  } catch (Exception $e) {}
 
   // Room mode tables (idempotent)
   $pdo->exec("
@@ -279,7 +120,7 @@ function init_schema(PDO $pdo) {
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       guid CHAR(36) NOT NULL,
       name VARCHAR(80) NULL,
-      owner_id CHAR(36) NOT NULL,
+      owner_email VARCHAR(320) NOT NULL,
       status VARCHAR(16) NOT NULL DEFAULT 'waiting',
       rounds_total INT NOT NULL,
       current_round INT NOT NULL DEFAULT 0,
@@ -289,20 +130,19 @@ function init_schema(PDO $pdo) {
       finished_at DATETIME(3) NULL,
       PRIMARY KEY (id),
       UNIQUE KEY uq_rooms_guid (guid),
-      KEY idx_rooms_owner (owner_id),
+      KEY idx_rooms_owner (owner_email),
       KEY idx_rooms_status (status),
-      CONSTRAINT fk_rooms_owner FOREIGN KEY (owner_id) REFERENCES users(id)
+      CONSTRAINT fk_rooms_owner FOREIGN KEY (owner_email) REFERENCES users(email)
         ON DELETE CASCADE ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ");
-  ensure_column($pdo, 'rooms', 'owner_id', 'CHAR(36) NULL');
   ensure_column($pdo, 'rooms', 'name', 'VARCHAR(80) NULL');
 
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS room_players (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       room_id BIGINT UNSIGNED NOT NULL,
-      user_id CHAR(36) NOT NULL,
+      email VARCHAR(320) NOT NULL,
       joined_at DATETIME(3) NOT NULL,
       status VARCHAR(16) NOT NULL DEFAULT 'active',
       eliminated_round INT NULL,
@@ -310,16 +150,15 @@ function init_schema(PDO $pdo) {
       correct INT NOT NULL DEFAULT 0,
       last_active DATETIME(3) NULL,
       PRIMARY KEY (id),
-      UNIQUE KEY uq_room_player (room_id, user_id),
+      UNIQUE KEY uq_room_player (room_id, email),
       KEY idx_room_players_room (room_id),
-      KEY idx_room_players_user (user_id),
+      KEY idx_room_players_email (email),
       CONSTRAINT fk_room_players_room FOREIGN KEY (room_id) REFERENCES rooms(id)
         ON DELETE CASCADE ON UPDATE CASCADE,
-      CONSTRAINT fk_room_players_user FOREIGN KEY (user_id) REFERENCES users(id)
+      CONSTRAINT fk_room_players_email FOREIGN KEY (email) REFERENCES users(email)
         ON DELETE CASCADE ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ");
-  ensure_column($pdo, 'room_players', 'user_id', 'CHAR(36) NULL');
 
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS room_rounds (
@@ -342,7 +181,7 @@ function init_schema(PDO $pdo) {
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       room_id BIGINT UNSIGNED NOT NULL,
       round_index INT NOT NULL,
-      user_id CHAR(36) NOT NULL,
+      email VARCHAR(320) NOT NULL,
       event_type VARCHAR(32) NOT NULL,
       payload_json LONGTEXT NOT NULL,
       created_at DATETIME(3) NOT NULL,
@@ -353,7 +192,6 @@ function init_schema(PDO $pdo) {
         ON DELETE CASCADE ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ");
-  ensure_column($pdo, 'room_events', 'user_id', 'CHAR(36) NULL');
 }
 
 function now_utc_mysql() {
@@ -371,161 +209,26 @@ function iso_to_mysql_datetime($iso) {
   return $dt->format('Y-m-d H:i:s.v');
 }
 
-function user_guid(): string {
-  $data = random_bytes(16);
-  $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-  $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-  return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-}
-
-function get_user_by_id(string $userId): ?array {
-  $pdo = db();
-  $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
-  $stmt->execute([':id' => $userId]);
-  $row = $stmt->fetch();
-  return $row ?: null;
-}
-
-function get_user_by_email(string $email): ?array {
-  $pdo = db();
-  $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :user_id LIMIT 1");
-  $stmt->execute([':email' => $email]);
-  $row = $stmt->fetch();
-  return $row ?: null;
-}
-
-function user_display_name_from_row(array $row): string {
-  $username = trim((string)($row['username'] ?? ''));
-  if ($username !== '') return $username;
-  $email = trim((string)($row['email'] ?? ''));
-  return $email !== '' ? $email : 'Guest';
-}
-
-function user_display_name(string $userId): string {
-  $row = get_user_by_id($userId);
-  return $row ? user_display_name_from_row($row) : 'Guest';
-}
-
-function touch_user_login(string $userId): void {
+function upsert_user_login($email) {
   $pdo = db();
   $now = now_utc_mysql();
-  $pdo->prepare("UPDATE users SET last_login = :t WHERE id = :id")
-      ->execute([':t' => $now, ':id' => $userId]);
-}
 
-function ensure_user_by_email(string $email): array {
-  $pdo = db();
-  $now = now_utc_mysql();
-  $email = strtolower(trim($email));
-
-  $existing = get_user_by_email($email);
-  if ($existing) {
-    $pdo->prepare("UPDATE users SET last_login = :t WHERE id = :id")
-        ->execute([':t' => $now, ':id' => $existing['id']]);
-    return $existing;
-  }
-
-  $id = user_guid();
   $stmt = $pdo->prepare("
-    INSERT INTO users (id, email, created_at, last_login)
-    VALUES (:id, :email, :created_at, :last_login)
+    INSERT INTO users (email, created_at, last_login)
+    VALUES (:email, :created_at, :last_login)
+    ON DUPLICATE KEY UPDATE last_login = VALUES(last_login)
   ");
   $stmt->execute([
-    ':id' => $id,
     ':email' => $email,
     ':created_at' => $now,
     ':last_login' => $now,
   ]);
-  return get_user_by_id($id) ?: ['id' => $id, 'email' => $email];
 }
 
-function ensure_local_user(string $username, ?string $userId = null): array {
+function get_user_stats($email) {
   $pdo = db();
-  $now = now_utc_mysql();
-  $username = trim($username);
-
-  if ($userId) {
-    $existing = get_user_by_id($userId);
-    if ($existing) {
-      $pdo->prepare("
-        UPDATE users
-        SET username = :username, last_login = :t
-        WHERE id = :id
-      ")->execute([':username' => $username, ':t' => $now, ':id' => $userId]);
-      $existing['username'] = $username;
-      return $existing;
-    }
-  }
-
-  $id = user_guid();
-  $stmt = $pdo->prepare("
-    INSERT INTO users (id, username, created_at, last_login)
-    VALUES (:id, :username, :created_at, :last_login)
-  ");
-  $stmt->execute([
-    ':id' => $id,
-    ':username' => $username,
-    ':created_at' => $now,
-    ':last_login' => $now,
-  ]);
-  return get_user_by_id($id) ?: ['id' => $id, 'username' => $username];
-}
-
-function merge_user_accounts(string $fromUserId, string $toUserId): void {
-  if ($fromUserId === $toUserId) return;
-  $pdo = db();
-  try {
-    $pdo->prepare("
-      UPDATE users u
-      JOIN users f ON f.id = :fromId
-      SET
-        u.total_plays = u.total_plays + f.total_plays,
-        u.total_wins = u.total_wins + f.total_wins,
-        u.total_correct = u.total_correct + f.total_correct,
-        u.best_level = CASE WHEN f.best_level > u.best_level THEN f.best_level ELSE u.best_level END
-      WHERE u.id = :toId
-    ")->execute([':fromId' => $fromUserId, ':toId' => $toUserId]);
-  } catch (Exception $e) {}
-  $tables = [
-    ['games', 'user_id'],
-    ['rooms', 'owner_id'],
-    ['room_players', 'user_id'],
-    ['room_events', 'user_id'],
-    ['daily_scores', 'user_id'],
-  ];
-  foreach ($tables as $t) {
-    try {
-      $pdo->prepare("UPDATE {$t[0]} SET {$t[1]} = :toId WHERE {$t[1]} = :fromId")
-          ->execute([':toId' => $toUserId, ':fromId' => $fromUserId]);
-    } catch (Exception $e) {}
-  }
-  try {
-    $pdo->prepare("DELETE FROM users WHERE id = :id")->execute([':id' => $fromUserId]);
-  } catch (Exception $e) {}
-}
-
-function link_user_email(string $userId, string $email): array {
-  $pdo = db();
-  $now = now_utc_mysql();
-  $email = strtolower(trim($email));
-
-  $existingByEmail = get_user_by_email($email);
-  if ($existingByEmail && $existingByEmail['id'] !== $userId) {
-    merge_user_accounts($userId, $existingByEmail['id']);
-    $pdo->prepare("UPDATE users SET last_login = :t WHERE id = :id")
-        ->execute([':t' => $now, ':id' => $existingByEmail['id']]);
-    return get_user_by_id($existingByEmail['id']) ?: $existingByEmail;
-  }
-
-  $pdo->prepare("UPDATE users SET email = :email, last_login = :t WHERE id = :id")
-      ->execute([':email' => $email, ':t' => $now, ':id' => $userId]);
-  return get_user_by_id($userId) ?: ['id' => $userId, 'email' => $email];
-}
-
-function get_user_stats(string $userId) {
-  $pdo = db();
-  $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
-  $stmt->execute([':id' => $userId]);
+  $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+  $stmt->execute([':email' => $email]);
   return $stmt->fetch() ?: [];
 }
 
@@ -537,11 +240,11 @@ function get_user_stats(string $userId) {
  * }
  */
  
- function record_full_game($userId, $gamePayload) {
+ function record_full_game($email, $gamePayload) {
   $pdo = db();
 
   // FK kırılmasın
-  touch_user_login($userId);
+  upsert_user_login($email);
 
   $startedIso = (string)(isset($gamePayload['startedAt']) ? $gamePayload['startedAt'] : '');
   $endedIso   = (string)(isset($gamePayload['endedAt']) ? $gamePayload['endedAt'] : '');
@@ -567,15 +270,15 @@ function get_user_stats(string $userId) {
     // -------------------------
     $sqlGame = "
       INSERT INTO games
-        (user_id, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country)
+        (email, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country)
       VALUES
-        (:user_id, :created_at, :finished_at, :duration_ms, :reached_level, :total_correct, :score, :won, :language, :country)
+        (:email, :created_at, :finished_at, :duration_ms, :reached_level, :total_correct, :score, :won, :language, :country)
     ";
     if (trim($sqlGame) === '') throw new RuntimeException('sqlGame is empty');
 
     $stmtGame = $pdo->prepare($sqlGame);
     $stmtGame->execute([
-      ':user_id' => $userId,
+      ':email' => $email,
       ':created_at' => $createdAt,
       ':finished_at' => $finishedAt,
       ':duration_ms' => $durationMs,
@@ -653,7 +356,7 @@ function get_user_stats(string $userId) {
         total_wins = total_wins + :win_inc,
         best_level = CASE WHEN :lvl1 > best_level THEN :lvl2 ELSE best_level END,
         total_correct = total_correct + :correct
-      WHERE id = :user_id
+      WHERE email = :email
     ";
     if (trim($sqlAgg) === '') throw new RuntimeException('sqlAgg is empty');
 
@@ -663,7 +366,7 @@ function get_user_stats(string $userId) {
       ':lvl1' => $reached,
       ':lvl2' => $reached,
       ':correct' => $totalCorrect,
-      ':user_id' => $userId,
+      ':email' => $email,
     ]);
 
     $pdo->commit();
@@ -676,30 +379,30 @@ function get_user_stats(string $userId) {
 }
 
 
-function list_games($userId, $limit = 100) {
+function list_games($email, $limit = 100) {
   $pdo = db();
   $stmt = $pdo->prepare("
     SELECT id, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country
     FROM games
-    WHERE user_id = :user_id
+    WHERE email = :email
     ORDER BY id DESC
     LIMIT :lim
   ");
-  $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
+  $stmt->bindValue(':email', $email, PDO::PARAM_STR);
   $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
   $stmt->execute();
   return $stmt->fetchAll() ?: [];
 }
 
-function get_game($userId, $gameId) {
+function get_game($email, $gameId) {
   $pdo = db();
   $stmt = $pdo->prepare("
-    SELECT id, user_id, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country
+    SELECT id, email, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country
     FROM games
-    WHERE id = :id AND user_id = :user_id
+    WHERE id = :id AND email = :email
     LIMIT 1
   ");
-  $stmt->execute([':id' => $gameId, ':user_id' => $userId]);
+  $stmt->execute([':id' => $gameId, ':email' => $email]);
   return $stmt->fetch() ?: [];
 }
 
@@ -883,7 +586,7 @@ function ensure_daily_schema($pdo = null) {
   CREATE TABLE IF NOT EXISTS daily_scores (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     challenge_date DATE NOT NULL,               -- UTC date
-    user_id CHAR(36) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     score INT NOT NULL DEFAULT 0,               -- total_correct or custom scoring
     reached_level INT NOT NULL DEFAULT 0,
     total_correct INT NOT NULL DEFAULT 0,
@@ -892,11 +595,9 @@ function ensure_daily_schema($pdo = null) {
     country VARCHAR(2) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_daily_user (challenge_date, user_id),
+    UNIQUE KEY uq_daily_user (challenge_date, email),
     KEY idx_daily_date_score (challenge_date, score),
-    KEY idx_daily_country_date (country, challenge_date),
-    CONSTRAINT fk_daily_scores_user FOREIGN KEY (user_id) REFERENCES users(id)
-      ON DELETE CASCADE ON UPDATE CASCADE
+    KEY idx_daily_country_date (country, challenge_date)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ";
   // Some hosts disallow multi statements in prepare; execute as-is.
@@ -912,9 +613,9 @@ function upsert_daily_score($row) {
 
   $sql = "
     INSERT INTO daily_scores
-      (challenge_date, user_id, score, reached_level, total_correct, duration_ms, language, country)
+      (challenge_date, email, score, reached_level, total_correct, duration_ms, language, country)
     VALUES
-      (:challenge_date, :user_id, :score, :reached_level, :total_correct, :duration_ms, :language, :country)
+      (:challenge_date, :email, :score, :reached_level, :total_correct, :duration_ms, :language, :country)
     ON DUPLICATE KEY UPDATE
       score = VALUES(score),
       reached_level = VALUES(reached_level),
@@ -926,7 +627,7 @@ function upsert_daily_score($row) {
   $st = $pdo->prepare($sql);
   $st->execute([
     ':challenge_date' => $row['challenge_date'],
-    ':user_id'        => $row['user_id'],
+    ':email'          => $row['email'],
     ':score'          => (int)$row['score'],
     ':reached_level'  => (int)$row['reached_level'],
     ':total_correct'  => (int)$row['total_correct'],
@@ -937,10 +638,10 @@ function upsert_daily_score($row) {
 }
 
 /** Has user already played today (UTC date)? */
-function has_played_daily($userId, $challengeDate) {
+function has_played_daily($email, $challengeDate) {
   $pdo = db();
-  $st = $pdo->prepare("SELECT 1 FROM daily_scores WHERE challenge_date=:d AND user_id=:u LIMIT 1");
-  $st->execute([':d'=>$challengeDate, ':u'=>$userId]);
+  $st = $pdo->prepare("SELECT 1 FROM daily_scores WHERE challenge_date=:d AND email=:e LIMIT 1");
+  $st->execute([':d'=>$challengeDate, ':e'=>$email]);
   return (bool)$st->fetchColumn();
 }
 
@@ -954,21 +655,19 @@ function daily_leaderboard($challengeDate, $country = null, $limit = 50) {
 
   if ($country) {
     $st = $pdo->prepare("
-      SELECT ds.user_id, u.username, u.email, ds.score, ds.reached_level, ds.total_correct, ds.duration_ms, ds.language, ds.country, ds.created_at
-      FROM daily_scores ds
-      JOIN users u ON u.id = ds.user_id
-      WHERE ds.challenge_date=:d AND ds.country=:c
-      ORDER BY ds.score DESC, ds.reached_level DESC, ds.duration_ms ASC, ds.created_at ASC
+      SELECT email, score, reached_level, total_correct, duration_ms, language, country, created_at
+      FROM daily_scores
+      WHERE challenge_date=:d AND country=:c
+      ORDER BY score DESC, reached_level DESC, duration_ms ASC, created_at ASC
       LIMIT {$limit}
     ");
     $st->execute([':d'=>$challengeDate, ':c'=>$country]);
   } else {
     $st = $pdo->prepare("
-      SELECT ds.user_id, u.username, u.email, ds.score, ds.reached_level, ds.total_correct, ds.duration_ms, ds.language, ds.country, ds.created_at
-      FROM daily_scores ds
-      JOIN users u ON u.id = ds.user_id
-      WHERE ds.challenge_date=:d
-      ORDER BY ds.score DESC, ds.reached_level DESC, ds.duration_ms ASC, ds.created_at ASC
+      SELECT email, score, reached_level, total_correct, duration_ms, language, country, created_at
+      FROM daily_scores
+      WHERE challenge_date=:d
+      ORDER BY score DESC, reached_level DESC, duration_ms ASC, created_at ASC
       LIMIT {$limit}
     ");
     $st->execute([':d'=>$challengeDate]);
@@ -995,10 +694,10 @@ function room_guid(): string {
   return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-function create_room($ownerId, $roundsTotal, $name = '') {
+function create_room($ownerEmail, $roundsTotal, $name = '') {
   $pdo = db();
   cleanup_old_rooms($pdo);
-  touch_user_login($ownerId);
+  upsert_user_login($ownerEmail);
 
   $rounds = max(1, min(50, (int)$roundsTotal));
   $name = trim((string)$name);
@@ -1008,25 +707,25 @@ function create_room($ownerId, $roundsTotal, $name = '') {
   $guid = room_guid();
 
   $stmt = $pdo->prepare("
-    INSERT INTO rooms (guid, name, owner_id, rounds_total, created_at)
+    INSERT INTO rooms (guid, name, owner_email, rounds_total, created_at)
     VALUES (:guid, :name, :owner, :rounds, :created_at)
   ");
   $stmt->execute([
     ':guid' => $guid,
     ':name' => ($name !== '' ? $name : null),
-    ':owner' => $ownerId,
+    ':owner' => $ownerEmail,
     ':rounds' => $rounds,
     ':created_at' => now_utc_mysql(),
   ]);
   $roomId = (int)$pdo->lastInsertId();
 
   $stmtP = $pdo->prepare("
-    INSERT INTO room_players (room_id, user_id, joined_at, status, last_active)
-    VALUES (:room_id, :user_id, :joined_at, 'active', :last_active)
+    INSERT INTO room_players (room_id, email, joined_at, status, last_active)
+    VALUES (:room_id, :email, :joined_at, 'active', :last_active)
   ");
   $stmtP->execute([
     ':room_id' => $roomId,
-    ':user_id' => $ownerId,
+    ':email' => $ownerEmail,
     ':joined_at' => now_utc_mysql(),
     ':last_active' => now_utc_mysql(),
   ]);
@@ -1041,18 +740,18 @@ function get_room_by_guid($guid) {
   return $stmt->fetch() ?: null;
 }
 
-function list_user_rooms($userId, $limit = 100) {
+function list_user_rooms($email, $limit = 100) {
   $pdo = db();
   cleanup_old_rooms($pdo);
   $stmt = $pdo->prepare("
     SELECT r.*
     FROM rooms r
     JOIN room_players p ON p.room_id = r.id
-    WHERE p.user_id = :user_id
+    WHERE p.email = :email
     ORDER BY r.id DESC
     LIMIT :lim
   ");
-  $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
+  $stmt->bindValue(':email', $email, PDO::PARAM_STR);
   $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
   $stmt->execute();
   return $stmt->fetchAll() ?: [];
@@ -1061,38 +760,32 @@ function list_user_rooms($userId, $limit = 100) {
 function list_room_players($roomId) {
   $pdo = db();
   $stmt = $pdo->prepare("
-    SELECT rp.user_id, rp.status, rp.eliminated_round, rp.score, rp.correct, rp.joined_at, u.username, u.email
-    FROM room_players rp
-    JOIN users u ON u.id = rp.user_id
-    WHERE rp.room_id = :rid
-    ORDER BY rp.score DESC, rp.correct DESC, rp.joined_at ASC
+    SELECT email, status, eliminated_round, score, correct, joined_at
+    FROM room_players
+    WHERE room_id = :rid
+    ORDER BY score DESC, correct DESC, joined_at ASC
   ");
   $stmt->execute([':rid' => $roomId]);
-  $rows = $stmt->fetchAll() ?: [];
-  foreach ($rows as &$r) {
-    $r['display_name'] = user_display_name_from_row($r);
-  }
-  return $rows;
+  return $stmt->fetchAll() ?: [];
 }
 
-function room_winner_name($roomId) {
+function room_winner_email($roomId) {
   $pdo = db();
   $stmt = $pdo->prepare("
-    SELECT u.username, u.email
-    FROM room_players rp
-    JOIN users u ON u.id = rp.user_id
-    WHERE rp.room_id = :rid
-    ORDER BY rp.score DESC, rp.correct DESC, rp.joined_at ASC
+    SELECT email
+    FROM room_players
+    WHERE room_id = :rid
+    ORDER BY score DESC, correct DESC, joined_at ASC
     LIMIT 1
   ");
   $stmt->execute([':rid' => $roomId]);
-  $row = $stmt->fetch();
-  return $row ? user_display_name_from_row($row) : null;
+  $email = $stmt->fetchColumn();
+  return $email ? (string)$email : null;
 }
 
-function add_room_player($roomId, $userId) {
+function add_room_player($roomId, $email) {
   $pdo = db();
-  touch_user_login($userId);
+  upsert_user_login($email);
 
   $room = $pdo->prepare("SELECT max_players FROM rooms WHERE id = :id");
   $room->execute([':id' => $roomId]);
@@ -1104,13 +797,13 @@ function add_room_player($roomId, $userId) {
   if ($count >= $maxPlayers) return false;
 
   $stmt = $pdo->prepare("
-    INSERT INTO room_players (room_id, user_id, joined_at, status, last_active)
-    VALUES (:room_id, :user_id, :joined_at, 'active', :last_active)
+    INSERT INTO room_players (room_id, email, joined_at, status, last_active)
+    VALUES (:room_id, :email, :joined_at, 'active', :last_active)
     ON DUPLICATE KEY UPDATE last_active = VALUES(last_active)
   ");
   $stmt->execute([
     ':room_id' => $roomId,
-    ':user_id' => $userId,
+    ':email' => $email,
     ':joined_at' => now_utc_mysql(),
     ':last_active' => now_utc_mysql(),
   ]);
@@ -1194,54 +887,44 @@ function room_end_round($roomId, $roundIndex) {
   $stmt->execute([':t'=>now_utc_mysql(), ':rid'=>$roomId, ':r'=>$roundIndex]);
 }
 
-function room_log_event($roomId, $roundIndex, $userId, $type, $payload) {
+function room_log_event($roomId, $roundIndex, $email, $type, $payload) {
   $pdo = db();
   $stmt = $pdo->prepare("
-    INSERT INTO room_events (room_id, round_index, user_id, event_type, payload_json, created_at)
-    VALUES (:room_id, :round_index, :user_id, :event_type, :payload_json, :created_at)
+    INSERT INTO room_events (room_id, round_index, email, event_type, payload_json, created_at)
+    VALUES (:room_id, :round_index, :email, :event_type, :payload_json, :created_at)
   ");
   $stmt->execute([
     ':room_id'=>$roomId,
     ':round_index'=>$roundIndex,
-    ':user_id'=>$userId,
+    ':email'=>$email,
     ':event_type'=>$type,
     ':payload_json'=>json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
     ':created_at'=>now_utc_mysql(),
   ]);
 }
 
-function room_mark_eliminated($roomId, $userId, $roundIndex) {
+function room_mark_eliminated($roomId, $email, $roundIndex) {
   $pdo = db();
   $stmt = $pdo->prepare("
     UPDATE room_players
     SET status='eliminated', eliminated_round=:r
-    WHERE room_id=:rid AND user_id=:user_id
+    WHERE room_id=:rid AND email=:email
   ");
-  $stmt->execute([':r'=>$roundIndex, ':rid'=>$roomId, ':user_id'=>$userId]);
+  $stmt->execute([':r'=>$roundIndex, ':rid'=>$roomId, ':email'=>$email]);
 }
 
-function room_add_score($roomId, $userId, $scoreDelta, $correctDelta) {
+function room_add_score($roomId, $email, $scoreDelta, $correctDelta) {
   $pdo = db();
   $stmt = $pdo->prepare("
     UPDATE room_players
     SET score = score + :score, correct = correct + :correct, last_active=:t
-    WHERE room_id=:rid AND user_id=:user_id
+    WHERE room_id=:rid AND email=:email
   ");
   $stmt->execute([
     ':score'=> (int)$scoreDelta,
     ':correct'=> (int)$correctDelta,
     ':t'=> now_utc_mysql(),
     ':rid'=> $roomId,
-    ':user_id'=> $userId,
+    ':email'=> $email,
   ]);
 }
-
-
-
-
-
-
-
-
-
-

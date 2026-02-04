@@ -8,8 +8,8 @@ require_once __DIR__ . '/../db.php';
 header('Content-Type: application/json; charset=utf-8');
 
 try {
-  $userId = $_SESSION['user_id'] ?? null;
-  if (!$userId) {
+  $email = $_SESSION['user_email'] ?? null;
+  if (!$email) {
     http_response_code(401);
     echo json_encode(['ok'=>false,'error'=>'not_logged_in']);
     exit;
@@ -23,7 +23,7 @@ try {
   $challengeDate = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d');
 
   // Enforce single attempt (no overwrite):
-  if (has_played_daily($userId, $challengeDate)) {
+  if (has_played_daily($email, $challengeDate)) {
     echo json_encode(['ok'=>false,'error'=>'already_played']);
     exit;
   }
@@ -33,7 +33,7 @@ try {
 
   $payload = [
     'challenge_date' => $challengeDate,
-    'user_id'        => $userId,
+    'email'          => $email,
     'reached_level'  => (int)($data['reached_level'] ?? $data['reachedLevel'] ?? 0),
     'total_correct'  => (int)($data['total_correct'] ?? $data['correct'] ?? 0),
     'duration_ms'    => (int)($data['duration_ms'] ?? $data['durationMs'] ?? 0),

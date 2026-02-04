@@ -12,8 +12,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 header('Content-Type: application/json');
 
-$userId = $_SESSION['user_id'] ?? null;
-if (!$userId) {
+$email = $_SESSION['user_email'] ?? null;
+if (!$email) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;
@@ -41,8 +41,7 @@ if (!$room) {
       'status' => $room['status'],
     'rounds_total' => (int)$room['rounds_total'],
     'current_round' => (int)$room['current_round'],
-    'owner_id' => $room['owner_id'],
-    'owner_name' => user_display_name((string)$room['owner_id']),
+    'owner_email' => $room['owner_email'],
   ],
   'players' => list_room_players((int)$room['id']),
 ]);
