@@ -8,7 +8,7 @@ $lang = get_lang();
 $dir  = lang_dir($lang);
 
 $userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
-$userDisplay = (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($userId ? user_display_name($userId)) : null);
+$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
 if (!$userId) {
   header('Location: index.php?session=expired');
   exit;

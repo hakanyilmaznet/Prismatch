@@ -4,7 +4,7 @@ declare(strict_types=1);
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
-function _L_foot($k){
+function _L_foot(string $k): string {
   global $lang;
   $d = [
     'en' => ['privacy'=>'Privacy','terms'=>'Terms','copyright'=>'© {y} Prismatch'],
@@ -15,7 +15,7 @@ function _L_foot($k){
   return str_replace('{y}', (string)date('Y'), $s);
 }
 
-function _h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 ?>
 <style>
   :root{ --pm-footer-offset: 0px; }
@@ -89,7 +89,7 @@ function _h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
   (function(){
     try{
       var errs = window.__pmDebugErrors || <?=
-        json_encode((isset($GLOBALS['PM_DEBUG_ERRORS']) ? $GLOBALS['PM_DEBUG_ERRORS'] : []), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        json_encode($GLOBALS['PM_DEBUG_ERRORS'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
       ?>;
       if (Array.isArray(errs) && errs.length){
         errs.forEach(function(e){

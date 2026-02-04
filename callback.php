@@ -11,7 +11,7 @@ session_set_cookie_params([
 ]);
 session_start();
 
-function fail($msg, $code = 400){
+function fail(string $msg, int $code = 400): void {
   http_response_code($code);
   $title = t('callback_error_title');
   $back = t('callback_back');
@@ -19,7 +19,7 @@ function fail($msg, $code = 400){
   exit;
 }
 
-function is_safe_next_path($path){
+function is_safe_next_path(string $path): bool {
   if ($path === '') return false;
   $parts = parse_url($path);
   if ($parts === false) return false;
@@ -94,7 +94,7 @@ if (!is_array($userJson) || empty($userJson['email'])) {
 $email = strtolower(trim($userJson['email']));
 
 // If user is linking a local account, attach email to that user id
-$linkUserId = (isset($_SESSION['link_user_id']) ? $_SESSION['link_user_id'] : null);
+$linkUserId = $_SESSION['link_user_id'] ?? null;
 unset($_SESSION['link_user_id']);
 
 if ($linkUserId) {
@@ -109,7 +109,7 @@ $_SESSION['user_email'] = $email;
 $_SESSION['login_provider'] = 'google';
 $_SESSION['user_name'] = user_display_name_from_row($user);
 
-$next = (isset($_SESSION['login_next']) ? $_SESSION['login_next'] : '');
+$next = $_SESSION['login_next'] ?? '';
 unset($_SESSION['login_next']);
 if ($next && is_safe_next_path($next)) {
   header('Location: ' . $next);

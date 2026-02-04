@@ -12,7 +12,7 @@ require_once __DIR__ . '/i18n.php';
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
-function L($k, $vars = []){
+function L(string $k, array $vars = []): string {
   global $lang;
   static $dict = null;
 
@@ -90,11 +90,11 @@ function L($k, $vars = []){
   return $s;
 }
 
-function google_badge_html(){
+function google_badge_html(): string {
   return '<span class="google-badge"><img src="google.svg" class="google-icon" alt="Google" /><span class="google-text">Google</span></span>';
 }
 
-function h($s){
+function h($s): string {
   $safe = htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
   return str_replace('{google}', google_badge_html(), $safe);
 }

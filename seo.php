@@ -1,27 +1,27 @@
 <?php
 declare(strict_types=1);
 
-function seo_base_url(){
+function seo_base_url(): string {
   if (defined('APP_BASE_URL') && APP_BASE_URL) {
     return rtrim((string)APP_BASE_URL, '/');
   }
   $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-  $host = (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost');
+  $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
   return $scheme . '://' . $host;
 }
 
-function seo_current_url(){
+function seo_current_url(): string {
   $base = seo_base_url();
-  $uri = (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/');
+  $uri = $_SERVER['REQUEST_URI'] ?? '/';
   if ($uri === '') $uri = '/';
   return $base . $uri;
 }
 
-function seo_escape($s){
+function seo_escape($s): string {
   return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 }
 
-function seo_og_locale($lang){
+function seo_og_locale(string $lang): string {
   $l = strtolower(trim($lang));
   if ($l === 'tr') return 'tr_TR';
   if ($l === 'en') return 'en_US';
@@ -29,26 +29,26 @@ function seo_og_locale($lang){
   return 'en_US';
 }
 
-function seo_image_url(?$path = null){
+function seo_image_url(?string $path = null): string {
   $path = $path ?: '/logo.png';
   if (preg_match('~^https?://~i', $path)) return $path;
   $path = '/' . ltrim($path, '/');
   return seo_base_url() . $path;
 }
 
-function seo_url_with_query($url, $query){
+function seo_url_with_query(string $url, array $query): string {
   $parts = parse_url($url);
-  $scheme = (isset($parts['scheme']) ? $parts['scheme'] : '');
-  $host = (isset($parts['host']) ? $parts['host'] : '');
+  $scheme = $parts['scheme'] ?? '';
+  $host = $parts['host'] ?? '';
   $port = isset($parts['port']) ? ':' . $parts['port'] : '';
-  $path = (isset($parts['path']) ? $parts['path'] : '');
+  $path = $parts['path'] ?? '';
   $frag = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
   $qs = http_build_query($query);
   $base = ($scheme && $host) ? ($scheme . '://' . $host . $port) : '';
   return $base . $path . ($qs ? '?' . $qs : '') . $frag;
 }
 
-function seo_remove_query_param($url, $param){
+function seo_remove_query_param(string $url, string $param): string {
   $parts = parse_url($url);
   $query = [];
   if (!empty($parts['query'])) parse_str($parts['query'], $query);
@@ -56,7 +56,7 @@ function seo_remove_query_param($url, $param){
   return seo_url_with_query($url, $query);
 }
 
-function seo_with_lang($url, $lang){
+function seo_with_lang(string $url, string $lang): string {
   $parts = parse_url($url);
   $query = [];
   if (!empty($parts['query'])) parse_str($parts['query'], $query);
@@ -64,7 +64,7 @@ function seo_with_lang($url, $lang){
   return seo_url_with_query($url, $query);
 }
 
-function seo_alternate_links($langs, ?$url = null){
+function seo_alternate_links(array $langs, ?string $url = null): string {
   if (!$langs) return '';
   $url = $url ?: seo_current_url();
   $clean = seo_remove_query_param($url, 'lang');
@@ -78,14 +78,14 @@ function seo_alternate_links($langs, ?$url = null){
   return implode("\n  ", $out);
 }
 
-function seo_jsonld($opts){
+function seo_jsonld(array $opts): string {
   $base = seo_base_url();
-  $siteName = (string)((isset($opts['site_name']) ? $opts['site_name'] : 'Prismatch'));
-  $title = (string)((isset($opts['title']) ? $opts['title'] : $siteName));
-  $desc = (string)((isset($opts['description']) ? $opts['description'] : ''));
-  $url = (string)((isset($opts['url']) ? $opts['url'] : seo_current_url()));
-  $lang = (string)((isset($opts['lang']) ? $opts['lang'] : 'en'));
-  $logo = seo_image_url((isset($opts['logo']) ? $opts['logo'] : '/logo.png'));
+  $siteName = (string)($opts['site_name'] ?? 'Prismatch');
+  $title = (string)($opts['title'] ?? $siteName);
+  $desc = (string)($opts['description'] ?? '');
+  $url = (string)($opts['url'] ?? seo_current_url());
+  $lang = (string)($opts['lang'] ?? 'en');
+  $logo = seo_image_url($opts['logo'] ?? '/logo.png');
 
   $org = [
     '@type' => 'Organization',
@@ -124,16 +124,16 @@ function seo_jsonld($opts){
     '</script>';
 }
 
-function seo_meta($opts = []){
-  $title = (string)((isset($opts['title']) ? $opts['title'] : ''));
-  $desc = (string)((isset($opts['description']) ? $opts['description'] : ''));
-  $url = (string)((isset($opts['url']) ? $opts['url'] : seo_current_url()));
-  $image = seo_image_url((isset($opts['image']) ? $opts['image'] : '/logo.png'));
-  $type = (string)((isset($opts['type']) ? $opts['type'] : 'website'));
-  $robots = (string)((isset($opts['robots']) ? $opts['robots'] : 'index),follow');
-  $lang = (string)((isset($opts['lang']) ? $opts['lang'] : 'en'));
-  $siteName = (string)((isset($opts['site_name']) ? $opts['site_name'] : $title));
-  $theme = (string)((isset($opts['theme_color']) ? $opts['theme_color'] : '#081017'));
+function seo_meta(array $opts = []): string {
+  $title = (string)($opts['title'] ?? '');
+  $desc = (string)($opts['description'] ?? '');
+  $url = (string)($opts['url'] ?? seo_current_url());
+  $image = seo_image_url($opts['image'] ?? '/logo.png');
+  $type = (string)($opts['type'] ?? 'website');
+  $robots = (string)($opts['robots'] ?? 'index,follow');
+  $lang = (string)($opts['lang'] ?? 'en');
+  $siteName = (string)($opts['site_name'] ?? $title);
+  $theme = (string)($opts['theme_color'] ?? '#081017');
 
   $out = [];
   if ($desc !== '') {

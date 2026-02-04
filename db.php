@@ -33,7 +33,7 @@ function db() {
   return $pdo;
 }
 
-function ensure_column($pdo, $table, $col, $ddl) {
+function ensure_column(PDO $pdo, $table, $col, $ddl) {
   // idempotent column add for MySQL/MariaDB
   $stmt = $pdo->prepare("
     SELECT COUNT(*) AS c
@@ -51,7 +51,7 @@ function ensure_column($pdo, $table, $col, $ddl) {
   }
 }
 
-function ensure_index($pdo, $table, $indexName, $ddl) {
+function ensure_index(PDO $pdo, $table, $indexName, $ddl) {
   $stmt = $pdo->prepare("
     SELECT COUNT(*) AS c
     FROM INFORMATION_SCHEMA.STATISTICS
@@ -67,7 +67,7 @@ function ensure_index($pdo, $table, $indexName, $ddl) {
   }
 }
 
-function ensure_foreign_key($pdo, $table, $constraintName, $ddl) {
+function ensure_foreign_key(PDO $pdo, $table, $constraintName, $ddl) {
   $stmt = $pdo->prepare("
     SELECT COUNT(*) AS c
     FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
@@ -83,7 +83,7 @@ function ensure_foreign_key($pdo, $table, $constraintName, $ddl) {
   }
 }
 
-function drop_foreign_key_if_exists($pdo, $table, $constraintName) {
+function drop_foreign_key_if_exists(PDO $pdo, $table, $constraintName) {
   $stmt = $pdo->prepare("
     SELECT COUNT(*) AS c
     FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
@@ -99,7 +99,7 @@ function drop_foreign_key_if_exists($pdo, $table, $constraintName) {
   }
 }
 
-function init_schema($pdo) {
+function init_schema(PDO $pdo) {
   // users: kişisel veri sadece email
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS users (
@@ -371,14 +371,14 @@ function iso_to_mysql_datetime($iso) {
   return $dt->format('Y-m-d H:i:s.v');
 }
 
-function user_guid(){
+function user_guid(): string {
   $data = random_bytes(16);
   $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
   $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
   return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-function get_user_by_id($userId){
+function get_user_by_id(string $userId): ?array {
   $pdo = db();
   $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
   $stmt->execute([':id' => $userId]);
@@ -386,7 +386,7 @@ function get_user_by_id($userId){
   return $row ?: null;
 }
 
-function get_user_by_email($email){
+function get_user_by_email(string $email): ?array {
   $pdo = db();
   $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :user_id LIMIT 1");
   $stmt->execute([':email' => $email]);
@@ -394,26 +394,26 @@ function get_user_by_email($email){
   return $row ?: null;
 }
 
-function user_display_name_from_row($row){
-  $username = trim((string)((isset($row['username']) ? $row['username'] : '')));
+function user_display_name_from_row(array $row): string {
+  $username = trim((string)($row['username'] ?? ''));
   if ($username !== '') return $username;
-  $email = trim((string)((isset($row['email']) ? $row['email'] : '')));
+  $email = trim((string)($row['email'] ?? ''));
   return $email !== '' ? $email : 'Guest';
 }
 
-function user_display_name($userId){
+function user_display_name(string $userId): string {
   $row = get_user_by_id($userId);
   return $row ? user_display_name_from_row($row) : 'Guest';
 }
 
-function touch_user_login($userId){
+function touch_user_login(string $userId): void {
   $pdo = db();
   $now = now_utc_mysql();
   $pdo->prepare("UPDATE users SET last_login = :t WHERE id = :id")
       ->execute([':t' => $now, ':id' => $userId]);
 }
 
-function ensure_user_by_email($email){
+function ensure_user_by_email(string $email): array {
   $pdo = db();
   $now = now_utc_mysql();
   $email = strtolower(trim($email));
@@ -439,7 +439,7 @@ function ensure_user_by_email($email){
   return get_user_by_id($id) ?: ['id' => $id, 'email' => $email];
 }
 
-function ensure_local_user($username, ?$userId = null){
+function ensure_local_user(string $username, ?string $userId = null): array {
   $pdo = db();
   $now = now_utc_mysql();
   $username = trim($username);
@@ -471,7 +471,7 @@ function ensure_local_user($username, ?$userId = null){
   return get_user_by_id($id) ?: ['id' => $id, 'username' => $username];
 }
 
-function merge_user_accounts($fromUserId, $toUserId){
+function merge_user_accounts(string $fromUserId, string $toUserId): void {
   if ($fromUserId === $toUserId) return;
   $pdo = db();
   try {
@@ -504,7 +504,7 @@ function merge_user_accounts($fromUserId, $toUserId){
   } catch (Exception $e) {}
 }
 
-function link_user_email($userId, $email){
+function link_user_email(string $userId, string $email): array {
   $pdo = db();
   $now = now_utc_mysql();
   $email = strtolower(trim($email));
@@ -522,7 +522,7 @@ function link_user_email($userId, $email){
   return get_user_by_id($userId) ?: ['id' => $userId, 'email' => $email];
 }
 
-function get_user_stats($userId) {
+function get_user_stats(string $userId) {
   $pdo = db();
   $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
   $stmt->execute([':id' => $userId]);
@@ -980,7 +980,7 @@ function daily_leaderboard($challengeDate, $country = null, $limit = 50) {
    Room Mode (Realtime) helpers
    ================================ */
 
-function cleanup_old_rooms($pdo = null) {
+function cleanup_old_rooms(PDO $pdo = null) {
   $pdo = $pdo ?: db();
   $cutoff = (new DateTimeImmutable('now', new DateTimeZone('UTC')))
     ->modify('-30 days')
@@ -988,7 +988,7 @@ function cleanup_old_rooms($pdo = null) {
   $pdo->prepare("DELETE FROM rooms WHERE created_at < :cutoff")->execute([':cutoff' => $cutoff]);
 }
 
-function room_guid(){
+function room_guid(): string {
   $data = random_bytes(16);
   $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
   $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
