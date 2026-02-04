@@ -19,6 +19,15 @@ function fail(string $msg, int $code = 400): void {
   exit;
 }
 
+function is_safe_next_path(string $path): bool {
+  if ($path === '') return false;
+  $parts = parse_url($path);
+  if ($parts === false) return false;
+  if (isset($parts['scheme']) || isset($parts['host'])) return false;
+  if (str_starts_with($path, '//')) return false;
+  return true;
+}
+
 if (!isset($_GET['state'], $_SESSION['oauth_state']) || $_GET['state'] !== $_SESSION['oauth_state']) {
   fail(t('callback_err_invalid_state'));
 }
@@ -89,6 +98,13 @@ upsert_user_login($email);
 
 // Session'a sadece email koy
 $_SESSION['user_email'] = $email;
+
+$next = $_SESSION['login_next'] ?? '';
+unset($_SESSION['login_next']);
+if ($next && is_safe_next_path($next)) {
+  header('Location: ' . $next);
+  exit;
+}
 
 // Ana sayfaya dön
 header('Location: ' . APP_BASE_URL . '');

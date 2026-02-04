@@ -22,7 +22,8 @@ function tt(string $key, string $fallback = ''): string {
 }
 
 if (!$userEmail) {
-  header('Location: login.php');
+  $next = 'room_play.php?guid=' . rawurlencode($guid);
+  header('Location: login.php?next=' . rawurlencode($next));
   exit;
 }
 
@@ -460,6 +461,23 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       width:20px;
       height:20px;
     }
+    .finish-icon{
+      width: 120px;
+      height: 120px;
+      border-radius: 28px;
+      margin: 6px auto 8px auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 16px 36px rgba(0,0,0,0.35);
+    }
+    .finish-icon img{
+      width: 72px;
+      height: 72px;
+      animation: popIn 320ms ease;
+    }
     .rank-row{ transition: transform 200ms ease, background 200ms ease; }
     .rank-row.flash{ background: rgba(46, 204, 113, 0.12); animation: flash 0.6s ease; }
     .rank-row.self{
@@ -604,6 +622,8 @@ const STR = {
   roomScore: <?= json_encode(tt('room_score', 'Score')) ?>,
   roomStatus: <?= json_encode(tt('room_status', 'Status')) ?>,
   roomFinishedTitle: <?= json_encode(tt('room_finished_title', 'Game finished')) ?>,
+  roomFinishedDesc: <?= json_encode(tt('room_finished_desc', 'All players are eliminated. Final leaderboard is below.')) ?>,
+  roomFinishedIconAlt: <?= json_encode(tt('room_finished_icon_alt', 'Finish badge')) ?>,
   roomTitle: <?= json_encode(tt('room_live_title', 'Room Match')) ?>,
   joinFailed: <?= json_encode(tt('error_generic', 'Error')) ?>,
 };
@@ -842,9 +862,13 @@ function renderIntermission(){
 }
 
 function renderFinished(){
+  const iconWrap = document.createElement('div');
+  iconWrap.className = 'finish-icon';
+  iconWrap.innerHTML = `<img src="success-checkmark.svg" alt="${STR.roomFinishedIconAlt}" />`;
   const nodes = [
-    h1(STR.roomTitle),
-    p(STR.roomFinishedTitle),
+    iconWrap,
+    h1(STR.roomFinishedTitle),
+    p(STR.roomFinishedDesc),
   ];
   if (state.lastLeaderboardPlayers && state.lastLeaderboardPlayers.length) {
     nodes.push(buildLeaderboardCard(state.lastLeaderboardPlayers));

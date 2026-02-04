@@ -10,6 +10,24 @@ session_set_cookie_params([
 ]);
 session_start();
 
+function is_safe_next_path(string $path): bool {
+  if ($path === '') return false;
+  $parts = parse_url($path);
+  if ($parts === false) return false;
+  if (isset($parts['scheme']) || isset($parts['host'])) return false;
+  if (str_starts_with($path, '//')) return false;
+  return true;
+}
+
+if (isset($_GET['next'])) {
+  $next = trim((string)$_GET['next']);
+  if (is_safe_next_path($next)) {
+    $_SESSION['login_next'] = $next;
+  } else {
+    unset($_SESSION['login_next']);
+  }
+}
+
 // CSRF state
 $state = bin2hex(random_bytes(16));
 $_SESSION['oauth_state'] = $state;

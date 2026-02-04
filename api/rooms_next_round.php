@@ -44,6 +44,29 @@ if ($room['owner_email'] !== $email) {
 $roomId = (int)$room['id'];
 $current = (int)$room['current_round'];
 $total = (int)$room['rounds_total'];
+
+if ($room['status'] === 'finished') {
+  echo json_encode(['ok' => true, 'finished' => true]);
+  exit;
+}
+
+$players = list_room_players($roomId);
+$activeCount = 0;
+foreach ($players as $p) {
+  if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
+}
+if ($activeCount === 0 && $current > 0) {
+  set_room_finished($roomId);
+  pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
+    'guid' => $guid,
+    'round' => $current,
+    'players' => $players,
+  ]);
+  pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+  echo json_encode(['ok' => true, 'finished' => true]);
+  exit;
+}
+
 $next = $current + 1;
 
 if ($next > $total) {
