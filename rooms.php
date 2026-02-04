@@ -14,11 +14,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userId = (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
+$userDisplay = (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($userId ? user_display_name($userId)) : null);
 $showLangPicker = true;
 
-function tt(string $key, string $fallback = ''): string {
+function tt($key, $fallback = ''){
   $v = t($key);
   if ($v === $key) return $fallback !== '' ? $fallback : $key;
   return $v;
@@ -165,13 +165,13 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             <?php foreach ($rooms as $r): ?>
               <?php
                 $winner = null;
-                if (($r['status'] ?? '') === 'finished') {
+                if (((isset($r['status']) ? $r['status'] : '')) === 'finished') {
                   $winner = room_winner_name((int)$r['id']);
                 }
               ?>
               <tr>
                 <td><?= htmlspecialchars($r['name'] ?: '-') ?></td>
-                <td><?= htmlspecialchars(room_status_label($r['status'] ?? '')) ?></td>
+                <td><?= htmlspecialchars(room_status_label((isset($r['status']) ? $r['status'] : ''))) ?></td>
                 <td><?= (int)$r['rounds_total'] ?></td>
                 <td><?= htmlspecialchars($winner ?: '-') ?></td>
                 <td><?= htmlspecialchars(format_room_dt($r['created_at'])) ?></td>

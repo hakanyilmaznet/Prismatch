@@ -4,10 +4,10 @@ require_once __DIR__ . '/i18n.php';
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$userEmail = $_SESSION['user_email'] ?? null;
+$userEmail = (isset($_SESSION['user_email']) ? $_SESSION['user_email'] : null);
 $showLangPicker = true;
 
-function tt(string $key, string $fallback = ''): string {
+function tt($key, $fallback = ''){
   $v = t($key);
   if ($v === $key) return $fallback !== '' ? $fallback : $key;
   return $v;

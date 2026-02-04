@@ -13,11 +13,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userId = (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
+$userDisplay = (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($userId ? user_display_name($userId)) : null);
 $showLangPicker = true;
 
-function tt(string $key, string $fallback = ''): string {
+function tt($key, $fallback = ''){
   $v = t($key);
   if ($v === $key) return $fallback !== '' ? $fallback : $key;
   return $v;
@@ -29,13 +29,13 @@ if (!$userId) {
   exit;
 }
 
-$guid = trim((string)($_GET['guid'] ?? ''));
+$guid = trim((string)((isset($_GET['guid']) ? $_GET['guid'] : '')));
 $seoTitle = tt('room_play_title', 'Room Match');
 $seoDescription = tt('room_play_desc', 'Compete live in a room.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
 $dict = translations();
-$rightAnswerMessages = $dict[$lang]['right_answer_messages'] ?? ($dict['en']['right_answer_messages'] ?? []);
-$wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wrong_answer_messages'] ?? []);
+$rightAnswerMessages = $dict[$lang]['right_answer_messages'] ?? ((isset($dict['en']['right_answer_messages']) ? $dict['en']['right_answer_messages'] : []));
+$wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ((isset($dict['en']['wrong_answer_messages']) ? $dict['en']['wrong_answer_messages'] : []));
 ?>
 <!doctype html>
 <html lang="<?= htmlspecialchars($lang) ?>" dir="<?= htmlspecialchars($dir) ?>">

@@ -13,11 +13,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userId = (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
+$userDisplay = (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($userId ? user_display_name($userId)) : null);
 $showLangPicker = true;
 
-function tt(string $key, string $fallback = ''): string {
+function tt($key, $fallback = ''){
   $v = t($key);
   if ($v === $key) return $fallback !== '' ? $fallback : $key;
   return $v;
@@ -38,7 +38,7 @@ if (!$userId) {
   exit;
 }
 
-$guid = trim((string)($_GET['guid'] ?? ''));
+$guid = trim((string)((isset($_GET['guid']) ? $_GET['guid'] : '')));
 $room = $guid ? get_room_by_guid($guid) : null;
 if (!$room) {
   http_response_code(404);
@@ -62,7 +62,7 @@ foreach ($events as $e) {
   if (!isset($byRound[$r])) $byRound[$r] = [];
   $payload = json_decode($e['payload_json'], true);
   $byRound[$r][] = [
-    'display_name' => user_display_name_from_row(['username' => $e['username'] ?? '', 'email' => $e['email'] ?? '']),
+    'display_name' => user_display_name_from_row(['username' => (isset($e['username']) ? $e['username'] : ''), 'email' => (isset($e['email']) ? $e['email'] : ''])),
     'type' => $e['event_type'],
     'payload' => $payload ?: [],
     'created_at' => $e['created_at'],
@@ -127,7 +127,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <div class="panel">
     <div class="h5 m-0"><?= htmlspecialchars(tt('room_history_title', 'Room History')) ?></div>
     <div class="muted small">
-      <?= htmlspecialchars($room['name'] ?: tt('rooms_name', 'Room')) ?> • <?= htmlspecialchars(tt('room_guid', 'GUID')) ?>: <?= htmlspecialchars($room['guid']) ?> • <?= htmlspecialchars(room_status_label($room['status'] ?? '')) ?>
+      <?= htmlspecialchars($room['name'] ?: tt('rooms_name', 'Room')) ?> • <?= htmlspecialchars(tt('room_guid', 'GUID')) ?>: <?= htmlspecialchars($room['guid']) ?> • <?= htmlspecialchars(room_status_label((isset($room['status']) ? $room['status'] : ''))) ?>
     </div>
   </div>
 
@@ -151,7 +151,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               <td><?= htmlspecialchars($p['display_name']) ?></td>
               <td><?= (int)$p['score'] ?></td>
               <td><?= (int)$p['correct'] ?></td>
-              <td><?= htmlspecialchars(room_status_label($p['status'] ?? '')) ?></td>
+              <td><?= htmlspecialchars(room_status_label((isset($p['status']) ? $p['status'] : ''))) ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>
@@ -165,7 +165,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       <div class="muted"><?= htmlspecialchars(tt('room_no_rounds', 'No rounds recorded.')) ?></div>
     <?php else: ?>
       <?php foreach ($rounds as $r): ?>
-        <?php $q = json_decode($r['question_json'], true); $target = $q['target'] ?? ''; ?>
+        <?php $q = json_decode($r['question_json'], true); $target = (isset($q['target']) ? $q['target'] : ''); ?>
         <div class="mb-3">
           <?php
             $roundLabel = tt('room_round_label', 'Round {n}');
@@ -179,7 +179,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             <?php foreach (($byRound[(int)$r['round_index']] ?? []) as $ev): ?>
               <?php if ($ev['type'] === 'eliminate'): ?>
                 <?php
-                  $picked = (string)($ev['payload']['picked'] ?? '');
+                  $picked = (string)((isset($ev['payload']['picked']) ? $ev['payload']['picked'] : ''));
                   $msg = $picked !== ''
                     ? tt('room_event_eliminated_pick', 'eliminated (picked {color})')
                     : tt('room_event_eliminated', 'eliminated');
@@ -188,7 +188,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                 <div class="small text-danger">✖ <?= htmlspecialchars($ev['display_name']) ?> <?= htmlspecialchars($msg) ?></div>
               <?php elseif ($ev['type'] === 'answer'): ?>
                 <?php
-                  $score = (int)($ev['payload']['score_delta'] ?? 0);
+                  $score = (int)((isset($ev['payload']['score_delta']) ? $ev['payload']['score_delta'] : 0));
                   $msg = tt('room_event_correct', 'correct (+{score})');
                   $msg = str_replace('{score}', (string)$score, $msg);
                 ?>

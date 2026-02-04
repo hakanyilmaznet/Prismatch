@@ -1,7 +1,7 @@
 ﻿<?php
 // Shared site header
 if (!function_exists('tt')) {
-  function tt(string $key, string $fallback = ''): string {
+  function tt($key, $fallback = ''){
     if (function_exists('t')) {
       $v = t($key);
       if ($v !== $key) return $v;
@@ -11,12 +11,12 @@ if (!function_exists('tt')) {
 }
 
 $showLangPicker = isset($showLangPicker) ? (bool)$showLangPicker : true;
-$userId = $_SESSION['user_id'] ?? null;
-$userEmail = $_SESSION['user_email'] ?? null;
-$userName = $_SESSION['user_name'] ?? null;
-$loginProvider = $_SESSION['login_provider'] ?? null;
+$userId = (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
+$userEmail = (isset($_SESSION['user_email']) ? $_SESSION['user_email'] : null);
+$userName = (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : null);
+$loginProvider = (isset($_SESSION['login_provider']) ? $_SESSION['login_provider'] : null);
 $isLoggedIn = !empty($userId);
-$currentPage = basename((string)($_SERVER['SCRIPT_NAME'] ?? ''));
+$currentPage = basename((string)((isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '')));
 $isPlay = ($currentPage === 'play.php' && empty($_GET['daily']));
 $isDaily = ($currentPage === 'play.php' && !empty($_GET['daily']));
 $isLeaderboard = ($currentPage === 'daily_leaderboard.php');

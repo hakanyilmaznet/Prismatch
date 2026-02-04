@@ -23,9 +23,9 @@ function mask_email($email) {
   return $head . '***@' . $dom;
 }
 function display_player_name($row) {
-  $username = trim((string)($row['username'] ?? ''));
+  $username = trim((string)((isset($row['username']) ? $row['username'] : '')));
   if ($username !== '') return $username;
-  $email = (string)($row['email'] ?? '');
+  $email = (string)((isset($row['email']) ? $row['email'] : ''));
   return $email !== '' ? mask_email($email) : '-';
 }
 

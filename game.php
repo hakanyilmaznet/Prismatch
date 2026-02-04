@@ -8,15 +8,15 @@ require_once __DIR__ . '/db.php';
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userId = (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
+$userDisplay = (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($userId ? user_display_name($userId)) : null);
 if (!$userId) {
   header('Location: index.php?session=expired');
   exit;
 }
 header('X-Robots-Tag: noindex, nofollow', true);
 
-$id = (int)($_GET['id'] ?? 0);
+$id = (int)((isset($_GET['id']) ? $_GET['id'] : 0));
 if ($id <= 0) {
   http_response_code(400);
   echo "<!doctype html><html><head><meta charset='utf-8'><title>".htmlspecialchars(t('msg_invalid_id'))."</title></head><body style='font-family:system-ui;padding:20px'>".
@@ -25,28 +25,28 @@ if ($id <= 0) {
   exit;
 }
 
-function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
-function mmss(int $ms): string {
+function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function mmss($ms){
   $sec = (int)round(max(0,$ms)/1000);
   return sprintf('%d:%02d', intdiv($sec,60), $sec%60);
 }
-function fmt_dt(?string $iso, string $lang): string {
+function fmt_dt(?$iso, $lang){
   if (function_exists('format_dt_local')) return (string)format_dt_local($iso, $lang);
   if (!$iso) return '-';
   try { return (new DateTimeImmutable($iso))->format('d/m/Y H:i'); } catch (Throwable $e) { return '-'; }
 }
-function fmt_num($v, string $lang, int $dec=0): string {
+function fmt_num($v, $lang, $dec=0){
   if (function_exists('format_num_local')) return (string)format_num_local($v, $lang, $dec);
   return number_format((float)$v, $dec, '.', ',');
 }
-function is_daily_game(array $g): bool {
+function is_daily_game($g){
   if (isset($g['is_daily'])) return (int)$g['is_daily'] === 1;
   if (isset($g['mode'])) return (string)$g['mode'] === 'daily';
   if (isset($g['daily_key']) && $g['daily_key']) return true;
   if (isset($g['challenge_date']) && $g['challenge_date']) return true;
   return false;
 }
-function t_safe(string $key, string $fallback): string {
+function t_safe($key, $fallback){
   $v = t($key);
   return ($v === $key) ? $fallback : $v;
 }
@@ -215,11 +215,11 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
 
     <div class="card">
       <div class="grid2">
-        <div><div class="k"><?= h(t('label_start')) ?></div><div class="v"><?= h(fmt_dt($game['created_at'] ?? null, $lang)) ?></div></div>
-        <div><div class="k"><?= h(t('label_end')) ?></div><div class="v"><?= h(fmt_dt($game['finished_at'] ?? null, $lang)) ?></div></div>
+        <div><div class="k"><?= h(t('label_start')) ?></div><div class="v"><?= h(fmt_dt((isset($game['created_at']) ? $game['created_at'] : null), $lang)) ?></div></div>
+        <div><div class="k"><?= h(t('label_end')) ?></div><div class="v"><?= h(fmt_dt((isset($game['finished_at']) ? $game['finished_at'] : null), $lang)) ?></div></div>
         <div><div class="k"><?= h(t('label_duration')) ?></div><div class="v"><?= h(mmss((int)$game['duration_ms'])) ?></div></div>
 
-        <div><div class="k"><?= h(t_safe('th_score','Score')) ?></div><div class="v"><?= h(fmt_num((int)($game['score'] ?? 0), $lang, 0)) ?></div></div>
+        <div><div class="k"><?= h(t_safe('th_score','Score')) ?></div><div class="v"><?= h(fmt_num((int)((isset($game['score']) ? $game['score'] : 0)), $lang, 0)) ?></div></div>
         <div><div class="k"><?= h(t('label_reached_level')) ?></div><div class="v"><?= h(fmt_num((int)$game['reached_level'], $lang, 0)) ?></div></div>
         <div><div class="k"><?= h(t('label_total_correct')) ?></div><div class="v"><?= h(fmt_num((int)$game['total_correct'], $lang, 0)) ?></div></div>
         <div><div class="k"><?= h(t('label_status')) ?></div><div class="v"><?= h(((int)$game['won'] === 1) ? t('status_won') : t('status_finished')) ?></div></div>

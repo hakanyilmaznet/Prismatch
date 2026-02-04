@@ -10,7 +10,7 @@ session_set_cookie_params([
 ]);
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
-function is_safe_next_path(string $path): bool {
+function is_safe_next_path($path){
   if ($path === '') return false;
   $parts = parse_url($path);
   if ($parts === false) return false;
@@ -29,7 +29,7 @@ if (isset($_GET['next'])) {
 }
 
 // Direct Google login
-$provider = $_GET['provider'] ?? '';
+$provider = (isset($_GET['provider']) ? $_GET['provider'] : '');
 if ($provider === 'google') {
   $state = bin2hex(random_bytes(16));
   $_SESSION['oauth_state'] = $state;
@@ -52,7 +52,7 @@ if ($provider === 'google') {
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$nextUrl = $_SESSION['login_next'] ?? '';
+$nextUrl = (isset($_SESSION['login_next']) ? $_SESSION['login_next'] : '');
 ?>
 <!doctype html>
 <html lang="<?= htmlspecialchars($lang) ?>" dir="<?= htmlspecialchars($dir) ?>">

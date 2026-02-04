@@ -7,15 +7,15 @@ if (!defined('DEBUG_MODE')) {
   define('DEBUG_MODE', false);
 }
 
-function pm_debug_enabled(): bool {
+function pm_debug_enabled(){
   return defined('DEBUG_MODE') && DEBUG_MODE;
 }
 
-function pm_should_output_debug(): bool {
+function pm_should_output_debug(){
   if (php_sapi_name() === 'cli') return false;
-  $uri = $_SERVER['REQUEST_URI'] ?? '';
+  $uri = (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '');
   if (strpos($uri, '/api/') !== false) return false;
-  $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+  $accept = (isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '');
   if ($accept && stripos($accept, 'text/html') === false && stripos($accept, '*/*') === false) return false;
   return true;
 }
@@ -96,5 +96,5 @@ if (empty($_SESSION['user_id']) && !empty($_SESSION['user_email'])) {
   $user = ensure_user_by_email((string)$_SESSION['user_email']);
   $_SESSION['user_id'] = $user['id'];
   $_SESSION['user_name'] = user_display_name_from_row($user);
-  $_SESSION['login_provider'] = $_SESSION['login_provider'] ?? 'google';
+  $_SESSION['login_provider'] = (isset($_SESSION['login_provider']) ? $_SESSION['login_provider'] : 'google');
 }

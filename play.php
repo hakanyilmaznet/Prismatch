@@ -6,22 +6,22 @@ require_once __DIR__ . '/i18n.php';
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userId = (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null);
+$userDisplay = (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : ($userId ? user_display_name($userId)) : null);
 $isDailyMode = isset($_GET['daily']) && $_GET['daily'] !== '0';
 $dailyDateUtc = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d');
 
-function tt(string $key, string $fallback = ''): string {
+function tt($key, $fallback = ''){
   $v = t($key);
   if ($v === $key) return $fallback !== '' ? $fallback : $key;
   return $v;
 }
 
-function google_badge_html(): string {
+function google_badge_html(){
   return '<span class="google-badge"><img src="google.svg" class="google-icon" alt="Google" /><span class="google-text">Google</span></span>';
 }
 
-function render_google_label(string $text): string {
+function render_google_label($text){
   $safe = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
   return str_replace('{google}', google_badge_html(), $safe);
 }
@@ -34,8 +34,8 @@ $seoDescription = $isDailyMode
   : tt('play_meta_description', 'Play Prismatch and test your short-term color memory with fast, progressive rounds.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
 $dict = translations();
-$rightAnswerMessages = $dict[$lang]['right_answer_messages'] ?? ($dict['en']['right_answer_messages'] ?? []);
-$wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wrong_answer_messages'] ?? []);
+$rightAnswerMessages = $dict[$lang]['right_answer_messages'] ?? ((isset($dict['en']['right_answer_messages']) ? $dict['en']['right_answer_messages'] : []));
+$wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ((isset($dict['en']['wrong_answer_messages']) ? $dict['en']['wrong_answer_messages'] : []));
 
 // Login sonrası bekleyen sonuç varsa DB'ye commit et (MySQL)
 $flash = null;
@@ -786,7 +786,7 @@ function showAnswerPopup(type){
 const IS_LOGGED_IN = <?= $userId ? 'true' : 'false' ?>;
 const IS_DAILY_MODE = <?= $isDailyMode ? 'true' : 'false' ?>;
 const DAILY_UTC_DATE = <?= json_encode($dailyDateUtc) ?>;
-const FLASH_MSG = <?= json_encode($flash ?? "") ?>;
+const FLASH_MSG = <?= json_encode((isset($flash) ? $flash : "")) ?>;
 
 const PALETTE = [
   "#000000","#FFFFFF","#FF0000","#00FF00","#0000FF","#FFFF00","#00FFFF","#FF00FF",

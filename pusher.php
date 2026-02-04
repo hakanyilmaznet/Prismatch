@@ -1,11 +1,11 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-function pusher_base_url(): string {
+function pusher_base_url(){
   return 'https://api-' . PUSHER_CLUSTER . '.pusher.com/apps/' . PUSHER_APP_ID . '/events';
 }
 
-function pusher_sign_query(string $body): string {
+function pusher_sign_query($body){
   $timestamp = (string)time();
   $bodyMd5 = md5($body);
   $query = [
@@ -20,7 +20,7 @@ function pusher_sign_query(string $body): string {
   return $queryString . '&auth_signature=' . $signature;
 }
 
-function pusher_trigger(string $channel, string $event, array $data): bool {
+function pusher_trigger($channel, $event, $data){
   $payload = json_encode([
     'name' => $event,
     'channel' => $channel,
@@ -43,7 +43,7 @@ function pusher_trigger(string $channel, string $event, array $data): bool {
   return ($resp !== false && $code >= 200 && $code < 300);
 }
 
-function pusher_auth_response(string $socketId, string $channelName, ?string $userId = null, ?array $userInfo = null): string {
+function pusher_auth_response($socketId, $channelName, ?$userId = null, ?$userInfo = null){
   // For private channels
   if ($userId === null) {
     $stringToSign = $socketId . ':' . $channelName;
