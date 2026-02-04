@@ -8,8 +8,9 @@ require_once __DIR__ . '/db.php';
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
-$userEmail = $_SESSION['user_email'] ?? null;
-if (!$userEmail) {
+$userId = $_SESSION['user_id'] ?? null;
+$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+if (!$userId) {
   header('Location: index.php?session=expired');
   exit;
 }
@@ -54,7 +55,7 @@ $seoTitle = t_safe('game_meta_title', 'Session Details - Prismatch');
 $seoDescription = t_safe('game_meta_description', 'Detailed results for your Prismatch session.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
 
-$game = get_game($userEmail, $id);
+$game = get_game($userId, $id);
 if (!$game) {
   http_response_code(404);
   echo "<!doctype html><html><head><meta charset='utf-8'><title>".htmlspecialchars(t('msg_game_not_found'))."</title></head><body style='font-family:system-ui;padding:20px'>".
@@ -198,7 +199,7 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
             <span class="pill pill-normal">🎯 <?= h(t('app_name')) ?></span>
           <?php endif; ?>
         </div>
-        <div class="muted"><?= h(t('logged_in_as', ['email'=>$userEmail])) ?></div>
+        <div class="muted"><?= h(t('logged_in_as', ['email'=>$userDisplay])) ?></div>
       </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap">
           <a class="btn" href="games.php">
@@ -313,3 +314,6 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
   </script>
 </body>
 </html>
+
+
+

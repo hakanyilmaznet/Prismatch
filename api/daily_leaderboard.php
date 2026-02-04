@@ -12,12 +12,28 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
 $rows = daily_leaderboard($day, null, 200);
 $out = [];
 foreach ($rows as $r) {
+  $display = '';
+  $username = trim((string)($r['username'] ?? ''));
+  if ($username !== '') {
+    $display = $username;
+  } else {
+    $email = (string)($r['email'] ?? '');
+    if ($email !== '') {
+      $p = explode('@', $email, 2);
+      if (count($p) === 2) {
+        $head = function_exists('mb_substr') ? mb_substr($p[0], 0, 2) : substr($p[0], 0, 2);
+        $display = $head . '***@' . $p[1];
+      } else {
+        $display = $email;
+      }
+    }
+  }
   $out[] = [
     'score' => (int)(isset($r['score']) ? $r['score'] : 0),
     'level' => (int)(isset($r['reached_level']) ? $r['reached_level'] : 0),
     'correct' => (int)(isset($r['total_correct']) ? $r['total_correct'] : 0),
     'durationMs' => (int)(isset($r['duration_ms']) ? $r['duration_ms'] : 0),
-    'user' => (string)(isset($r['email']) ? $r['email'] : ''),
+    'user' => $display,
   ];
 }
 

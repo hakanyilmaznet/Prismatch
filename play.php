@@ -6,7 +6,8 @@ require_once __DIR__ . '/i18n.php';
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
-$userEmail = $_SESSION['user_email'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
+$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
 $isDailyMode = isset($_GET['daily']) && $_GET['daily'] !== '0';
 $dailyDateUtc = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d');
 
@@ -38,13 +39,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
 // Login sonrası bekleyen sonuç varsa DB'ye commit et (MySQL)
 $flash = null;
-if ($userEmail && !empty($_SESSION['pending_result']) && is_array($_SESSION['pending_result'])) {
-  record_full_game($userEmail, $_SESSION['pending_result']);
+if ($userId && !empty($_SESSION['pending_result']) && is_array($_SESSION['pending_result'])) {
+  record_full_game($userId, $_SESSION['pending_result']);
   unset($_SESSION['pending_result']);
   $flash = tt('flash_saved', '✅ Result saved.');
 }
 
-$stats = $userEmail ? get_user_stats($userEmail) : null;
+$stats = $userId ? get_user_stats($userId) : null;
 ?>
 <!doctype html>
 <html lang="<?= htmlspecialchars($lang) ?>" dir="<?= htmlspecialchars($dir) ?>">
@@ -573,8 +574,8 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?> logo" width="84" height="84" class="logo" />
       <div class="title"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></div>
       <div class="subtitle">
-        <?php if ($userEmail): ?>
-          <?= htmlspecialchars(t('subtitle_authed', ['email' => $userEmail])) ?>
+        <?php if ($userId): ?>
+          <?= htmlspecialchars(t('subtitle_authed', ['email' => $userDisplay])) ?>
         <?php else: ?>
           <?= htmlspecialchars(tt('subtitle_guest', 'Play without signing in. If you want to save results, log in at the end.')) ?>
         <?php endif; ?>
@@ -587,7 +588,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
         <div class="subtitle"><strong><?= htmlspecialchars(tt('daily_once', 'Daily challenge: one attempt per day.')) ?></strong></div>
       <?php endif; ?>
 
-      <?php if ($userEmail && $stats): ?>
+      <?php if ($userId && $stats): ?>
         <div class="stats" aria-label="<?= htmlspecialchars(tt('stats_title', 'Stats')) ?>">
           <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_total_games', 'Total Games')) ?></div><div class="v"><?= (int)$stats['total_plays'] ?></div></div>
           <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_total_wins', 'Total Wins')) ?></div><div class="v"><?= (int)$stats['total_wins'] ?></div></div>
@@ -782,7 +783,7 @@ function showAnswerPopup(type){
  * Color Catch - Frontend Game Logic (9 unique colors per round, full telemetry payload)
  */
 
-const IS_LOGGED_IN = <?= $userEmail ? 'true' : 'false' ?>;
+const IS_LOGGED_IN = <?= $userId ? 'true' : 'false' ?>;
 const IS_DAILY_MODE = <?= $isDailyMode ? 'true' : 'false' ?>;
 const DAILY_UTC_DATE = <?= json_encode($dailyDateUtc) ?>;
 const FLASH_MSG = <?= json_encode($flash ?? "") ?>;
@@ -1561,3 +1562,5 @@ if (FLASH_MSG) toastQuick(FLASH_MSG);
 
 </body>
 </html>
+
+

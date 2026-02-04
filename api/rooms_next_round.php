@@ -13,8 +13,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 header('Content-Type: application/json');
 
-$email = $_SESSION['user_email'] ?? null;
-if (!$email) {
+$userId = $_SESSION['user_id'] ?? null;
+if (!$userId) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;
@@ -35,7 +35,7 @@ if (!$room) {
   exit;
 }
 
-if ($room['owner_email'] !== $email) {
+if ($room['owner_id'] !== $userId) {
   http_response_code(403);
   echo json_encode(['error' => 'not_owner']);
   exit;

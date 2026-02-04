@@ -46,10 +46,10 @@ function fail(int $code, string $stage, string $msg, ?Throwable $e = null): void
 
 try {
   // 1) auth
-  if (empty($_SESSION['user_email'])) {
+  if (empty($_SESSION['user_id'])) {
     fail(401, 'auth', 'Not logged in');
   }
-  $email = (string)$_SESSION['user_email'];
+  $userId = (string)$_SESSION['user_id'];
 
   // 2) input
   $raw = file_get_contents('php://input');
@@ -76,7 +76,7 @@ try {
 
   // 4) write
   try {
-    $gameId = record_full_game($email, $data);
+    $gameId = record_full_game($userId, $data);
   } catch (Throwable $e) {
     fail(500, 'record_full_game', 'Internal error', $e);
   }

@@ -11,9 +11,11 @@ if (!function_exists('tt')) {
 }
 
 $showLangPicker = isset($showLangPicker) ? (bool)$showLangPicker : true;
-if (!isset($userEmail)) {
-  $userEmail = $_SESSION['user_email'] ?? null;
-}
+$userId = $_SESSION['user_id'] ?? null;
+$userEmail = $_SESSION['user_email'] ?? null;
+$userName = $_SESSION['user_name'] ?? null;
+$loginProvider = $_SESSION['login_provider'] ?? null;
+$isLoggedIn = !empty($userId);
 $currentPage = basename((string)($_SERVER['SCRIPT_NAME'] ?? ''));
 $isPlay = ($currentPage === 'play.php' && empty($_GET['daily']));
 $isDaily = ($currentPage === 'play.php' && !empty($_GET['daily']));
@@ -204,7 +206,7 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
           <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
         </a>
       </li>
-      <?php if (!empty($userEmail)): ?>
+      <?php if ($isLoggedIn): ?>
       <li class="nav-item">
         <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isRooms ? ' active' : '' ?>" href="rooms.php">
           <img class="bi-icon" src="bootstrap-icons/people-fill.svg" alt="" aria-hidden="true" />
@@ -212,7 +214,7 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
         </a>
       </li>
       <?php endif; ?>
-      <?php if (!empty($userEmail)): ?>
+      <?php if ($isLoggedIn): ?>
         <li class="nav-item">
           <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isSessions ? ' active' : '' ?>" href="games.php">
             <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
@@ -220,7 +222,7 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link d-flex align-items-center gap-2 text-nowrap" href="logout.php">
+          <a class="nav-link d-flex align-items-center gap-2 text-nowrap" href="logout.php" id="pmLogoutLink">
             <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
             <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
           </a>
@@ -520,6 +522,26 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
 
     window.addEventListener('resize', () => { if(open) placePopover(); }, {passive:true});
     window.addEventListener('scroll',  () => { if(open) placePopover(); }, {passive:true});
+  })();
+
+  (function initLogoutGuard(){
+    const logoutLink = document.getElementById('pmLogoutLink');
+    const provider = <?= json_encode((string)$loginProvider) ?>;
+    if (!logoutLink || provider !== 'local') return;
+
+    const msg = 'Geçmiş verileriniz silinecek. silinmemesi için Google ile giriş yapın. Google ile girişlerde sadece eposta adresiniz kaydedilir. Google ile giriş yapmak ister misiniz?';
+    logoutLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const yes = window.confirm(msg);
+      if (yes) {
+        try {
+          await fetch('api/link_google.php', { method: 'POST', credentials: 'same-origin' });
+        } catch (err) {}
+        window.location.href = 'login.php?provider=google';
+        return;
+      }
+      window.location.href = logoutLink.getAttribute('href') || 'logout.php';
+    });
   })();
 })();
 </script>

@@ -13,7 +13,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$userEmail = $_SESSION['user_email'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
+$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -32,7 +33,7 @@ function room_status_label($status) {
   }
 }
 
-if (!$userEmail) {
+if (!$userId) {
   header('Location: login.php');
   exit;
 }
@@ -51,7 +52,7 @@ $rounds = $pdo->prepare("SELECT round_index, question_json, started_at, ended_at
 $rounds->execute([':rid' => (int)$room['id']]);
 $rounds = $rounds->fetchAll() ?: [];
 
-$eventsStmt = $pdo->prepare("SELECT round_index, email, event_type, payload_json, created_at FROM room_events WHERE room_id=:rid ORDER BY id ASC");
+$eventsStmt = $pdo->prepare("SELECT re.round_index, re.user_id, re.event_type, re.payload_json, re.created_at, u.username, u.email FROM room_events re JOIN users u ON u.id = re.user_id WHERE re.room_id=:rid ORDER BY re.id ASC");
 $eventsStmt->execute([':rid' => (int)$room['id']]);
 $events = $eventsStmt->fetchAll() ?: [];
 
@@ -61,7 +62,7 @@ foreach ($events as $e) {
   if (!isset($byRound[$r])) $byRound[$r] = [];
   $payload = json_decode($e['payload_json'], true);
   $byRound[$r][] = [
-    'email' => $e['email'],
+    'display_name' => user_display_name_from_row(['username' => $e['username'] ?? '', 'email' => $e['email'] ?? '']),
     'type' => $e['event_type'],
     'payload' => $payload ?: [],
     'created_at' => $e['created_at'],
@@ -147,7 +148,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           <?php foreach ($players as $i => $p): ?>
             <tr>
               <td><?= $i + 1 ?></td>
-              <td><?= htmlspecialchars($p['email']) ?></td>
+              <td><?= htmlspecialchars($p['display_name']) ?></td>
               <td><?= (int)$p['score'] ?></td>
               <td><?= (int)$p['correct'] ?></td>
               <td><?= htmlspecialchars(room_status_label($p['status'] ?? '')) ?></td>
@@ -184,14 +185,14 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                     : tt('room_event_eliminated', 'eliminated');
                   $msg = str_replace('{color}', $picked, $msg);
                 ?>
-                <div class="small text-danger">✖ <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
+                <div class="small text-danger">✖ <?= htmlspecialchars($ev['display_name']) ?> <?= htmlspecialchars($msg) ?></div>
               <?php elseif ($ev['type'] === 'answer'): ?>
                 <?php
                   $score = (int)($ev['payload']['score_delta'] ?? 0);
                   $msg = tt('room_event_correct', 'correct (+{score})');
                   $msg = str_replace('{score}', (string)$score, $msg);
                 ?>
-                <div class="small">✓ <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
+                <div class="small">✓ <?= htmlspecialchars($ev['display_name']) ?> <?= htmlspecialchars($msg) ?></div>
               <?php endif; ?>
             <?php endforeach; ?>
           </div>
@@ -203,3 +204,12 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 <?php include __DIR__ . '/footer.php'; ?>
 </body>
 </html>
+
+
+
+
+
+
+
+
+

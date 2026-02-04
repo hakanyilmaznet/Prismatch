@@ -7,8 +7,9 @@ require_once __DIR__ . '/db.php';
 $lang = get_lang();
 $dir  = lang_dir($lang);
 
-$userEmail = isset($_SESSION['user_email']) ? $_SESSION['user_email'] : null;
-if (!$userEmail) {
+$userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+if (!$userId) {
   header('Location: index.php?session=expired');
   exit;
 }
@@ -55,7 +56,7 @@ $seoTitle = TT('games_meta_title', 'My Sessions - Prismatch');
 $seoDescription = TT('games_meta_description', 'Your Prismatch session history and detailed results.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
 
-$rows = list_games($userEmail, 200);
+$rows = list_games($userId, 200);
 $games = [];
 $idx = 0;
 foreach ($rows as $g) {
@@ -234,7 +235,7 @@ foreach ($rows as $g) {
     <div class="top">
       <div>
         <h1><?= h(TT('games_title','My Games')) ?></h1>
-        <div class="sub"><?= h(t('logged_in_as', ['email'=>$userEmail])) ?></div>
+        <div class="sub"><?= h(t('logged_in_as', ['email'=>$userDisplay])) ?></div>
       </div>
         <div class="actions">
           <a class="btn" href="play.php">
@@ -377,3 +378,8 @@ foreach ($rows as $g) {
   </script>
 </body>
 </html>
+
+
+
+
+

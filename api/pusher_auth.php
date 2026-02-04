@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../pusher.php';
 
 session_name(SESSION_NAME);
@@ -12,8 +13,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 header('Content-Type: application/json');
 
-$email = $_SESSION['user_email'] ?? null;
-if (!$email) {
+$userId = $_SESSION['user_id'] ?? null;
+if (!$userId) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;
@@ -27,4 +28,5 @@ if ($socketId === '' || $channel === '') {
   exit;
 }
 
-echo pusher_auth_response($socketId, $channel, $email, ['email' => $email]);
+$display = $_SESSION['user_name'] ?? user_display_name($userId);
+echo pusher_auth_response($socketId, $channel, $userId, ['name' => $display]);
