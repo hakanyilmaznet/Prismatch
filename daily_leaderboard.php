@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/i18n.php';
 require_once __DIR__ . '/db.php';
@@ -46,8 +46,7 @@ $viewerCountry = cf_country();
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
-  <link href="css/theme.css" rel="stylesheet" />
-  <title><?= h(t('daily_leaderboard_title')) ?> � <?= h(t('app_name')) ?></title>
+  <title><?= h(t('daily_leaderboard_title')) ?> — <?= h(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -68,7 +67,7 @@ $viewerCountry = cf_country();
     <div>
       <h1 class="h3 mb-1"><?= h(t('daily_leaderboard_title')) ?></h1>
       <div class="d-flex flex-wrap gap-2">
-        <span class="badge text-bg-light">?? <span id="dailyDate" data-utc-date="<?= h($challengeDate) ?>"><?= h($challengeDate) ?></span> (<?= h(t('label_utc')) ?>)</span>
+        <span class="badge text-bg-light">📅 <span id="dailyDate" data-utc-date="<?= h($challengeDate) ?>"><?= h($challengeDate) ?></span> (<?= h(t('label_utc')) ?>)</span>
       </div>
       <div class="text-muted small mt-1"><?= h(t('daily_leaderboard_note')) ?></div>
     </div>
@@ -196,5 +195,3 @@ applyLocalDate();
 
 </body>
 </html>
-
-

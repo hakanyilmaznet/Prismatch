@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/i18n.php';
@@ -64,7 +64,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
-  <link href="css/theme.css" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <?= seo_meta([
@@ -241,5 +240,3 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 </script>
 </body>
 </html>
-
-
