@@ -13,7 +13,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$userEmail = $_SESSION['user_email'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
+$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -61,7 +62,7 @@ foreach ($events as $e) {
   if (!isset($byRound[$r])) $byRound[$r] = [];
   $payload = json_decode($e['payload_json'], true);
   $byRound[$r][] = [
-    'email' => $e['email'],
+    'display_name' => user_display_name_from_row(['username' => $e['username'] ?? '', 'email' => $e['email'] ?? '']),
     'type' => $e['event_type'],
     'payload' => $payload ?: [],
     'created_at' => $e['created_at'],

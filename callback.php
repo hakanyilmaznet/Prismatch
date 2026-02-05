@@ -12,6 +12,7 @@ session_set_cookie_params([
 session_start();
 
 function fail(string $msg, int $code = 400): void {
+function fail(string $msg, int $code = 400): void {
   http_response_code($code);
   $title = t('callback_error_title');
   $back = t('callback_back');

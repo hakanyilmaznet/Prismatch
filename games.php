@@ -7,8 +7,9 @@ require_once __DIR__ . '/db.php';
 $lang = get_lang();
 $dir  = lang_dir($lang);
 
-$userEmail = isset($_SESSION['user_email']) ? $_SESSION['user_email'] : null;
-if (!$userEmail) {
+$userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+if (!$userId) {
   header('Location: index.php?session=expired');
   exit;
 }

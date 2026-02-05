@@ -11,9 +11,11 @@ if (!function_exists('tt')) {
 }
 
 $showLangPicker = isset($showLangPicker) ? (bool)$showLangPicker : true;
-if (!isset($userEmail)) {
-  $userEmail = $_SESSION['user_email'] ?? null;
-}
+$userId = $_SESSION['user_id'] ?? null;
+$userEmail = $_SESSION['user_email'] ?? null;
+$userName = $_SESSION['user_name'] ?? null;
+$loginProvider = $_SESSION['login_provider'] ?? null;
+$isLoggedIn = !empty($userId);
 $currentPage = basename((string)($_SERVER['SCRIPT_NAME'] ?? ''));
 $isPlay = ($currentPage === 'play.php' && empty($_GET['daily']));
 $isDaily = ($currentPage === 'play.php' && !empty($_GET['daily']));

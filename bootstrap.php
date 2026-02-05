@@ -12,6 +12,7 @@ function pm_debug_enabled(): bool {
 }
 
 function pm_should_output_debug(): bool {
+function pm_should_output_debug(): bool {
   if (php_sapi_name() === 'cli') return false;
   $uri = $_SERVER['REQUEST_URI'] ?? '';
   if (strpos($uri, '/api/') !== false) return false;

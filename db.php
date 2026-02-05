@@ -51,6 +51,54 @@ function ensure_column(PDO $pdo, $table, $col, $ddl) {
   }
 }
 
+function ensure_index(PDO $pdo, $table, $indexName, $ddl) {
+  $stmt = $pdo->prepare("
+    SELECT COUNT(*) AS c
+    FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = :t
+      AND INDEX_NAME = :i
+  ");
+  $stmt->execute([':t' => $table, ':i' => $indexName]);
+  $row = $stmt->fetch();
+  $exists = $row && (int)$row['c'] > 0;
+  if (!$exists) {
+    $pdo->exec("ALTER TABLE `{$table}` ADD {$ddl}");
+  }
+}
+
+function ensure_foreign_key(PDO $pdo, $table, $constraintName, $ddl) {
+  $stmt = $pdo->prepare("
+    SELECT COUNT(*) AS c
+    FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
+      AND TABLE_NAME = :t
+      AND CONSTRAINT_NAME = :c
+  ");
+  $stmt->execute([':t' => $table, ':c' => $constraintName]);
+  $row = $stmt->fetch();
+  $exists = $row && (int)$row['c'] > 0;
+  if (!$exists) {
+    $pdo->exec("ALTER TABLE `{$table}` ADD {$ddl}");
+  }
+}
+
+function drop_foreign_key_if_exists(PDO $pdo, $table, $constraintName) {
+  $stmt = $pdo->prepare("
+    SELECT COUNT(*) AS c
+    FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
+      AND TABLE_NAME = :t
+      AND CONSTRAINT_NAME = :c
+  ");
+  $stmt->execute([':t' => $table, ':c' => $constraintName]);
+  $row = $stmt->fetch();
+  $exists = $row && (int)$row['c'] > 0;
+  if ($exists) {
+    $pdo->exec("ALTER TABLE `{$table}` DROP FOREIGN KEY `{$constraintName}`");
+  }
+}
+
 function init_schema(PDO $pdo) {
   // users: kişisel veri sadece email
   $pdo->exec("
@@ -209,10 +257,61 @@ function iso_to_mysql_datetime($iso) {
   return $dt->format('Y-m-d H:i:s.v');
 }
 
-function upsert_user_login($email) {
+function user_guid(): string {
+  $data = random_bytes(16);
+  $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
+  $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
+  return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+function get_user_by_id(string $userId): ?array {
+  $pdo = db();
+  $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
+  $stmt->execute([':id' => $userId]);
+  $row = $stmt->fetch();
+  return $row ?: null;
+}
+
+function get_user_by_email(string $email): ?array {
+  $pdo = db();
+  $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :user_id LIMIT 1");
+  $stmt->execute([':email' => $email]);
+  $row = $stmt->fetch();
+  return $row ?: null;
+}
+
+function user_display_name_from_row(array $row): string {
+  $username = trim((string)($row['username'] ?? ''));
+  if ($username !== '') return $username;
+  $email = trim((string)($row['email'] ?? ''));
+  return $email !== '' ? $email : 'Guest';
+}
+
+function user_display_name(string $userId): string {
+  $row = get_user_by_id($userId);
+  return $row ? user_display_name_from_row($row) : 'Guest';
+}
+
+function touch_user_login(string $userId): void {
   $pdo = db();
   $now = now_utc_mysql();
+  $pdo->prepare("UPDATE users SET last_login = :t WHERE id = :id")
+      ->execute([':t' => $now, ':id' => $userId]);
+}
 
+function ensure_user_by_email(string $email): array {
+  $pdo = db();
+  $now = now_utc_mysql();
+  $email = strtolower(trim($email));
+
+  $existing = get_user_by_email($email);
+  if ($existing) {
+    $pdo->prepare("UPDATE users SET last_login = :t WHERE id = :id")
+        ->execute([':t' => $now, ':id' => $existing['id']]);
+    return $existing;
+  }
+
+  $id = user_guid();
   $stmt = $pdo->prepare("
     INSERT INTO users (email, created_at, last_login)
     VALUES (:email, :created_at, :last_login)
@@ -225,10 +324,93 @@ function upsert_user_login($email) {
   ]);
 }
 
-function get_user_stats($email) {
+function ensure_local_user(string $username, ?string $userId = null): array {
   $pdo = db();
-  $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
-  $stmt->execute([':email' => $email]);
+  $now = now_utc_mysql();
+  $username = trim($username);
+
+  if ($userId) {
+    $existing = get_user_by_id($userId);
+    if ($existing) {
+      $pdo->prepare("
+        UPDATE users
+        SET username = :username, last_login = :t
+        WHERE id = :id
+      ")->execute([':username' => $username, ':t' => $now, ':id' => $userId]);
+      $existing['username'] = $username;
+      return $existing;
+    }
+  }
+
+  $id = user_guid();
+  $stmt = $pdo->prepare("
+    INSERT INTO users (id, username, created_at, last_login)
+    VALUES (:id, :username, :created_at, :last_login)
+  ");
+  $stmt->execute([
+    ':id' => $id,
+    ':username' => $username,
+    ':created_at' => $now,
+    ':last_login' => $now,
+  ]);
+  return get_user_by_id($id) ?: ['id' => $id, 'username' => $username];
+}
+
+function merge_user_accounts(string $fromUserId, string $toUserId): void {
+  if ($fromUserId === $toUserId) return;
+  $pdo = db();
+  try {
+    $pdo->prepare("
+      UPDATE users u
+      JOIN users f ON f.id = :fromId
+      SET
+        u.total_plays = u.total_plays + f.total_plays,
+        u.total_wins = u.total_wins + f.total_wins,
+        u.total_correct = u.total_correct + f.total_correct,
+        u.best_level = CASE WHEN f.best_level > u.best_level THEN f.best_level ELSE u.best_level END
+      WHERE u.id = :toId
+    ")->execute([':fromId' => $fromUserId, ':toId' => $toUserId]);
+  } catch (Exception $e) {}
+  $tables = [
+    ['games', 'user_id'],
+    ['rooms', 'owner_id'],
+    ['room_players', 'user_id'],
+    ['room_events', 'user_id'],
+    ['daily_scores', 'user_id'],
+  ];
+  foreach ($tables as $t) {
+    try {
+      $pdo->prepare("UPDATE {$t[0]} SET {$t[1]} = :toId WHERE {$t[1]} = :fromId")
+          ->execute([':toId' => $toUserId, ':fromId' => $fromUserId]);
+    } catch (Exception $e) {}
+  }
+  try {
+    $pdo->prepare("DELETE FROM users WHERE id = :id")->execute([':id' => $fromUserId]);
+  } catch (Exception $e) {}
+}
+
+function link_user_email(string $userId, string $email): array {
+  $pdo = db();
+  $now = now_utc_mysql();
+  $email = strtolower(trim($email));
+
+  $existingByEmail = get_user_by_email($email);
+  if ($existingByEmail && $existingByEmail['id'] !== $userId) {
+    merge_user_accounts($userId, $existingByEmail['id']);
+    $pdo->prepare("UPDATE users SET last_login = :t WHERE id = :id")
+        ->execute([':t' => $now, ':id' => $existingByEmail['id']]);
+    return get_user_by_id($existingByEmail['id']) ?: $existingByEmail;
+  }
+
+  $pdo->prepare("UPDATE users SET email = :email, last_login = :t WHERE id = :id")
+      ->execute([':email' => $email, ':t' => $now, ':id' => $userId]);
+  return get_user_by_id($userId) ?: ['id' => $userId, 'email' => $email];
+}
+
+function get_user_stats(string $userId) {
+  $pdo = db();
+  $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
+  $stmt->execute([':id' => $userId]);
   return $stmt->fetch() ?: [];
 }
 

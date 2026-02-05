@@ -22,6 +22,12 @@ function mask_email($email) {
   $head = function_exists('mb_substr') ? mb_substr($name, 0, 2) : substr($name, 0, 2);
   return $head . '***@' . $dom;
 }
+function display_player_name($row) {
+  $username = trim((string)($row['username'] ?? ''));
+  if ($username !== '') return $username;
+  $email = (string)($row['email'] ?? '');
+  return $email !== '' ? mask_email($email) : '-';
+}
 
 $seoTitle = t('daily_leaderboard_title') . ' - ' . t('app_name');
 $seoDescription = t('daily_leaderboard_meta_description');
