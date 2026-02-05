@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
@@ -72,7 +72,8 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
-  <title><?= h(t('game_details_title')) ?> — <?= h(t('app_name')) ?></title>
+  <link href="css/theme.css" rel="stylesheet" />
+  <title><?= h(t('game_details_title')) ?> � <?= h(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -94,9 +95,9 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
       <div class="d-flex flex-wrap align-items-center gap-2">
         <h1 class="h3 mb-0"><?= h(t('game_details_title')) ?></h1>
         <?php if (is_daily_game($game)): ?>
-          <span class="badge text-bg-warning">🧠 <?= h(t_safe('daily_title','Daily Challenge')) ?></span>
+          <span class="badge text-bg-warning">?? <?= h(t_safe('daily_title','Daily Challenge')) ?></span>
         <?php else: ?>
-          <span class="badge text-bg-secondary">🎯 <?= h(t('app_name')) ?></span>
+          <span class="badge text-bg-secondary">?? <?= h(t('app_name')) ?></span>
         <?php endif; ?>
       </div>
       <div class="text-muted small"><?= h(t('logged_in_as', ['email'=>$userEmail])) ?></div>
@@ -210,3 +211,5 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
 <?php if (is_file(__DIR__ . '/footer.php')) include __DIR__ . '/footer.php'; ?>
 </body>
 </html>
+
+

@@ -52,6 +52,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/theme.css" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
 
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
@@ -1121,3 +1122,5 @@ if (FLASH_MSG) toastQuick(FLASH_MSG);
 
 </body>
 </html>
+
+

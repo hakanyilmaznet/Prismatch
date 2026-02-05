@@ -1,4 +1,4 @@
-ï»¿<?php
+<?php
 
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/i18n.php';
@@ -92,7 +92,8 @@ foreach ($rows as $g) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
-  <title><?= h(TT('games_title','My Games')) ?> â€” <?= h(TT('app_name','Prismatch')) ?></title>
+  <link href="css/theme.css" rel="stylesheet" />
+  <title><?= h(TT('games_title','My Games')) ?> — <?= h(TT('app_name','Prismatch')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -150,7 +151,7 @@ foreach ($rows as $g) {
               <tr>
                 <td>
                   <div><?= h($g['date_label']) ?></div>
-                  <div class="text-muted small">#<?= h((string)$g['index']) ?> Â· <?= h(TT('label_id','ID')) ?> <?= h((string)$g['id']) ?></div>
+                  <div class="text-muted small">#<?= h((string)$g['index']) ?> · <?= h(TT('label_id','ID')) ?> <?= h((string)$g['id']) ?></div>
                 </td>
                 <td><?= h($g['duration_label']) ?></td>
                 <td><?= h(fmt_num($g['score'], $lang, 0)) ?></td>
@@ -187,3 +188,5 @@ foreach ($rows as $g) {
 <?php include __DIR__ . '/footer.php'; ?>
 </body>
 </html>
+
+

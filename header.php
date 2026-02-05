@@ -23,6 +23,16 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $selLang = $lang ?: 'en';
 ?>
+<script>
+(function(){
+  try{
+    const stored = localStorage.getItem('pm-theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = stored || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-bs-theme', theme);
+  }catch(_){}
+})();
+</script>
 <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom mb-3">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center gap-2" href="index.php">
@@ -65,6 +75,10 @@ $selLang = $lang ?: 'en';
           </select>
         <?php endif; ?>
 
+        <button class="btn btn-outline-secondary btn-sm" id="themeToggle" type="button" aria-label="Tema değiştir" title="Tema değiştir">
+          <img class="bi-icon" src="bootstrap-icons/moon-stars.svg" alt="" aria-hidden="true" />
+        </button>
+
         <?php if (!empty($userEmail)): ?>
           <a class="btn btn-outline-secondary btn-sm" href="logout.php"><?= htmlspecialchars(tt('btn_logout', 'Logout')) ?></a>
         <?php else: ?>
@@ -91,6 +105,30 @@ $selLang = $lang ?: 'en';
         url.searchParams.set('lang', code);
         window.location.href = url.toString();
       });
+  });
+})();
+</script>
+<script>
+(function(){
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  const icon = btn.querySelector('img');
+
+  function currentTheme(){
+    return document.documentElement.getAttribute('data-bs-theme') || 'light';
+  }
+
+  function setIcon(theme){
+    if (!icon) return;
+    icon.src = theme === 'dark' ? 'bootstrap-icons/sun.svg' : 'bootstrap-icons/moon-stars.svg';
+  }
+
+  setIcon(currentTheme());
+  btn.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-bs-theme', next);
+    try{ localStorage.setItem('pm-theme', next); }catch(_){}
+    setIcon(next);
   });
 })();
 </script>

@@ -47,6 +47,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/theme.css" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <?= seo_meta([
@@ -752,3 +753,5 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
+

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/i18n.php';
@@ -84,6 +84,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/theme.css" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <?= seo_meta([
@@ -105,7 +106,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     <div class="card-body">
       <div class="h5 mb-1"><?= htmlspecialchars(tt('room_history_title', 'Room History')) ?></div>
       <div class="text-muted small">
-        <?= htmlspecialchars($room['name'] ?: tt('rooms_name', 'Room')) ?> • <?= htmlspecialchars(tt('room_guid', 'GUID')) ?>: <?= htmlspecialchars($room['guid']) ?> • <?= htmlspecialchars(room_status_label($room['status'] ?? '')) ?>
+        <?= htmlspecialchars($room['name'] ?: tt('rooms_name', 'Room')) ?> � <?= htmlspecialchars(tt('room_guid', 'GUID')) ?>: <?= htmlspecialchars($room['guid']) ?> � <?= htmlspecialchars(room_status_label($room['status'] ?? '')) ?>
       </div>
     </div>
   </div>
@@ -171,14 +172,14 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                       : tt('room_event_eliminated', 'eliminated');
                     $msg = str_replace('{color}', $picked, $msg);
                   ?>
-                  <div class="small text-danger">✖ <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
+                  <div class="small text-danger">? <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
                 <?php elseif ($ev['type'] === 'answer'): ?>
                   <?php
                     $score = (int)($ev['payload']['score_delta'] ?? 0);
                     $msg = tt('room_event_correct', 'correct (+{score})');
                     $msg = str_replace('{score}', (string)$score, $msg);
                   ?>
-                  <div class="small">✓ <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
+                  <div class="small">? <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
                 <?php endif; ?>
               <?php endforeach; ?>
             </div>
@@ -191,3 +192,5 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 <?php include __DIR__ . '/footer.php'; ?>
 </body>
 </html>
+
+

@@ -1,4 +1,4 @@
-ï»¿<?php
+<?php
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/i18n.php';
 
@@ -72,6 +72,7 @@ $nextUrl = $_SESSION['login_next'] ?? '';
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/theme.css" rel="stylesheet" />
   <title><?= htmlspecialchars(t('home_cta_login')) ?> - <?= htmlspecialchars(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
 </head>
@@ -98,10 +99,10 @@ $nextUrl = $_SESSION['login_next'] ?? '';
       <div class="card h-100">
         <div class="card-body">
           <h2 class="h6"><?= htmlspecialchars(t('save_with_google')) ?></h2>
-          <p class="text-muted">Google ile giriÅŸ yaptÄ±ÄŸÄ±nÄ±zda sadece e-posta adresiniz kaydedilir.</p>
+          <p class="text-muted">Google ile giriş yaptığınızda sadece e-posta adresiniz kaydedilir.</p>
           <a class="btn btn-primary" href="login.php?provider=google">
             <img class="bi-icon" src="google.svg" alt="" aria-hidden="true" />
-            Google ile giriÅŸ yap
+            Google ile giriş yap
           </a>
         </div>
       </div>
@@ -110,12 +111,12 @@ $nextUrl = $_SESSION['login_next'] ?? '';
     <div class="col-12 col-lg-6">
       <div class="card h-100">
         <div class="card-body">
-          <h2 class="h6">KullanÄ±cÄ± adÄ± ile giriÅŸ</h2>
-          <p class="text-muted">Sadece kullanÄ±cÄ± adÄ± girin. Bu yÃ¶ntemle e-posta kaydÄ± tutulmaz.</p>
+          <h2 class="h6">Kullanıcı adı ile giriş</h2>
+          <p class="text-muted">Sadece kullanıcı adı girin. Bu yöntemle e-posta kaydı tutulmaz.</p>
           <form id="localLoginForm">
-            <label class="form-label" for="usernameInput">KullanÄ±cÄ± adÄ±</label>
+            <label class="form-label" for="usernameInput">Kullanıcı adı</label>
             <input id="usernameInput" class="form-control" type="text" maxlength="30" required />
-            <button class="btn btn-outline-primary mt-3" type="submit">GiriÅŸ yap</button>
+            <button class="btn btn-outline-primary mt-3" type="submit">Giriş yap</button>
             <div class="form-text mt-2" id="localLoginMsg"></div>
           </form>
         </div>
@@ -145,7 +146,7 @@ form?.addEventListener('submit', async (e) => {
   setMsg('');
   const username = (input?.value || '').trim();
   if (!username) {
-    setMsg('KullanÄ±cÄ± adÄ± gerekli.', 'error');
+    setMsg('Kullanıcı adı gerekli.', 'error');
     return;
   }
   try {
@@ -162,11 +163,13 @@ form?.addEventListener('submit', async (e) => {
       window.location.href = NEXT_URL || 'index.php';
       return;
     }
-    setMsg((data && data.error) ? data.error : 'GiriÅŸ baÅŸarÄ±sÄ±z.', 'error');
+    setMsg((data && data.error) ? data.error : 'Giriş başarısız.', 'error');
   } catch (err) {
-    setMsg('GiriÅŸ baÅŸarÄ±sÄ±z.', 'error');
+    setMsg('Giriş başarısız.', 'error');
   }
 });
 </script>
 </body>
 </html>
+
+
