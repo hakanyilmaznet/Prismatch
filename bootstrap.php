@@ -12,7 +12,6 @@ function pm_debug_enabled(): bool {
 }
 
 function pm_should_output_debug(): bool {
-function pm_should_output_debug(): bool {
   if (php_sapi_name() === 'cli') return false;
   $uri = $_SERVER['REQUEST_URI'] ?? '';
   if (strpos($uri, '/api/') !== false) return false;
@@ -90,3 +89,12 @@ session_start();
 // --- i18n ---
 require_once __DIR__ . '/i18n.php';
 get_lang(); // session/cookie/browser -> resolved
+
+// --- Session upgrade (legacy email-only sessions) ---
+if (empty($_SESSION['user_id']) && !empty($_SESSION['user_email'])) {
+  require_once __DIR__ . '/db.php';
+  $user = ensure_user_by_email((string)$_SESSION['user_email']);
+  $_SESSION['user_id'] = $user['id'];
+  $_SESSION['user_name'] = user_display_name_from_row($user);
+  $_SESSION['login_provider'] = $_SESSION['login_provider'] ?? 'google';
+}

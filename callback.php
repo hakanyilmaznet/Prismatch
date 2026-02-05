@@ -12,7 +12,6 @@ session_set_cookie_params([
 session_start();
 
 function fail(string $msg, int $code = 400): void {
-function fail(string $msg, int $code = 400): void {
   http_response_code($code);
   $title = t('callback_error_title');
   $back = t('callback_back');
@@ -94,10 +93,18 @@ if (!is_array($userJson) || empty($userJson['email'])) {
 
 $email = strtolower(trim($userJson['email']));
 
-// DB login upsert
-upsert_user_login($email);
+// If user is linking a local account, attach email to that user id
+$linkUserId = $_SESSION['link_user_id'] ?? null;
+unset($_SESSION['link_user_id']);
 
-// Session'a sadece email koy
+if ($linkUserId) {
+  $user = link_user_email((string)$linkUserId, $email);
+} else {
+  $user = ensure_user_by_email($email);
+}
+
+// Session: user id + provider info
+$_SESSION['user_id'] = $user['id'];
 $_SESSION['user_email'] = $email;
 
 $next = $_SESSION['login_next'] ?? '';
