@@ -17,7 +17,7 @@ function tt(string $key, string $fallback = ''): string {
 }
 
 function google_badge_html(): string {
-  return '<span class="badge text-bg-light"><img src="google.svg" class="align-text-bottom me-1" width="16" height="16" alt="Google" />Google</span>';
+  return '<span class="google-badge"><img src="google.svg" class="google-icon" alt="Google" /><span class="google-text">Google</span></span>';
 }
 
 function render_google_label(string $text): string {
@@ -51,7 +51,19 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script>
+    (function(){
+      const key = 'pm-theme';
+      const stored = localStorage.getItem(key);
+      const prefers = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const theme = stored || prefers;
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
   <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
 
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
@@ -66,163 +78,603 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     'site_name' => tt('app_name', 'Prismatch'),
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
+
+  <style>
+    :root{ color-scheme: light dark; }
+    :root,
+    [data-bs-theme="dark"]{
+      --bg: #0b0d12;
+      --panel: rgba(255,255,255,0.07);
+      --panel2: rgba(255,255,255,0.12);
+      --text: #f7f7f4;
+      --muted: rgba(237,242,255,0.68);
+      --accent: #ff7d5d;
+      --accent2: #3dd6a0;
+      --accent3: #ffd08a;
+      --shadow: 0 30px 70px rgba(0,0,0,0.55);
+      --radius: 20px;
+    }
+    [data-bs-theme="light"]{
+      --bg: #f6f3ee;
+      --panel: rgba(255,255,255,0.9);
+      --panel2: rgba(255,255,255,0.7);
+      --text: #1b1f2a;
+      --muted: rgba(27,31,42,0.65);
+      --accent: #e4573f;
+      --accent2: #1e9b79;
+      --accent3: #f4b66a;
+      --shadow: 0 26px 60px rgba(26,28,35,0.16);
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px + env(safe-area-inset-bottom));
+    }
+    body::before,
+    body::after{ display:none; }
+
+    .app{
+      width: min(880px, 100%);
+      min-height: min(720px, 100%);
+      display:flex;
+      flex-direction:column;
+      gap: 14px;
+    }
+
+    .hud{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      align-items:stretch;
+      justify-content:space-between;
+    }
+    .hud .chip{
+      flex: 1 1 180px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
+      padding: 10px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+    }
+    .hud .label{ color: var(--muted); font-size: 12px; letter-spacing: 0.3px; }
+    .hud .value{ font-weight: 700; font-size: 14px; }
+
+    .stage{
+      flex:1;
+      background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding: 54px 18px 18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .stage::before{
+      content:"";
+      position:absolute;
+      inset:auto -20% -35% -20%;
+      height: 55%;
+      background: radial-gradient(closest-side, rgba(53,208,186,0.18), transparent 70%);
+      pointer-events:none;
+    }
+
+    .center{
+      width: 100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap: 14px;
+    }
+
+    .title{
+      font-family: "Space Grotesk", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+    .subtitle{
+      color: var(--muted);
+      font-size: 13px;
+      text-align:center;
+      max-width: 560px;
+      line-height: 1.35;
+    }
+
+    .countdown{
+      font-size: clamp(56px, 9vw, 96px);
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-shadow: 0 10px 32px rgba(0,0,0,0.45);
+      transform: translateZ(0);
+      animation: pop 1s ease both;
+      user-select:none;
+    }
+    @keyframes pop{
+      0%{ opacity:0; transform: scale(0.85); }
+      55%{ opacity:1; transform: scale(1.03); }
+      100%{ opacity:1; transform: scale(1.0); }
+    }
+
+    .target-card{
+      width: min(420px, 90%);
+      aspect-ratio: 16/9;
+      border-radius: calc(var(--radius) + 6px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.45);
+      border: 2px solid rgba(255,255,255,0.10);
+      transform: translateZ(0);
+      animation: fadeScale 260ms ease both;
+    }
+    @keyframes fadeScale{
+      from{ opacity:0; transform: scale(0.96); }
+      to{ opacity:1; transform: scale(1); }
+    }
+
+    .question{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      align-items:center;
+      text-align:center;
+      margin-bottom: 6px;
+    }
+    .question .q{
+      font-size: 16px;
+      font-weight: 750;
+    }
+    .question .hint{
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .grid{
+      width: min(560px, 100%);
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .cell{
+      appearance:none;
+      border:none;
+      padding:0;
+      border-radius: 16px;
+      aspect-ratio: 1 / 1;
+      cursor:pointer;
+      outline:none;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.35);
+      border: 2px solid rgba(255,255,255,0.10);
+      transform: translateZ(0);
+      transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, filter 120ms ease;
+    }
+    .cell:hover{ transform: translateY(-2px); box-shadow: 0 18px 44px rgba(0,0,0,0.42); }
+    .cell:active{ transform: translateY(0px) scale(0.99); }
+    .cell:focus-visible{
+      border-color: rgba(255,255,255,0.65);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.18), 0 18px 44px rgba(0,0,0,0.42);
+    }
+    .cell[disabled]{ cursor:not-allowed; opacity: 0.70; filter: saturate(0.85); }
+    .cell.correct{
+      border-color: rgba(34,197,94,0.9);
+      box-shadow: 0 0 0 4px rgba(34,197,94,0.22), 0 18px 44px rgba(0,0,0,0.42);
+    }
+    .cell.wrong{
+      border-color: rgba(255,77,77,0.9);
+      box-shadow: 0 0 0 4px rgba(255,77,77,0.18), 0 18px 44px rgba(0,0,0,0.42);
+    }
+
+    .toast{
+      position:absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(8,16,23,0.75);
+      border: 1px solid rgba(255,255,255,0.22);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 16px 50px rgba(0,0,0,0.35);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity 140ms ease, transform 140ms ease;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      max-width: min(560px, calc(100% - 28px));
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow:hidden;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(2px);
+    }
+
+    .answerOverlay{
+      position:fixed;
+      inset:0;
+      background: radial-gradient(circle at top, rgba(61,214,160,0.15), transparent 45%), rgba(8,16,23,0.7);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 20px;
+      z-index: 42000;
+      backdrop-filter: blur(10px);
+    }
+    .answerOverlay[hidden]{ display:none; }
+    .answerCard{
+      width: min(520px, 92vw);
+      border-radius: 28px;
+      padding: 24px 22px;
+      text-align:center;
+      border: 1px solid rgba(255,255,255,0.2);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(255,255,255,0.16), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      box-shadow: 0 32px 80px rgba(0,0,0,0.55);
+      position:relative;
+      overflow:hidden;
+    }
+    .answerCard.success{
+      border-color: rgba(46, 204, 113, 0.6);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(46, 204, 113, 0.18), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    }
+    .answerCard.error{
+      border-color: rgba(255,77,77,0.7);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(255,77,77,0.18), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    }
+    .answerCard::after{
+      content:"";
+      position:absolute;
+      inset:-40% -20% auto auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255,208,138,0.35), transparent 70%);
+      opacity: 0.9;
+      pointer-events:none;
+    }
+    .answerIconWrap{
+      width: 120px;
+      height: 120px;
+      border-radius: 32px;
+      margin: 0 auto 14px auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 16px 36px rgba(0,0,0,0.35);
+    }
+    .answerIcon{
+      width: 78px;
+      height: 78px;
+      animation: popIn 320ms ease;
+    }
+    .answerMessage{
+      font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif;
+      font-size: clamp(18px, 3.8vw, 22px);
+      font-weight: 700;
+      line-height: 1.4;
+      margin: 6px 0 2px 0;
+    }
+    .answerSub{
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0;
+    }
+    .answerCard.success .answerIcon{ animation: popIn 320ms ease, floaty 4s ease-in-out infinite; }
+    .answerCard.error .answerIcon{ animation: popIn 320ms ease, shake 420ms ease; }
+    @keyframes popIn{ from{ transform: scale(0.75); opacity:0; } to{ transform: scale(1); opacity:1; } }
+    @keyframes shake{
+      0%,100%{ transform: translateX(0); }
+      20%{ transform: translateX(-6px); }
+      40%{ transform: translateX(6px); }
+      60%{ transform: translateX(-4px); }
+      80%{ transform: translateX(4px); }
+    }
+
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(8,16,23,0.62);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 40000;
+      backdrop-filter: blur(8px);
+    }
+    .modalOverlay[hidden]{
+      display:none;
+    }
+    .modalCard{
+      width: min(420px, 92vw);
+      background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+    .modalTitle{
+      margin: 0 0 6px 0;
+      font-family: "Space Grotesk", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-size: 18px;
+    }
+    .modalText{
+      margin: 0 0 14px 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+    .modalActions{
+      display:flex;
+      gap: 10px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+
+    .footer{
+      display:flex;
+      gap: 10px;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+      .btn{
+        appearance:none;
+        border:none;
+        cursor:pointer;
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      backdrop-filter: blur(12px);
+      text-decoration:none;
+      display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap: 8px;
+      }
+      .google-badge{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        font-weight:700;
+      }
+      .google-icon{
+        width:16px;
+        height:16px;
+        display:inline-block;
+      }
+      .google-text{ line-height:1; }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,0.28); box-shadow: 0 10px 26px rgba(0,0,0,0.35); }
+    .btn:active{ transform: translateY(0px); }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(255,139,92,0.95), rgba(247,195,82,0.95));
+      border-color: rgba(255,139,92,0.6);
+      color: #101318;
+      box-shadow: 0 16px 34px rgba(255,139,92,0.35);
+    }
+
+    .badge{
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stats{
+      width: min(640px, 100%);
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .stat{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display:flex;
+      flex-direction:column;
+      gap: 4px;
+    }
+    .stat .k{ color: var(--muted); font-size: 12px; }
+    .stat .v{ font-weight: 800; font-size: 14px; }
+
+    .action-row{
+      width: min(680px, 100%);
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      align-items:stretch;
+    }
+    .action-row .btn{ width:100%; }
+
+    @media (max-width: 520px){
+      .stats{ grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      * { animation: none !important; transition: none !important; }
+    }
+    
+    .logo{
+      width:84px; height:84px;
+      border-radius: 20px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(10px);
+      animation: floaty 5s ease-in-out infinite;
+    }
+    @keyframes floaty{
+      0%,100%{ transform: translateY(0); }
+      50%{ transform: translateY(-6px); }
+  </style>
 </head>
 <body>
 <?php include __DIR__ . '/header.php'; ?>
-<main class="container py-4" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
+<main class="app" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
 
-  <section class="row g-2 mb-3" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
-    <div class="col-6 col-md-3">
-      <div class="card text-center">
-        <div class="card-body py-2">
-          <div class="small text-muted"><?= htmlspecialchars(tt('hud_stage', 'Stage')) ?></div>
-          <div class="fw-semibold" id="hudLevel">1 / 50</div>
-        </div>
-      </div>
+  <section class="hud" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
+    <div class="chip" role="status" aria-live="polite">
+      <span class="label"><?= htmlspecialchars(tt('hud_stage', 'Stage')) ?></span>
+      <span class="value" id="hudLevel">1 / 50</span>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card text-center">
-        <div class="card-body py-2">
-          <div class="small text-muted"><?= htmlspecialchars(tt('hud_answer_time', 'Answer Time')) ?></div>
-          <div class="fw-semibold" id="hudTime">5.0s</div>
-        </div>
-      </div>
+    <div class="chip" role="status" aria-live="polite">
+      <span class="label"><?= htmlspecialchars(tt('hud_answer_time', 'Answer Time')) ?></span>
+      <span class="value" id="hudTime">5.0s</span>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card text-center">
-        <div class="card-body py-2">
-          <div class="small text-muted"><?= htmlspecialchars(tt('hud_correct', 'Perfect Matches')) ?></div>
-          <div class="fw-semibold" id="hudCorrect">0</div>
-        </div>
-      </div>
+    <div class="chip" role="status" aria-live="polite">
+      <span class="label"><?= htmlspecialchars(tt('hud_correct', 'Perfect Matches')) ?></span>
+      <span class="value" id="hudCorrect">0</span>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card text-center">
-        <div class="card-body py-2">
-          <div class="small text-muted"><?= htmlspecialchars(tt('hud_target_show', 'Target Show')) ?></div>
-          <div class="fw-semibold" id="hudShow">3.0s</div>
-        </div>
-      </div>
+    <div class="chip" role="status" aria-live="polite">
+      <span class="label"><?= htmlspecialchars(tt('hud_target_show', 'Target Show')) ?></span>
+      <span class="value" id="hudShow">3.0s</span>
     </div>
+
   </section>
 
-  <section class="card mb-3" id="stage" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
-    <div class="card-body position-relative">
-      <div class="alert alert-info py-2 px-3 d-none" id="toast" aria-live="polite"></div>
+  <section class="stage" id="stage" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
+    <div class="toast" id="toast" aria-live="polite"></div>
 
-      <div class="d-flex flex-column align-items-center text-center gap-3" id="center">
-        <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?> logo" width="84" height="84" class="rounded" />
-        <div class="h4 fw-bold"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></div>
-        <div class="text-muted">
-          <?php if ($userEmail): ?>
-            <?= htmlspecialchars(t('subtitle_authed', ['email' => $userEmail])) ?>
-          <?php else: ?>
-            <?= htmlspecialchars(tt('subtitle_guest', 'Play without signing in. If you want to save results, log in at the end.')) ?>
+    <div class="center" id="center">
+      <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?> logo" width="84" height="84" class="logo" />
+      <div class="title"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></div>
+      <div class="subtitle">
+        <?php if ($userEmail): ?>
+          <?= htmlspecialchars(t('subtitle_authed', ['email' => $userEmail])) ?>
+        <?php else: ?>
+          <?= htmlspecialchars(tt('subtitle_guest', 'Play without signing in. If you want to save results, log in at the end.')) ?>
+        <?php endif; ?>
+      </div>
+
+      <?php if ($flash): ?>
+        <div class="subtitle"><strong><?= htmlspecialchars($flash) ?></strong></div>
+      <?php endif; ?>
+      <?php if ($isDailyMode): ?>
+        <div class="subtitle"><strong><?= htmlspecialchars(tt('daily_once', 'Daily challenge: one attempt per day.')) ?></strong></div>
+      <?php endif; ?>
+
+      <?php if ($userEmail && $stats): ?>
+        <div class="stats" aria-label="<?= htmlspecialchars(tt('stats_title', 'Stats')) ?>">
+          <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_total_games', 'Total Games')) ?></div><div class="v"><?= (int)$stats['total_plays'] ?></div></div>
+          <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_total_wins', 'Total Wins')) ?></div><div class="v"><?= (int)$stats['total_wins'] ?></div></div>
+          <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_best_level', 'Best Stage')) ?></div><div class="v"><?= (int)$stats['best_level'] ?></div></div>
+          <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_total_correct', 'Total Correct')) ?></div><div class="v"><?= (int)$stats['total_correct'] ?></div></div>
+        </div>
+
+        <div class="action-row">
+          <a class="btn" href="games.php">
+            <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
+          </a>
+          <?php if ($isDailyMode): ?>
+          <a class="btn" href="daily_leaderboard.php">
+            <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
+          </a>
+          <?php endif; ?>
+          <a class="btn" href="logout.php">
+            <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
+          </a>
+        </div>
+      <?php else: ?>
+          <div class="action-row">
+            <a class="btn" href="login.php">
+              <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
+              <?= render_google_label(tt('login_optional', '{google} Login (optional)')) ?>
+            </a>
+          <?php if ($isDailyMode): ?>
+          <a class="btn" href="daily_leaderboard.php">
+            <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
+          </a>
           <?php endif; ?>
         </div>
+      <?php endif; ?>
 
-        <?php if ($flash): ?>
-          <div class="text-muted"><strong><?= htmlspecialchars($flash) ?></strong></div>
-        <?php endif; ?>
-        <?php if ($isDailyMode): ?>
-          <div class="text-muted"><strong><?= htmlspecialchars(tt('daily_once', 'Daily challenge: one attempt per day.')) ?></strong></div>
-        <?php endif; ?>
-
-        <?php if ($userEmail && $stats): ?>
-          <div class="row row-cols-1 row-cols-md-2 g-2 w-100" aria-label="<?= htmlspecialchars(tt('stats_title', 'Stats')) ?>">
-            <div class="col"><div class="border rounded p-2"><div class="small text-muted"><?= htmlspecialchars(tt('stats_total_games', 'Total Games')) ?></div><div class="fw-semibold"><?= (int)$stats['total_plays'] ?></div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-muted"><?= htmlspecialchars(tt('stats_total_wins', 'Total Wins')) ?></div><div class="fw-semibold"><?= (int)$stats['total_wins'] ?></div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-muted"><?= htmlspecialchars(tt('stats_best_level', 'Best Stage')) ?></div><div class="fw-semibold"><?= (int)$stats['best_level'] ?></div></div></div>
-            <div class="col"><div class="border rounded p-2"><div class="small text-muted"><?= htmlspecialchars(tt('stats_total_correct', 'Total Correct')) ?></div><div class="fw-semibold"><?= (int)$stats['total_correct'] ?></div></div></div>
-          </div>
-
-          <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-outline-secondary" href="games.php">
-              <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
-              <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
-            </a>
-            <?php if ($isDailyMode): ?>
-            <a class="btn btn-outline-secondary" href="daily_leaderboard.php">
-              <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
-              <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
-            </a>
-            <?php endif; ?>
-            <a class="btn btn-outline-secondary" href="logout.php">
-              <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
-              <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
-            </a>
-          </div>
-        <?php else: ?>
-            <div class="d-flex flex-wrap gap-2">
-              <a class="btn btn-outline-secondary" href="login.php">
-                <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
-                <?= render_google_label(tt('login_optional', '{google} Login (optional)')) ?>
-              </a>
-            <?php if ($isDailyMode): ?>
-            <a class="btn btn-outline-secondary" href="daily_leaderboard.php">
-              <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
-              <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
-            </a>
-            <?php endif; ?>
-          </div>
-        <?php endif; ?>
-
-        <button class="btn btn-primary" id="btnStart" type="button">
-          <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
-          <?= htmlspecialchars(tt('btn_start', 'Hemen Oyna')) ?>
-        </button>
-      </div>
+      <button class="btn primary" id="btnStart" type="button">
+        <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
+        <?= htmlspecialchars(tt('btn_start', 'Hemen Oyna')) ?>
+      </button>
     </div>
   </section>
 
-  <section class="d-flex justify-content-center" aria-label="<?= htmlspecialchars(tt('controls', 'Controls')) ?>">
-    <span class="badge text-bg-secondary" id="statusBadge"><?= htmlspecialchars(tt('status_ready', 'Ready.')) ?></span>
+  <section class="footer" aria-label="<?= htmlspecialchars(tt('controls', 'Controls')) ?>">
+    <span class="badge" id="statusBadge"><?= htmlspecialchars(tt('status_ready', 'Ready.')) ?></span>
   </section>
 
 </main>
 
-<div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75" id="answerOverlay" hidden role="dialog" aria-modal="true" aria-live="polite">
-  <div class="card text-center" id="answerCard">
-    <div class="card-body">
-      <div class="mb-2">
-        <img id="answerIcon" src="success-checkmark.svg" alt="" aria-hidden="true" width="72" height="72" />
-      </div>
-      <div class="h5 mb-1" id="answerText"></div>
-      <p class="text-muted mb-0"><?= htmlspecialchars(tt('badge_answer', 'Answer now!')) ?></p>
+<div class="answerOverlay" id="answerOverlay" hidden role="dialog" aria-modal="true" aria-live="polite">
+  <div class="answerCard" id="answerCard">
+    <div class="answerIconWrap">
+      <img class="answerIcon" id="answerIcon" src="success-checkmark.svg" alt="" aria-hidden="true" />
+    </div>
+    <div class="answerMessage" id="answerText"></div>
+    <p class="answerSub"><?= htmlspecialchars(tt('badge_answer', 'Answer now!')) ?></p>
+  </div>
+</div>
+
+<div class="modalOverlay" id="dailyCompletedModal" hidden role="dialog" aria-modal="true" aria-labelledby="dailyCompletedTitle">
+  <div class="modalCard">
+    <h2 class="modalTitle" id="dailyCompletedTitle"><?= htmlspecialchars(tt('daily_title', 'Daily Challenge')) ?></h2>
+    <p class="modalText" id="dailyCompletedText"><?= htmlspecialchars(tt('daily_completed', 'You already played today. Come back tomorrow!')) ?></p>
+    <div class="modalActions">
+      <button class="btn primary" id="dailyCompletedOk" type="button">
+        <img class="bi-icon" src="bootstrap-icons/check-circle.svg" alt="" aria-hidden="true" />
+        <?= htmlspecialchars(tt('btn_ok', 'OK')) ?>
+      </button>
     </div>
   </div>
 </div>
 
-<div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75" id="dailyCompletedModal" hidden role="dialog" aria-modal="true" aria-labelledby="dailyCompletedTitle">
-  <div class="card">
-    <div class="card-body">
-      <h2 class="h5" id="dailyCompletedTitle"><?= htmlspecialchars(tt('daily_title', 'Daily Challenge')) ?></h2>
-      <p class="text-muted" id="dailyCompletedText"><?= htmlspecialchars(tt('daily_completed', 'You already played today. Come back tomorrow!')) ?></p>
-      <div class="d-flex justify-content-end gap-2">
-        <button class="btn btn-primary" id="dailyCompletedOk" type="button">
-          <img class="bi-icon" src="bootstrap-icons/check-circle.svg" alt="" aria-hidden="true" />
-          <?= htmlspecialchars(tt('btn_ok', 'OK')) ?>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75" id="dailyLoginModal" hidden role="dialog" aria-modal="true" aria-labelledby="dailyLoginTitle">
-  <div class="card">
-    <div class="card-body">
-      <h2 class="h5" id="dailyLoginTitle"><?= htmlspecialchars(tt('daily_title', 'Daily Challenge')) ?></h2>
-      <p class="text-muted" id="dailyLoginText"><?= htmlspecialchars(tt('daily_login_required', 'Log in to play the daily challenge.')) ?></p>
-      <div class="d-flex justify-content-end gap-2">
-        <a class="btn btn-primary" id="dailyLoginGo" href="login.php">
-          <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
-          <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
-        </a>
-        <button class="btn btn-outline-secondary" id="dailyLoginBack" type="button">
-          <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
-          <?= htmlspecialchars(tt('btn_back_to_game', 'Back to Game')) ?>
-        </button>
-      </div>
+<div class="modalOverlay" id="dailyLoginModal" hidden role="dialog" aria-modal="true" aria-labelledby="dailyLoginTitle">
+  <div class="modalCard">
+    <h2 class="modalTitle" id="dailyLoginTitle"><?= htmlspecialchars(tt('daily_title', 'Daily Challenge')) ?></h2>
+    <p class="modalText" id="dailyLoginText"><?= htmlspecialchars(tt('daily_login_required', 'Log in to play the daily challenge.')) ?></p>
+    <div class="modalActions">
+      <a class="btn primary" id="dailyLoginGo" href="login.php">
+        <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
+        <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
+      </a>
+      <button class="btn" id="dailyLoginBack" type="button">
+        <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+        <?= htmlspecialchars(tt('btn_back_to_game', 'Back to Game')) ?>
+      </button>
     </div>
   </div>
 </div>
@@ -311,12 +763,8 @@ function showAnswerPopup(type){
   const msg = pickRandomMessage(isRight ? RIGHT_MESSAGES : WRONG_MESSAGES) || (isRight ? tjs('toast_correct', '✅ Perfect Match!') : tjs('toast_wrong', '❌ Wrong Match!'));
   answerText.textContent = msg;
   answerIcon.src = isRight ? 'success-checkmark.svg' : 'error-x.svg';
-  answerCard.classList.remove('border-success', 'border-danger', 'border-3');
-  if (isRight) {
-    answerCard.classList.add('border-success', 'border-3');
-  } else {
-    answerCard.classList.add('border-danger', 'border-3');
-  }
+  answerCard.classList.toggle('success', isRight);
+  answerCard.classList.toggle('error', !isRight);
   answerOverlay.hidden = false;
 
   return new Promise((resolve) => {
@@ -477,21 +925,19 @@ function updateHUD(answerLeftMs = null){
 
 function setBadge(text, type = ''){
   elBadge.textContent = text;
-  elBadge.classList.remove('text-bg-danger', 'text-bg-success', 'text-bg-secondary');
-  if (type === 'error') elBadge.classList.add('text-bg-danger');
-  else if (type === 'success') elBadge.classList.add('text-bg-success');
-  else elBadge.classList.add('text-bg-secondary');
+  elBadge.classList.remove('pm-error', 'pm-success');
+  if (type) elBadge.classList.add(`pm-${type}`);
 }
 
 function toast(msg, autoHideMs = 1100){
   if (!msg) {
     elToast.textContent = "";
-    elToast.classList.add("d-none");
+    elToast.classList.remove("show");
     return;
   }
   elToast.textContent = msg;
-  elToast.classList.remove("d-none");
-  setSafeTimeout(() => elToast.classList.add("d-none"), autoHideMs);
+  elToast.classList.add("show");
+  setSafeTimeout(() => elToast.classList.remove("show"), autoHideMs);
 }
 function toastQuick(msg){ toast(msg, TOAST_HIDE_MS); }
 
@@ -502,19 +948,19 @@ function render(node){
 
 function makeStack(...nodes){
   const wrap = document.createElement("div");
-  wrap.className = "d-flex flex-column align-items-center text-center gap-3";
+  wrap.className = "center";
   nodes.forEach(n => wrap.appendChild(n));
   return wrap;
 }
 function h1(text){
   const d = document.createElement("div");
-  d.className = "h4 fw-bold";
+  d.className = "title";
   d.textContent = text;
   return d;
 }
 function p(text){
   const d = document.createElement("div");
-  d.className = "text-muted";
+  d.className = "subtitle";
   d.textContent = text;
   return d;
 }
@@ -559,39 +1005,36 @@ function showSavePromptModal(payload){
 
   const overlay = document.createElement("div");
   overlay.id = "saveLoginModal";
-  overlay.className = "position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75";
+  overlay.className = "modalOverlay";
   overlay.tabIndex = -1;
 
   const modal = document.createElement("div");
-  modal.className = "card";
+  modal.className = "modalCard";
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
   modal.setAttribute("aria-label", tjs('save_after_title', 'Save your score?'));
 
-  const body = document.createElement("div");
-  body.className = "card-body";
-
   const title = document.createElement("h2");
-  title.className = "h5";
+  title.className = "modalTitle";
   title.textContent = tjs('save_after_title', 'Save your score?');
 
     const googleBadgeHtml = <?= json_encode(google_badge_html()) ?>;
     const msg = document.createElement("p");
-    msg.className = "text-muted";
+    msg.className = "modalText";
     msg.innerHTML = tjs('save_after_body', 'Log in with {google} to save this session and view detailed stats.').replace('{google}', googleBadgeHtml);
 
   const actions = document.createElement("div");
-  actions.className = "d-flex justify-content-end gap-2 flex-wrap";
+  actions.className = "modalActions";
 
   const btnSave = document.createElement("button");
-  btnSave.className = "btn btn-primary";
+  btnSave.className = "btn primary";
   btnSave.type = "button";
     btnSave.innerHTML = '<img class="bi-icon" src="bootstrap-icons/cloud-arrow-up.svg" alt="" aria-hidden="true" /> ' +
       tjs('save_with_google', 'Save with {google}').replace('{google}', googleBadgeHtml);
   btnSave.addEventListener("click", () => storePendingAndLogin(payload));
 
   const btnSkip = document.createElement("button");
-  btnSkip.className = "btn btn-outline-secondary";
+  btnSkip.className = "btn";
   btnSkip.type = "button";
     btnSkip.innerHTML = '<img class="bi-icon" src="bootstrap-icons/arrow-right.svg" alt="" aria-hidden="true" /> ' + tjs('continue_without_saving', 'Continue without saving');
   btnSkip.addEventListener("click", () => overlay.remove());
@@ -599,10 +1042,9 @@ function showSavePromptModal(payload){
   actions.appendChild(btnSave);
   actions.appendChild(btnSkip);
 
-  body.appendChild(title);
-  body.appendChild(msg);
-  body.appendChild(actions);
-  modal.appendChild(body);
+  modal.appendChild(title);
+  modal.appendChild(msg);
+  modal.appendChild(actions);
   overlay.appendChild(modal);
 
   overlay.addEventListener("click", (e) => {
@@ -789,7 +1231,7 @@ function runCountdown(){
   let t = COUNTDOWN_START;
 
   const cd = document.createElement("div");
-  cd.className = "display-1 fw-bold";
+  cd.className = "countdown";
   cd.textContent = String(t);
 
   render(makeStack(
@@ -823,9 +1265,8 @@ function runTargetShow(){
   state.targetColor = PALETTE[randInt(0, PALETTE.length)];
 
   const card = document.createElement("div");
-  card.className = "rounded border w-100";
+  card.className = "target-card";
   card.style.background = state.targetColor;
-  card.style.aspectRatio = "16 / 9";
 
   render(makeStack(
     h1(`${tjs('hud_stage', 'Stage')} ${state.level}`),
@@ -859,19 +1300,19 @@ function runQuestionGrid(){
   state.currentGridColors = colors.slice();
 
   const qWrap = document.createElement("div");
-  qWrap.className = "text-center";
+  qWrap.className = "question";
 
   const q = document.createElement("div");
-  q.className = "fw-semibold";
+  q.className = "q";
   q.textContent = tjs('question_pick_target', 'Which color was shown? Pick the target.');
   const hint = document.createElement("div");
-  hint.className = "text-muted small";
+  hint.className = "hint";
   hint.textContent = tjs('question_hint', 'Use Tab/Shift+Tab and Enter/Space to pick.');
   qWrap.appendChild(q);
   qWrap.appendChild(hint);
 
   const grid = document.createElement("div");
-  grid.className = "d-grid gap-2 w-100";
+  grid.className = "grid";
   const gridSize = Math.round(Math.sqrt(gridCount));
   if (gridSize * gridSize === gridCount) {
     grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
@@ -881,10 +1322,9 @@ function runQuestionGrid(){
 
   colors.forEach((c, idx) => {
     const btn = document.createElement("button");
-    btn.className = "btn p-0 border border-2 rounded-3 w-100";
+    btn.className = "cell";
     btn.type = "button";
     btn.style.background = c;
-    btn.style.aspectRatio = "1 / 1";
     btn.setAttribute("aria-label", tf('a11y_color_option', {n: idx + 1}, `Color option ${idx + 1}`));
     btn.dataset.color = c;
 
@@ -956,13 +1396,13 @@ async function onPick(btn, buttons){
   });
 
   if (isCorrect){
-    btn.classList.add("border-success", "border-3");
+    btn.classList.add("correct");
     setBadge(tjs('badge_correct', 'Perfect match! Next stage…'));
     state.correct += 1;
     await showAnswerPopup('right');
     advanceLevel();
   } else {
-    btn.classList.add("border-danger", "border-3");
+    btn.classList.add("wrong");
     setBadge(tjs('badge_wrong', 'Wrong match. Game over.'));
     await showAnswerPopup('wrong');
     gameOver(tjs('reason_wrong', 'Wrong match.'));
@@ -1023,11 +1463,11 @@ async function win(){
   );
 
   const row = document.createElement("div");
-  row.className = "d-flex flex-wrap gap-2";
+  row.className = "action-row";
 
   if (!IS_DAILY_MODE){
     const btn = document.createElement("button");
-    btn.className = "btn btn-primary";
+    btn.className = "btn primary";
     btn.type = "button";
       btn.innerHTML = '<img class="bi-icon" src="bootstrap-icons/arrow-repeat.svg" alt="" aria-hidden="true" /> ' + tjs('btn_play_again', 'Play again');
     btn.addEventListener("click", startGame);
@@ -1036,7 +1476,7 @@ async function win(){
 
   if (IS_LOGGED_IN){
     const a = document.createElement("a");
-    a.className = "btn btn-outline-secondary";
+    a.className = "btn";
     a.href = "games.php";
     a.innerHTML = '<img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" /> ' + tjs('btn_view_history', 'My Sessions');
     row.appendChild(a);
@@ -1066,11 +1506,11 @@ async function gameOver(reason){
   );
 
   const row = document.createElement("div");
-  row.className = "d-flex flex-wrap gap-2";
+  row.className = "action-row";
 
   if (!IS_DAILY_MODE){
     const btn = document.createElement("button");
-    btn.className = "btn btn-primary";
+    btn.className = "btn primary";
     btn.type = "button";
       btn.innerHTML = '<img class="bi-icon" src="bootstrap-icons/arrow-clockwise.svg" alt="" aria-hidden="true" /> ' + tjs('btn_restart', 'Restart');
     btn.addEventListener("click", startGame);
@@ -1079,7 +1519,7 @@ async function gameOver(reason){
 
   if (IS_LOGGED_IN){
     const a = document.createElement("a");
-    a.className = "btn btn-outline-secondary";
+    a.className = "btn";
     a.href = "games.php";
     a.innerHTML = '<img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" /> ' + tjs('btn_view_history', 'My Sessions');
     row.appendChild(a);
