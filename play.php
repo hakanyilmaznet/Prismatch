@@ -1,12 +1,31 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
+
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/i18n.php';
+
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+  register_shutdown_function(function(){
+    $e = error_get_last();
+    if ($e) {
+      echo "<pre>FATAL: " . htmlspecialchars($e['message']) . " @ " . htmlspecialchars($e['file']) . ":" . (int)$e['line'] . "</pre>";
+    }
+  });
+}
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
 $userId = $_SESSION['user_id'] ?? null;
+$userEmail = $_SESSION['user_email'] ?? null;
 $userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
 $isDailyMode = isset($_GET['daily']) && $_GET['daily'] !== '0';
 $dailyDateUtc = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d');
@@ -994,7 +1013,8 @@ async function storePendingAndLogin(payload){
   await fetch("api/store_pending.php", {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    credentials: "same-origin"
   });
   window.location.href = "login.php";
 }
@@ -1073,7 +1093,8 @@ async function postResultIfLoggedIn(payload){
     const res = await fetch(endpoint, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      credentials: "same-origin"
     });
 
     if (!IS_DAILY_MODE) return { ok: res.ok, reason: res.ok ? 'ok' : 'http' };
@@ -1170,7 +1191,9 @@ async function checkDailyStatus(){
     return;
   }
   try{
-    const r = await fetch(`api/daily_status.php?day=${encodeURIComponent(DAILY_UTC_DATE)}`);
+    const r = await fetch(`api/daily_status.php?day=${encodeURIComponent(DAILY_UTC_DATE)}`, {
+      credentials: "same-origin"
+    });
     const j = await r.json();
     if (j.ok && j.played){
       lockDailyAlreadyPlayed();
@@ -1562,3 +1585,5 @@ if (FLASH_MSG) toastQuick(FLASH_MSG);
 
 </body>
 </html>
+
+

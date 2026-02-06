@@ -1,7 +1,14 @@
 <?php
 require_once __DIR__ . '/config.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
+
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/i18n.php';
+
 
 session_name(SESSION_NAME);
 session_set_cookie_params([
@@ -103,9 +110,9 @@ if ($linkUserId) {
   $user = ensure_user_by_email($email);
 }
 
-// Session: user id + provider info
-$_SESSION['user_id'] = $user['id'];
+// Session: email as primary identity
 $_SESSION['user_email'] = $email;
+$_SESSION['user_id'] = $email;
 
 $next = $_SESSION['login_next'] ?? '';
 unset($_SESSION['login_next']);
@@ -117,3 +124,5 @@ if ($next && is_safe_next_path($next)) {
 // Ana sayfaya dön
 header('Location: ' . APP_BASE_URL . '');
 exit;
+
+

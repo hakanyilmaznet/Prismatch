@@ -95,3 +95,6 @@ $payload = [
 
 pusher_trigger('presence-room-' . $guid, 'room:round', $payload);
 echo json_encode(['ok' => true, 'round' => $next]);
+
+
+

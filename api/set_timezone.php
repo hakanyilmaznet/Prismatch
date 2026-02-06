@@ -35,3 +35,6 @@ setcookie(
 );
 
 echo json_encode(['ok' => true]);
+
+
+

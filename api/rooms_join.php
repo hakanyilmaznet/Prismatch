@@ -52,3 +52,6 @@ if (!add_room_player((int)$room['id'], $email)) {
   ],
   'players' => list_room_players((int)$room['id']),
 ]);
+
+
+

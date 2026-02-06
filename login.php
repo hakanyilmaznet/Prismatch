@@ -1,14 +1,15 @@
-<?php include __DIR__ . '/footer.php'; ?>
 <?php
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/bootstrap.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
 
-session_name(SESSION_NAME);
-session_set_cookie_params([
-  'httponly' => true,
-  'secure' => COOKIE_SECURE,
-  'samesite' => 'Lax',
-]);
-session_start();
+require_once __DIR__ . '/i18n.php';
+
+
+// Session is already started in bootstrap.php
 
 function is_safe_next_path(string $path): bool {
   if ($path === '') return false;
@@ -167,3 +168,5 @@ form?.addEventListener('submit', async (e) => {
 </script>
 </body>
 </html>
+
+

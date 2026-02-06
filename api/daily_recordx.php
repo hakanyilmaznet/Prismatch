@@ -160,3 +160,6 @@ try {
   http_response_code(500);
   echo json_encode(['ok'=>false,'error'=>'Internal error','detail'=>$e->getMessage()]);
 }
+
+
+

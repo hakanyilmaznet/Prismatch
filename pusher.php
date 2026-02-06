@@ -1,5 +1,11 @@
 <?php
 require_once __DIR__ . '/config.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
+
 
 function pusher_base_url(): string {
   return 'https://api-' . PUSHER_CLUSTER . '.pusher.com/apps/' . PUSHER_APP_ID . '/events';
@@ -59,3 +65,6 @@ function pusher_auth_response(string $socketId, string $channelName, ?string $us
   $signature = hash_hmac('sha256', $stringToSign, PUSHER_SECRET);
   return json_encode(['auth' => PUSHER_KEY . ':' . $signature, 'channel_data' => $userJson]);
 }
+
+
+

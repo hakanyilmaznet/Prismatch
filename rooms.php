@@ -1,21 +1,18 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
+
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/i18n.php';
-
-session_name(SESSION_NAME);
-session_set_cookie_params([
-  'httponly' => true,
-  'secure' => COOKIE_SECURE,
-  'samesite' => 'Lax',
-]);
-if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userEmail = $_SESSION['user_email'] ?? null;
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -43,12 +40,12 @@ function format_room_dt($utcIso) {
   }
 }
 
-if (!$email) {
-  header('Location: login.php');
+if (!$userEmail) {
+  header('Location: login.php?next=' . rawurlencode('rooms.php'));
   exit;
 }
 
-$rooms = list_user_rooms($email, 100);
+$rooms = list_user_rooms($userEmail, 100);
 $seoTitle = tt('rooms_title', 'Rooms');
 $seoDescription = tt('rooms_desc', 'Create or join rooms to compete live.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
@@ -267,3 +264,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 </script>
 </body>
 </html>
+
+
+

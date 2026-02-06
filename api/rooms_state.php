@@ -45,3 +45,6 @@ if (!$room) {
   ],
   'players' => list_room_players((int)$room['id']),
 ]);
+
+
+

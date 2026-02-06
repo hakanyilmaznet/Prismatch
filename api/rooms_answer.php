@@ -116,3 +116,6 @@ if ($activeCount === 0) {
 }
 
 echo json_encode(['ok' => true, 'correct' => $isCorrect, 'score_delta' => $scoreDelta]);
+
+
+

@@ -137,3 +137,6 @@ if ($endedAt !== null) {
 }
 
 echo json_encode(['ok' => true]);
+
+
+

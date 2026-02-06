@@ -1,16 +1,20 @@
 <?php
-
 require_once __DIR__ . '/bootstrap.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
+
 require_once __DIR__ . '/i18n.php';
 require_once __DIR__ . '/db.php';
 
 $lang = get_lang();
 $dir  = lang_dir($lang);
 
-$userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
-if (!$userId) {
-  header('Location: index.php?session=expired');
+$userEmail = $_SESSION['user_email'] ?? null;
+if (!$userEmail) {
+  header('Location: login.php?next=' . rawurlencode('games.php'));
   exit;
 }
 header('X-Robots-Tag: noindex, nofollow', true);
@@ -378,3 +382,6 @@ foreach ($rows as $g) {
   </script>
 </body>
 </html>
+
+
+

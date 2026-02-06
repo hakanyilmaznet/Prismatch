@@ -1,5 +1,11 @@
-ï»¿<?php
+<?php
 require_once __DIR__ . '/bootstrap.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
+
 require_once __DIR__ . '/i18n.php';
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
@@ -252,10 +258,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     <?php include __DIR__ . '/header.php'; ?>
         <section class="hero reveal" style="animation-delay:.04s">
       <div>
-        <span class="eyebrow"><?= htmlspecialchars(tt('home_showcase_badge', 'Mini eÄŸitim â€¢ 3 adÄ±m')) ?></span>
-        <h1><?= htmlspecialchars(tt('home_hero_title', 'Renkleri hatÄ±rla, doÄŸru tonu yakala.')) ?></h1>
-        <p><?= htmlspecialchars(tt('home_hero_subtitle', 'Prismatch, hÄ±zla deÄŸiÅŸen renkleri kÄ±sa sÃ¼reli hafÄ±zanda tutmanÄ± ister. Her turda sÃ¼re kÄ±salÄ±r, grid yoÄŸunlaÅŸÄ±r ve tek bir doÄŸru renk seni bir sonraki aÅŸamaya taÅŸÄ±r.')) ?></p>
-        <p class="lead"><?= htmlspecialchars(tt('home_creative', 'Renklerin hafÄ±zada ÅŸiir gibi kaldÄ±ÄŸÄ± bir ritme gir: Ä°pucu kaybolur, zihnin tonu yakalar. Her doÄŸru seÃ§im, bir sonraki sahneyi aÃ§ar.')) ?></p>
+        <span class="eyebrow"><?= htmlspecialchars(tt('home_showcase_badge', 'Mini eðitim • 3 adým')) ?></span>
+        <h1><?= htmlspecialchars(tt('home_hero_title', 'Renkleri hatýrla, doðru tonu yakala.')) ?></h1>
+        <p><?= htmlspecialchars(tt('home_hero_subtitle', 'Prismatch, hýzla deðiþen renkleri kýsa süreli hafýzanda tutmaný ister. Her turda süre kýsalýr, grid yoðunlaþýr ve tek bir doðru renk seni bir sonraki aþamaya taþýr.')) ?></p>
+        <p class="lead"><?= htmlspecialchars(tt('home_creative', 'Renklerin hafýzada þiir gibi kaldýðý bir ritme gir: Ýpucu kaybolur, zihnin tonu yakalar. Her doðru seçim, bir sonraki sahneyi açar.')) ?></p>
           <div class="cta">
             <a class="btn primary" href="play.php">
               <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
@@ -263,7 +269,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             </a>
             <a class="btn" href="play.php?daily=1">
               <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" />
-              <?= htmlspecialchars(tt('home_cta_daily', 'GÃ¼nlÃ¼k Meydan Okuma')) ?>
+              <?= htmlspecialchars(tt('home_cta_daily', 'Günlük Meydan Okuma')) ?>
             </a>
             <a class="btn" href="daily_leaderboard.php">
               <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
@@ -271,34 +277,34 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             </a>
           </div>
         <div class="quick">
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin aÃ§an kÄ±sa turlar')) ?></span>
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_2_title', 'GÃ¼nlÃ¼k meydan okuma')) ?></span>
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_3_title', 'Ã‡ok dil ve istatistik')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin açan kýsa turlar')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_2_title', 'Günlük meydan okuma')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_3_title', 'Çok dil ve istatistik')) ?></span>
         </div>
       </div>
       <div class="showcase">
-        <strong><?= htmlspecialchars(tt('home_showcase_title', 'Bir tur nasÄ±l iÅŸler?')) ?></strong>
-        <div><?= htmlspecialchars(tt('home_showcase_body', 'Hedef rengi gÃ¶r, hafÄ±zanda tut ve 5 saniye iÃ§inde gridde bul.')) ?></div>
+        <strong><?= htmlspecialchars(tt('home_showcase_title', 'Bir tur nasýl iþler?')) ?></strong>
+        <div><?= htmlspecialchars(tt('home_showcase_body', 'Hedef rengi gör, hafýzanda tut ve 5 saniye içinde gridde bul.')) ?></div>
         <div class="steps" style="margin-top:8px">
           <div class="step">
             <div class="num">1</div>
             <div>
               <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_1_title', 'Hedef rengi izle')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_1_body', 'Ekranda kÄ±sa sÃ¼re gÃ¶sterilen rengi dikkatle aklÄ±nda tut.')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_1_body', 'Ekranda kýsa süre gösterilen rengi dikkatle aklýnda tut.')) ?></div>
             </div>
           </div>
           <div class="step">
             <div class="num">2</div>
             <div>
-              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_2_title', 'Gridde doÄŸru rengi seÃ§')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_2_body', 'Zaman bitmeden, hatÄ±rladÄ±ÄŸÄ±n rengi 9 seÃ§enek arasÄ±nda bul.')) ?></div>
+              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_2_title', 'Gridde doðru rengi seç')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_2_body', 'Zaman bitmeden, hatýrladýðýn rengi 9 seçenek arasýnda bul.')) ?></div>
             </div>
           </div>
           <div class="step">
             <div class="num">3</div>
             <div>
-              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_3_title', 'AÅŸamalarÄ± geÃ§, skoru yÃ¼kselt')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_3_body', 'Her doÄŸru eÅŸleÅŸme seni bir Ã¼st aÅŸamaya taÅŸÄ±r.')) ?></div>
+              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_3_title', 'Aþamalarý geç, skoru yükselt')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_3_body', 'Her doðru eþleþme seni bir üst aþamaya taþýr.')) ?></div>
             </div>
           </div>
         </div>
@@ -306,33 +312,33 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     </section>
 
     <section class="reveal" style="animation-delay:.1s">
-      <div class="section-title"><?= htmlspecialchars(tt('home_intro_title', 'Proje ne saÄŸlÄ±yor?')) ?></div>
+      <div class="section-title"><?= htmlspecialchars(tt('home_intro_title', 'Proje ne saðlýyor?')) ?></div>
       <div class="grid cols-2">
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_intro_headline', 'HÄ±zlÄ± odak & hafÄ±za egzersizi')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_intro_body', 'KÄ±sa sÃ¼reli hatÄ±rlama ve dikkat kontrolÃ¼nÃ¼ Ã¶lÃ§en mikro turlar, gÃ¼n iÃ§inde pratik yapmak iÃ§in ideal.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_intro_headline', 'Hýzlý odak & hafýza egzersizi')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_intro_body', 'Kýsa süreli hatýrlama ve dikkat kontrolünü ölçen mikro turlar, gün içinde pratik yapmak için ideal.')) ?></p>
         </div>
         <div class="card">
           <h3><?= htmlspecialchars(tt('home_intro_headline2', 'Geri bildirim ve ilerleme')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_intro_body2', 'AÅŸama, doÄŸru eÅŸleÅŸme ve sÃ¼re kayÄ±tlarÄ±yla geliÅŸimini takip edebilir, gÃ¼nlÃ¼k hedef koyabilirsin.')) ?></p>
+          <p><?= htmlspecialchars(tt('home_intro_body2', 'Aþama, doðru eþleþme ve süre kayýtlarýyla geliþimini takip edebilir, günlük hedef koyabilirsin.')) ?></p>
         </div>
       </div>
     </section>
 
     <section class="reveal" style="animation-delay:.16s">
-      <div class="section-title"><?= htmlspecialchars(tt('home_benefits_title', 'Ã–ne Ã§Ä±kan faydalar')) ?></div>
+      <div class="section-title"><?= htmlspecialchars(tt('home_benefits_title', 'Öne çýkan faydalar')) ?></div>
       <div class="grid cols-3">
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin aÃ§an kÄ±sa turlar')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_1_body', 'Her tur birkaÃ§ saniye sÃ¼rer; kÄ±sa molalarda bile kolayca oynanÄ±r.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin açan kýsa turlar')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_1_body', 'Her tur birkaç saniye sürer; kýsa molalarda bile kolayca oynanýr.')) ?></p>
         </div>
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_2_title', 'GÃ¼nlÃ¼k meydan okuma')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_2_body', 'Her gÃ¼n tek deneme hakkÄ±yla odak ve sÃ¼re yÃ¶netimini geliÅŸtirir.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_2_title', 'Günlük meydan okuma')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_2_body', 'Her gün tek deneme hakkýyla odak ve süre yönetimini geliþtirir.')) ?></p>
         </div>
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_3_title', 'Ã‡ok dil ve istatistik')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_3_body', 'FarklÄ± dillerde oynar, performansÄ±nÄ± kayÄ±t altÄ±na alÄ±rsÄ±n.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_3_title', 'Çok dil ve istatistik')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_3_body', 'Farklý dillerde oynar, performansýný kayýt altýna alýrsýn.')) ?></p>
         </div>
       </div>
     </section>
@@ -352,7 +358,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         </div>
         <div class="score-card">
           <strong><?= htmlspecialchars(tt('home_score_rule_3', 'Final formula')) ?></strong>
-          <p><?= htmlspecialchars(tt('home_score_rule_3_body', 'Level and speed are scaled to a 0â€“1000 score.')) ?></p>
+          <p><?= htmlspecialchars(tt('home_score_rule_3_body', 'Level and speed are scaled to a 0–1000 score.')) ?></p>
           <code>score = round(1000 * (0.7*levelFactor + 0.3*timeFactor))</code>
         </div>
       </div>
@@ -365,3 +371,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 
 </body>
 </html>
+
+
+

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Shared site header
 if (!function_exists('tt')) {
   function tt(string $key, string $fallback = ''): string {
@@ -11,11 +11,13 @@ if (!function_exists('tt')) {
 }
 
 $showLangPicker = isset($showLangPicker) ? (bool)$showLangPicker : true;
-$userId = $_SESSION['user_id'] ?? null;
 $userEmail = $_SESSION['user_email'] ?? null;
+$userId = $_SESSION['user_id'] ?? ($userEmail ?: null);
 $userName = $_SESSION['user_name'] ?? null;
 $loginProvider = $_SESSION['login_provider'] ?? null;
-$isLoggedIn = !empty($userId);
+$isLoggedIn = !empty($userEmail);
+$lang = function_exists('get_lang') ? get_lang() : 'en';
+$sel = $lang ?: 'en';
 $currentPage = basename((string)($_SERVER['SCRIPT_NAME'] ?? ''));
 $isPlay = ($currentPage === 'play.php' && empty($_GET['daily']));
 $isDaily = ($currentPage === 'play.php' && !empty($_GET['daily']));
@@ -525,3 +527,6 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
   })();
 })();
 </script>
+
+
+

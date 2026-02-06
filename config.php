@@ -1,5 +1,4 @@
 <?php
-
 // Google OAuth 2.0
 define('GOOGLE_CLIENT_ID',     '360261225488-2uuq84kim3lol71tkrupu5cuafq4itkc.apps.googleusercontent.com');
 define('GOOGLE_CLIENT_SECRET', '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');
@@ -23,3 +22,6 @@ define('PUSHER_APP_ID', '2110554');
 define('PUSHER_KEY', '016ee80e7fbe5c66b878');
 define('PUSHER_SECRET', 'f515a114b9557941cc0c');
 define('PUSHER_CLUSTER', 'eu');
+
+
+

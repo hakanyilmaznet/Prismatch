@@ -24,3 +24,6 @@ if (!is_array($data)) {
 $_SESSION['pending_result'] = $data;
 
 echo json_encode(['ok' => true]);
+
+
+

@@ -1,0 +1,10 @@
+{
+  "name": "prismatch/app",
+  "type": "project",
+  "require-dev": {
+    "phpstan/phpstan": "^1.11"
+  },
+  "scripts": {
+    "phpstan": "phpstan analyse -c phpstan.neon"
+  }
+}

@@ -1,19 +1,16 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/i18n.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
 
-session_name(SESSION_NAME);
-session_set_cookie_params([
-  'httponly' => true,
-  'secure' => COOKIE_SECURE,
-  'samesite' => 'Lax',
-]);
-if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+require_once __DIR__ . '/i18n.php';
 
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userEmail = $_SESSION['user_email'] ?? null;
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -22,13 +19,12 @@ function tt(string $key, string $fallback = ''): string {
   return $v;
 }
 
+$guid = trim((string)($_GET['guid'] ?? ''));
 if (!$userEmail) {
   $next = 'room_play.php?guid=' . rawurlencode($guid);
   header('Location: login.php?next=' . rawurlencode($next));
   exit;
 }
-
-$guid = trim((string)($_GET['guid'] ?? ''));
 $seoTitle = tt('room_play_title', 'Room Match');
 $seoDescription = tt('room_play_desc', 'Compete live in a room.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
@@ -1190,3 +1186,6 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
+
+

@@ -1,6 +1,12 @@
 <?php
 // bootstrap.php
 require_once __DIR__ . '/config.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
+
 require_once __DIR__ . '/seo.php';
 
 if (!defined('DEBUG_MODE')) {
@@ -9,6 +15,12 @@ if (!defined('DEBUG_MODE')) {
 
 function pm_debug_enabled(): bool {
   return defined('DEBUG_MODE') && DEBUG_MODE;
+}
+
+if (pm_debug_enabled()) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
 }
 
 function pm_should_output_debug(): bool {
@@ -98,3 +110,5 @@ if (empty($_SESSION['user_id']) && !empty($_SESSION['user_email'])) {
   $_SESSION['user_name'] = user_display_name_from_row($user);
   $_SESSION['login_provider'] = $_SESSION['login_provider'] ?? 'google';
 }
+
+

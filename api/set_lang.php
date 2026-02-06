@@ -11,3 +11,6 @@ $lang = is_array($data) ? (string)($data['lang'] ?? '') : '';
 set_lang($lang);
 
 echo json_encode(['ok' => true, 'lang' => get_lang()], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+
+

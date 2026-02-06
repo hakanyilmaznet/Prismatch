@@ -28,3 +28,6 @@ if ($socketId === '' || $channel === '') {
 }
 
 echo pusher_auth_response($socketId, $channel, $email, ['email' => $email]);
+
+
+

@@ -1,20 +1,17 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
+if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
+  error_reporting(E_ALL);
+  @ini_set('display_errors', '1');
+  @ini_set('display_startup_errors', '1');
+}
+
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/i18n.php';
 
-session_name(SESSION_NAME);
-session_set_cookie_params([
-  'httponly' => true,
-  'secure' => COOKIE_SECURE,
-  'samesite' => 'Lax',
-]);
-if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
-$userId = $_SESSION['user_id'] ?? null;
-$userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
+$userEmail = $_SESSION['user_email'] ?? null;
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -34,7 +31,8 @@ function room_status_label($status) {
 }
 
 if (!$userEmail) {
-  header('Location: login.php');
+  $next = 'room_history.php?guid=' . rawurlencode((string)($_GET['guid'] ?? ''));
+  header('Location: login.php?next=' . rawurlencode($next));
   exit;
 }
 
@@ -204,3 +202,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 <?php include __DIR__ . '/footer.php'; ?>
 </body>
 </html>
+
+
+
