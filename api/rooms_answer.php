@@ -111,7 +111,7 @@ if ($activeCount === 0) {
     'round' => $round,
     'players' => $players,
   ]);
-  set_room_finished($roomId);
+  set_room_finished($roomId, $round);
   pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
 }
 

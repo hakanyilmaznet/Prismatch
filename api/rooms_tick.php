@@ -68,6 +68,36 @@ $elapsed = ($now->getTimestamp() - $startedAt->getTimestamp()) * 1000;
 
 if ($endedAt === null && $elapsed >= ($countdownMs + $showMs + $answerMs)) {
   room_end_round($roomId, $current);
+  // Auto-eliminate players who did not answer correctly before timeout
+  $correctEmails = [];
+  $stc = $pdo->prepare("
+    SELECT email
+    FROM room_events
+    WHERE room_id = :rid
+      AND round_index = :r
+      AND event_type = 'answer'
+      AND payload_json LIKE '%\"correct\":true%'
+  ");
+  $stc->execute([':rid' => $roomId, ':r' => $current]);
+  $correctEmails = $stc->fetchAll(PDO::FETCH_COLUMN, 0) ?: [];
+  $correctSet = array_flip($correctEmails);
+  $question = room_round_question($roomId, $current);
+  $target = $question['target'] ?? null;
+
+  $players = list_room_players($roomId);
+  foreach ($players as $p) {
+    if (($p['status'] ?? '') === 'eliminated') continue;
+    $emailP = (string)($p['email'] ?? '');
+    if ($emailP === '' || isset($correctSet[$emailP])) continue;
+    room_mark_eliminated($roomId, $emailP, $current);
+    room_log_event($roomId, $current, $emailP, 'timeout', [
+      'picked' => null,
+      'target' => $target,
+      'response_ms' => $answerMs,
+      'correct' => false,
+    ]);
+  }
+
   $players = list_room_players($roomId);
   $activeCount = 0;
   foreach ($players as $p) {
@@ -79,7 +109,7 @@ if ($endedAt === null && $elapsed >= ($countdownMs + $showMs + $answerMs)) {
     'players' => $players,
   ]);
   if ($activeCount === 0) {
-    set_room_finished($roomId);
+    set_room_finished($roomId, $current);
     pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
     echo json_encode(['ok' => true, 'finished' => true]);
     exit;
@@ -109,13 +139,13 @@ if ($endedAt !== null) {
       if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
     }
     if ($activeCount === 0) {
-      set_room_finished($roomId);
+      set_room_finished($roomId, $current);
       pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
       echo json_encode(['ok' => true, 'finished' => true]);
       exit;
     }
     if ($next > $total) {
-      set_room_finished($roomId);
+      set_room_finished($roomId, $current);
       pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
       echo json_encode(['ok' => true, 'finished' => true]);
       exit;

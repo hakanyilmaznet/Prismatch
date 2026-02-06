@@ -651,6 +651,7 @@ const state = {
   eliminated: false,
   answered: false,
   lastAnswerCorrect: null,
+  finished: false,
   roundQuestionStartTs: 0,
   leaderboardPrev: new Map(),
   lastLeaderboardPlayers: [],
@@ -672,6 +673,14 @@ function clearAllTimers(){
   for (const id of state.timers.intervalIds) clearInterval(id);
   state.timers.timeoutIds.clear();
   state.timers.intervalIds.clear();
+}
+function finishRoom(){
+  state.finished = true;
+  state.isLocked = true;
+  clearAllTimers();
+  setBadge(STR.statusFinished);
+  setSelfStatus('finished');
+  renderFinished();
 }
 
 function updateHUD(answerLeftMs = null){
@@ -1037,7 +1046,7 @@ function lockButtons(buttons, locked = true){
 }
 
 async function submitAnswer(picked, timeout = false){
-  if (state.answered || state.eliminated) return;
+  if (state.answered || state.eliminated || state.finished) return;
   state.answered = true;
   const responseMs = Math.max(0, Math.round(performance.now() - state.roundQuestionStartTs));
   await fetch('api/rooms_answer.php', {
@@ -1142,6 +1151,7 @@ channel.bind('pusher:subscription_succeeded', () => {
 });
 
 channel.bind('room:round', async (data) => {
+  if (state.finished) return;
   state.answered = false;
   state.lastAnswerCorrect = null;
   state.round = data.round;
@@ -1157,6 +1167,7 @@ channel.bind('room:round', async (data) => {
 });
 
 channel.bind('room:update', (data) => {
+  if (state.finished) return;
   renderPlayers(data.players || []);
   const meRow = (data.players || []).find(p => p.email === ME);
   if ((meRow && meRow.status === 'eliminated') || data.eliminated === ME) {
@@ -1170,18 +1181,18 @@ channel.bind('room:update', (data) => {
 
 channel.bind('room:leaderboard', (data) => {
   state.lastLeaderboardPlayers = data.players || [];
-  renderIntermission();
+  if (!state.finished) renderIntermission();
 });
 
 channel.bind('room:finished', () => {
-  setBadge(STR.statusFinished);
-  setSelfStatus('finished');
-  renderFinished();
+  finishRoom();
 });
 
 joinRoom().catch(() => setBadge(STR.joinFailed, 'error'));
 setInterval(() => {
-  fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID)).catch(() => {});
+  if (!state.finished) {
+    fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID)).catch(() => {});
+  }
 }, 2000);
 </script>
 </body>

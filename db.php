@@ -178,6 +178,7 @@ function init_schema(PDO $pdo) {
       status VARCHAR(16) NOT NULL DEFAULT 'waiting',
       rounds_total INT NOT NULL,
       current_round INT NOT NULL DEFAULT 0,
+      finished_round INT NULL,
       max_players INT NOT NULL DEFAULT 25,
       created_at DATETIME(3) NOT NULL,
       started_at DATETIME(3) NULL,
@@ -191,6 +192,7 @@ function init_schema(PDO $pdo) {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ");
   ensure_column($pdo, 'rooms', 'name', 'VARCHAR(80) NULL');
+  ensure_column($pdo, 'rooms', 'finished_round', 'INT NULL');
 
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS room_players (
@@ -1003,10 +1005,15 @@ function set_room_started($roomId) {
   return $stmt->rowCount() > 0;
 }
 
-function set_room_finished($roomId) {
+function set_room_finished($roomId, $finishedRound = null) {
   $pdo = db();
-  $stmt = $pdo->prepare("UPDATE rooms SET status='finished', finished_at=:t WHERE id=:id");
-  $stmt->execute([':t' => now_utc_mysql(), ':id' => $roomId]);
+  if ($finishedRound === null) {
+    $stmt = $pdo->prepare("UPDATE rooms SET status='finished', finished_at=:t WHERE id=:id");
+    $stmt->execute([':t' => now_utc_mysql(), ':id' => $roomId]);
+    return;
+  }
+  $stmt = $pdo->prepare("UPDATE rooms SET status='finished', finished_at=:t, finished_round=:r WHERE id=:id");
+  $stmt->execute([':t' => now_utc_mysql(), ':r' => (int)$finishedRound, ':id' => $roomId]);
 }
 
 function grid_count_for_round($roundIndex, $roundsTotal) {

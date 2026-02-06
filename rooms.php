@@ -40,6 +40,12 @@ function format_room_dt($utcIso) {
   }
 }
 
+function room_winner_name(int $roomId): ?string {
+  $email = room_winner_email($roomId);
+  if (!$email) return null;
+  return user_display_name_from_row(['email' => $email]);
+}
+
 if (!$userEmail) {
   header('Location: login.php?next=' . rawurlencode('rooms.php'));
   exit;
