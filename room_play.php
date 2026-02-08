@@ -391,6 +391,25 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       align-items:center;
       flex-wrap:wrap;
     }
+    .mute-toggle{
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .mute-toggle .mute-dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(61,214,160,0.95);
+      box-shadow: 0 0 0 3px rgba(61,214,160,0.15);
+    }
+    .mute-toggle.is-muted .mute-dot{
+      background: rgba(255,77,77,0.95);
+      box-shadow: 0 0 0 3px rgba(255,77,77,0.18);
+    }
 
     .btn{
       appearance:none;
@@ -566,6 +585,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       <span class="badge pm-success" id="selfStatusBadge"><?= htmlspecialchars(tt('room_active', 'Active')) ?></span>
       <span class="badge" id="playersBadge"></span>
     </div>
+    <button class="btn mute-toggle" id="btnMute" type="button" aria-pressed="false">
+      <span class="mute-dot" aria-hidden="true"></span>
+      <span id="muteLabel"><?= htmlspecialchars(tt('sound_on', 'Sound On')) ?></span>
+    </button>
   </section>
 </main>
 
@@ -623,6 +646,8 @@ const STR = {
   roomFinishedIconAlt: <?= json_encode(tt('room_finished_icon_alt', 'Finish badge')) ?>,
   roomTitle: <?= json_encode(tt('room_live_title', 'Room Match')) ?>,
   joinFailed: <?= json_encode(tt('error_generic', 'Error')) ?>,
+  soundOn: <?= json_encode(tt('sound_on', 'Sound On')) ?>,
+  soundOff: <?= json_encode(tt('sound_off', 'Sound Off')) ?>,
 };
 
 const elCenter = document.getElementById('center');
@@ -681,6 +706,7 @@ function finishRoom(){
   setBadge(STR.statusFinished);
   setSelfStatus('finished');
   renderFinished();
+  playSound('finish');
 }
 
 function updateHUD(answerLeftMs = null){
@@ -719,6 +745,79 @@ const answerText = document.getElementById('answerText');
 let answerPopupTimer = null;
 let answerPopupResolve = null;
 let answerPopupPromise = Promise.resolve();
+const btnMute = document.getElementById('btnMute');
+const muteLabel = document.getElementById('muteLabel');
+
+const SOUND_KEY = 'pm-sound-enabled';
+let soundEnabled = true;
+try {
+  const storedSound = localStorage.getItem(SOUND_KEY);
+  if (storedSound === '0') soundEnabled = false;
+} catch (e) {}
+
+let audioCtx = null;
+let audioUnlocked = false;
+function ensureAudio(){
+  if (audioUnlocked || !soundEnabled) return;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return;
+  try {
+    audioCtx = audioCtx || new Ctx();
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    audioUnlocked = true;
+  } catch (e) {}
+}
+function playTone(freq, duration = 0.12, type = 'sine', gain = 0.08, attack = 0.01, decay = 0.08){
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  const now = audioCtx.currentTime;
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(gain, now + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + attack + decay);
+  osc.connect(g);
+  g.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+function playSound(name){
+  if (!soundEnabled || !audioCtx) return;
+  switch (name){
+    case 'start':
+      playTone(440, 0.12, 'sine', 0.1);
+      playTone(660, 0.12, 'sine', 0.08);
+      break;
+    case 'countdown':
+      playTone(520, 0.08, 'square', 0.05);
+      break;
+    case 'countdown_last':
+      playTone(760, 0.12, 'square', 0.06);
+      break;
+    case 'correct':
+      playTone(660, 0.1, 'triangle', 0.08);
+      playTone(880, 0.12, 'triangle', 0.06);
+      break;
+    case 'wrong':
+      playTone(220, 0.18, 'sawtooth', 0.07);
+      break;
+    case 'finish':
+      playTone(523.25, 0.12, 'sine', 0.08);
+      playTone(659.25, 0.12, 'sine', 0.08);
+      playTone(783.99, 0.14, 'sine', 0.07);
+      break;
+    default:
+      break;
+  }
+}
+
+function updateMuteUI(){
+  if (!btnMute || !muteLabel) return;
+  btnMute.setAttribute('aria-pressed', soundEnabled ? 'false' : 'true');
+  btnMute.classList.toggle('is-muted', !soundEnabled);
+  muteLabel.textContent = soundEnabled ? STR.soundOn : STR.soundOff;
+}
 
 function pickRandomMessage(list){
   if (!list || !list.length) return '';
@@ -911,6 +1010,8 @@ function runCountdown(){
   clearAllTimers();
   state.phase = "countdown";
   state.isLocked = true;
+  ensureAudio();
+  playSound('start');
 
   let t = Math.max(1, Math.round((state.countdownMs || 3000) / 1000));
   const cd = document.createElement("div");
@@ -934,6 +1035,7 @@ function runCountdown(){
       runTargetShow();
       return;
     }
+    playSound(t === 1 ? 'countdown_last' : 'countdown');
     cd.textContent = String(t);
     cd.style.animation = "none";
     void cd.offsetHeight;
@@ -1069,12 +1171,14 @@ async function onPick(btn, buttons){
     setBadge(STR.badgeCorrect);
     state.correct += 1;
     state.lastAnswerCorrect = true;
+    playSound('correct');
   } else {
     btn.classList.add("wrong");
     setBadge(STR.badgeWrong);
     state.eliminated = true;
     setSelfStatus('eliminated');
     state.lastAnswerCorrect = false;
+    playSound('wrong');
   }
   submitAnswer(picked, false).catch(() => {});
   await showAnswerPopup(isCorrect ? 'right' : 'wrong');
@@ -1089,6 +1193,7 @@ async function onTimeUp(buttons){
   state.eliminated = true;
   setSelfStatus('eliminated');
   state.lastAnswerCorrect = false;
+  playSound('wrong');
   submitAnswer('', true).catch(() => {});
   await showAnswerPopup('wrong');
   renderIntermission();
@@ -1137,6 +1242,18 @@ async function startNextRound(){
 }
 
 startBtn?.addEventListener('click', startNextRound);
+if (btnMute){
+  updateMuteUI();
+  btnMute.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+    try { localStorage.setItem(SOUND_KEY, soundEnabled ? '1' : '0'); } catch (e) {}
+    if (soundEnabled){
+      ensureAudio();
+      playSound('start');
+    }
+    updateMuteUI();
+  });
+}
 
 const pusher = new Pusher(P_KEY, {
   cluster: P_CLUSTER,
