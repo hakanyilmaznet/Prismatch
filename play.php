@@ -59,7 +59,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 // Login sonrası bekleyen sonuç varsa DB'ye commit et (MySQL)
 $flash = null;
 if ($userEmail && !empty($_SESSION['pending_result']) && is_array($_SESSION['pending_result'])) {
-  record_full_game($userEmail, $_SESSION['pending_result']);
+  $userId = $_SESSION['user_id'] ?? null;
+  if ($userId) {
+    record_full_game($userId, $userEmail, $_SESSION['pending_result']);
+  }
   unset($_SESSION['pending_result']);
   $flash = tt('flash_saved', '✅ Result saved.');
 }

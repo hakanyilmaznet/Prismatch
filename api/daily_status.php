@@ -10,14 +10,14 @@ try {
     $day = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d');
   }
 
-  $email = $_SESSION['user_email'] ?? null;
-  if (!$email) {
+  $userId = $_SESSION['user_id'] ?? null;
+  if (!$userId) {
     http_response_code(401);
     echo json_encode(['ok'=>false,'error'=>'not_logged_in']);
     exit;
   }
 
-  $played = has_played_daily($email, $day);
+  $played = has_played_daily($userId, $day);
 
   echo json_encode(['ok'=>true,'played'=>$played,'day'=>$day]);
 } catch (Throwable $e) {

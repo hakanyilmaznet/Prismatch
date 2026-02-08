@@ -14,7 +14,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 header('Content-Type: application/json');
 
 $email = $_SESSION['user_email'] ?? null;
-if (!$email) {
+$userId = $_SESSION['user_id'] ?? null;
+if (!$email || !$userId) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;
@@ -39,7 +40,7 @@ if (!$room) {
   exit;
 }
 
-$roomId = (int)$room['id'];
+$roomId = (string)$room['id'];
 if ($room['status'] !== 'active') {
   http_response_code(409);
   echo json_encode(['error' => 'room_not_active']);
@@ -47,8 +48,8 @@ if ($room['status'] !== 'active') {
 }
 
 $pdo = db();
-$st = $pdo->prepare("SELECT status FROM room_players WHERE room_id=:rid AND email=:email LIMIT 1");
-$st->execute([':rid'=>$roomId, ':email'=>$email]);
+$st = $pdo->prepare("SELECT status FROM room_players WHERE room_id=:rid AND user_id=:user_id LIMIT 1");
+$st->execute([':rid'=>$roomId, ':user_id'=>$userId]);
 $status = $st->fetchColumn();
 if ($status !== 'active') {
   http_response_code(403);
@@ -74,8 +75,8 @@ $isCorrect = ($picked !== '' && $picked === $target);
 $scoreDelta = 0;
 if ($isCorrect) {
   $scoreDelta = max(50, 1000 - (int)floor(max(0, $responseMs) / 10));
-  room_add_score($roomId, $email, $scoreDelta, 1);
-  room_log_event($roomId, $round, $email, 'answer', [
+  room_add_score($roomId, $userId, $scoreDelta, 1);
+  room_log_event($roomId, $round, $userId, $email, 'answer', [
     'picked' => $picked,
     'target' => $target,
     'response_ms' => $responseMs,
@@ -83,8 +84,8 @@ if ($isCorrect) {
     'score_delta' => $scoreDelta,
   ]);
 } else {
-  room_mark_eliminated($roomId, $email, $round);
-  room_log_event($roomId, $round, $email, $isTimeout ? 'timeout' : 'eliminate', [
+  room_mark_eliminated($roomId, $userId, $round);
+  room_log_event($roomId, $round, $userId, $email, $isTimeout ? 'timeout' : 'eliminate', [
     'picked' => $picked !== '' ? $picked : null,
     'target' => $target,
     'response_ms' => $responseMs,

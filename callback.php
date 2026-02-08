@@ -111,8 +111,8 @@ if ($linkUserId) {
 }
 
 // Session: email as primary identity
-$_SESSION['user_email'] = $email;
-$_SESSION['user_id'] = $email;
+$_SESSION['user_email'] = (string)($user['email'] ?? $email);
+$_SESSION['user_id'] = (string)($user['id'] ?? '');
 
 $next = $_SESSION['login_next'] ?? '';
 unset($_SESSION['login_next']);

@@ -14,7 +14,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 header('Content-Type: application/json');
 
 $email = $_SESSION['user_email'] ?? null;
-if (!$email) {
+$userId = $_SESSION['user_id'] ?? null;
+if (!$email || !$userId) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;
@@ -35,14 +36,15 @@ if (!$room) {
   echo json_encode(['error' => 'not_found']);
   exit;
 }
-if ($room['owner_email'] !== $email) {
+if (($room['owner_id'] ?? null) !== $userId) {
   http_response_code(403);
   echo json_encode(['error' => 'not_owner']);
   exit;
 }
 
-room_end_round((int)$room['id'], $round);
-$players = list_room_players((int)$room['id']);
+$roomId = (string)$room['id'];
+room_end_round($roomId, $round);
+$players = list_room_players($roomId);
 $activeCount = 0;
 foreach ($players as $p) {
   if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
@@ -55,7 +57,7 @@ pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
 ]);
 
 if ($activeCount === 0) {
-  set_room_finished((int)$room['id'], $round);
+  set_room_finished($roomId, $round);
   pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
 }
 

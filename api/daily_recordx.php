@@ -16,8 +16,9 @@ function ensure_daily_tables(PDO $pdo): void {
   // minimal schema; safe to run repeatedly
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS daily_scores (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      id CHAR(36) NOT NULL PRIMARY KEY,
       day_utc DATE NOT NULL,
+      user_id CHAR(36) NULL,
       user_email VARCHAR(255) NULL,
       anon_id CHAR(36) NULL,
       reached_level INT NOT NULL,
@@ -25,7 +26,7 @@ function ensure_daily_tables(PDO $pdo): void {
       duration_ms INT NOT NULL,
       won TINYINT(1) NOT NULL DEFAULT 0,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY uq_daily_user (day_utc, user_email),
+      UNIQUE KEY uq_daily_user (day_utc, user_id),
       UNIQUE KEY uq_daily_anon (day_utc, anon_id),
       KEY idx_day (day_utc),
       KEY idx_score (reached_level, correct_count, duration_ms)
@@ -34,8 +35,8 @@ function ensure_daily_tables(PDO $pdo): void {
 
   $pdo->exec("
     CREATE TABLE IF NOT EXISTS daily_rounds (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      daily_score_id BIGINT UNSIGNED NOT NULL,
+      id CHAR(36) NOT NULL PRIMARY KEY,
+      daily_score_id CHAR(36) NOT NULL,
       stage INT NOT NULL,
       target_color CHAR(7) NOT NULL,
       picked_color CHAR(7) NOT NULL,
@@ -80,6 +81,11 @@ try {
   }
 
   $email = $_SESSION['user_email'] ?? null;
+  $userId = $_SESSION['user_id'] ?? null;
+  if ($email && !$userId) {
+    $u = get_user_by_email($email);
+    $userId = $u['id'] ?? null;
+  }
   $anon = $email ? null : get_anon_id();
 
   $reached = (int)($payload['reachedLevel'] ?? 0);
@@ -101,16 +107,19 @@ try {
 
   // One attempt per day per identity (email or anon)
   $stmt = $pdo->prepare("
-    INSERT INTO daily_scores (day_utc, user_email, anon_id, reached_level, correct_count, duration_ms, won)
-    VALUES (:day, :email, :anon, :reached, :correct, :duration, :won)
+    INSERT INTO daily_scores (id, day_utc, user_id, user_email, anon_id, reached_level, correct_count, duration_ms, won)
+    VALUES (:id, :day, :user_id, :email, :anon, :reached, :correct, :duration, :won)
     ON DUPLICATE KEY UPDATE
       reached_level = VALUES(reached_level),
       correct_count = VALUES(correct_count),
       duration_ms = VALUES(duration_ms),
       won = VALUES(won)
   ");
+  $scoreId = function_exists('uuid_v4') ? uuid_v4() : (function_exists('uuid_create') ? uuid_create(UUID_TYPE_RANDOM) : bin2hex(random_bytes(16)));
   $stmt->execute([
+    ':id' => $scoreId,
     ':day' => $day,
+    ':user_id' => $userId,
     ':email' => $email,
     ':anon' => $anon,
     ':reached' => $reached,
@@ -120,20 +129,19 @@ try {
   ]);
 
   // fetch score id
-  $scoreId = (int)$pdo->lastInsertId();
-  if ($scoreId === 0) {
+  if (!$scoreId) {
     // ON DUPLICATE KEY path: fetch existing row id
-    $sel = $pdo->prepare("SELECT id FROM daily_scores WHERE day_utc=:day AND ".($email ? "user_email=:email" : "anon_id=:anon")." LIMIT 1");
-    $sel->execute($email ? [':day'=>$day,':email'=>$email] : [':day'=>$day,':anon'=>$anon]);
-    $scoreId = (int)($sel->fetchColumn() ?: 0);
+    $sel = $pdo->prepare("SELECT id FROM daily_scores WHERE day_utc=:day AND ".($email ? "user_id=:user_id" : "anon_id=:anon")." LIMIT 1");
+    $sel->execute($email ? [':day'=>$day,':user_id'=>$userId] : [':day'=>$day,':anon'=>$anon]);
+    $scoreId = (string)($sel->fetchColumn() ?: '');
   }
 
   // Replace rounds
   $pdo->prepare("DELETE FROM daily_rounds WHERE daily_score_id=?")->execute([$scoreId]);
 
   $ins = $pdo->prepare("
-    INSERT INTO daily_rounds (daily_score_id, stage, target_color, picked_color, response_ms, is_correct, grid_json)
-    VALUES (?, ?, ?, ?, ?, ?, CAST(? AS JSON))
+    INSERT INTO daily_rounds (id, daily_score_id, stage, target_color, picked_color, response_ms, is_correct, grid_json)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON))
   ");
 
   foreach ($rounds as $r) {
@@ -149,7 +157,8 @@ try {
     if (!preg_match('/^#[0-9a-fA-F]{6}$/', $picked)) continue;
 
     $gridJson = json_encode(array_values($grid), JSON_UNESCAPED_SLASHES);
-    $ins->execute([$scoreId, $stage, $target, $picked, $rt, $ok, $gridJson]);
+    $roundId = function_exists('uuid_v4') ? uuid_v4() : (function_exists('uuid_create') ? uuid_create(UUID_TYPE_RANDOM) : bin2hex(random_bytes(16)));
+    $ins->execute([$roundId, $scoreId, $stage, $target, $picked, $rt, $ok, $gridJson]);
   }
 
   $pdo->commit();

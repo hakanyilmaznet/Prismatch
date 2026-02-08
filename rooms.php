@@ -13,6 +13,7 @@ $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
 $userEmail = $_SESSION['user_email'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -40,18 +41,18 @@ function format_room_dt($utcIso) {
   }
 }
 
-function room_winner_name(int $roomId): ?string {
+function room_winner_name(string $roomId): ?string {
   $email = room_winner_email($roomId);
   if (!$email) return null;
   return user_display_name_from_row(['email' => $email]);
 }
 
-if (!$userEmail) {
+if (!$userEmail || !$userId) {
   header('Location: login.php?next=' . rawurlencode('rooms.php'));
   exit;
 }
 
-$rooms = list_user_rooms($userEmail, 100);
+$rooms = list_user_rooms($userId, 100);
 $seoTitle = tt('rooms_title', 'Rooms');
 $seoDescription = tt('rooms_desc', 'Create or join rooms to compete live.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
@@ -169,7 +170,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               <?php
                 $winner = null;
                 if (($r['status'] ?? '') === 'finished') {
-                  $winner = room_winner_name((int)$r['id']);
+                  $winner = room_winner_name((string)$r['id']);
                 }
               ?>
               <tr>

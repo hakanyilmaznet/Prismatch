@@ -13,7 +13,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 header('Content-Type: application/json');
 
 $email = $_SESSION['user_email'] ?? null;
-if (!$email) {
+$userId = $_SESSION['user_id'] ?? null;
+if (!$email || !$userId) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;
@@ -43,7 +44,7 @@ if (!$room) {
     'current_round' => (int)$room['current_round'],
     'owner_email' => $room['owner_email'],
   ],
-  'players' => list_room_players((int)$room['id']),
+  'players' => list_room_players((string)$room['id']),
 ]);
 
 

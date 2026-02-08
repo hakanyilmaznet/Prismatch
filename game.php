@@ -15,15 +15,16 @@ $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
 $userEmail = $_SESSION['user_email'] ?? null;
-if (!$userEmail) {
-  $next = 'game.php?id=' . (int)($_GET['id'] ?? 0);
+$userId = $_SESSION['user_id'] ?? null;
+if (!$userEmail || !$userId) {
+  $next = 'game.php?id=' . rawurlencode((string)($_GET['id'] ?? ''));
   header('Location: login.php?next=' . rawurlencode($next));
   exit;
 }
 header('X-Robots-Tag: noindex, nofollow', true);
 
-$id = (int)($_GET['id'] ?? 0);
-if ($id <= 0) {
+$id = (string)($_GET['id'] ?? '');
+if ($id === '' || !preg_match('/^[a-f0-9-]{36}$/i', $id)) {
   http_response_code(400);
   echo "<!doctype html><html><head><meta charset='utf-8'><title>".htmlspecialchars(t('msg_invalid_id'))."</title></head><body style='font-family:system-ui;padding:20px'>".
        "<h1>".htmlspecialchars(t('msg_invalid_id'))."</h1>".
@@ -61,7 +62,7 @@ $seoTitle = t_safe('game_meta_title', 'Session Details - Prismatch');
 $seoDescription = t_safe('game_meta_description', 'Detailed results for your Prismatch session.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
 
-$game = get_game($userEmail, $id);
+$game = get_game($userId, $id);
 if (!$game) {
   http_response_code(404);
   echo "<!doctype html><html><head><meta charset='utf-8'><title>".htmlspecialchars(t('msg_game_not_found'))."</title></head><body style='font-family:system-ui;padding:20px'>".

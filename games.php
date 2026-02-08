@@ -13,7 +13,8 @@ $lang = get_lang();
 $dir  = lang_dir($lang);
 
 $userEmail = $_SESSION['user_email'] ?? null;
-if (!$userEmail) {
+$userId = $_SESSION['user_id'] ?? null;
+if (!$userEmail || !$userId) {
   header('Location: login.php?next=' . rawurlencode('games.php'));
   exit;
 }
@@ -60,12 +61,12 @@ $seoTitle = TT('games_meta_title', 'My Sessions - Prismatch');
 $seoDescription = TT('games_meta_description', 'Your Prismatch session history and detailed results.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
 
-$rows = list_games($userEmail, 200);
+$rows = list_games($userId, 200);
 $games = [];
 $idx = 0;
 foreach ($rows as $g) {
   $idx++;
-  $id = (int)(isset($g['id']) ? $g['id'] : 0);
+  $id = (string)(isset($g['id']) ? $g['id'] : '');
   $created = isset($g['created_at']) ? $g['created_at'] : null;
   $durationMs = (int)(isset($g['duration_ms']) ? $g['duration_ms'] : 0);
   $durationSec = (int)round($durationMs / 1000);
@@ -87,7 +88,7 @@ foreach ($rows as $g) {
     'status_class' => $won ? 'pill-won' : 'pill-fin',
     'country' => $country,
     'flag_url' => safe_flag_url($country),
-    'detail_url' => 'game.php?id=' . $id,
+    'detail_url' => 'game.php?id=' . rawurlencode($id),
   ];
 }
 ?>

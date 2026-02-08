@@ -13,7 +13,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 header('Content-Type: application/json');
 
 $email = $_SESSION['user_email'] ?? null;
-if (!$email) {
+$userId = $_SESSION['user_id'] ?? null;
+if (!$email || !$userId) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;
@@ -30,7 +31,7 @@ if (trim($name) === '') {
 if ($rounds < 1) $rounds = 50;
 
 try {
-  $room = create_room($email, $rounds, $name);
+  $room = create_room($userId, $email, $rounds, $name);
   echo json_encode(['ok' => true, 'guid' => $room['guid']]);
 } catch (Exception $e) {
   http_response_code(500);

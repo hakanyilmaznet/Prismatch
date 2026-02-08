@@ -28,20 +28,16 @@ try {
     json_fail(400, 'username_invalid');
   }
 
-  $userId = trim((string)($data['user_id'] ?? ''));
-  if ($userId === '' || !preg_match('/^[a-f0-9]{8,64}$/i', $userId)) {
-    $userId = bin2hex(random_bytes(8));
-  }
+  $clientId = trim((string)($data['user_id'] ?? ''));
 
-  $_SESSION['user_email'] = $username;
-  $_SESSION['user_id'] = $username;
-  $_SESSION['local_user_id'] = $userId;
-
-  upsert_user_login($username);
+  $user = ensure_local_user($username);
+  $_SESSION['user_email'] = (string)($user['email'] ?? $username);
+  $_SESSION['user_id'] = (string)($user['id'] ?? '');
+  $_SESSION['local_user_id'] = $clientId !== '' ? $clientId : null;
 
   echo json_encode([
     'ok' => true,
-    'user_id' => $userId,
+    'user_id' => (string)($user['id'] ?? ''),
     'username' => $username,
   ], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {

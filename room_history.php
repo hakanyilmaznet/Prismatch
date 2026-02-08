@@ -12,6 +12,7 @@ require_once __DIR__ . '/i18n.php';
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 $userEmail = $_SESSION['user_email'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -30,7 +31,7 @@ function room_status_label($status) {
   }
 }
 
-if (!$userEmail) {
+if (!$userEmail || !$userId) {
   $next = 'room_history.php?guid=' . rawurlencode((string)($_GET['guid'] ?? ''));
   header('Location: login.php?next=' . rawurlencode($next));
   exit;
@@ -44,14 +45,14 @@ if (!$room) {
   exit;
 }
 
-$players = list_room_players((int)$room['id']);
+$players = list_room_players((string)$room['id']);
 $pdo = db();
 $rounds = $pdo->prepare("SELECT round_index, question_json, started_at, ended_at FROM room_rounds WHERE room_id=:rid ORDER BY round_index ASC");
-$rounds->execute([':rid' => (int)$room['id']]);
+$rounds->execute([':rid' => (string)$room['id']]);
 $rounds = $rounds->fetchAll() ?: [];
 
 $eventsStmt = $pdo->prepare("SELECT round_index, email, event_type, payload_json, created_at FROM room_events WHERE room_id=:rid ORDER BY id ASC");
-$eventsStmt->execute([':rid' => (int)$room['id']]);
+$eventsStmt->execute([':rid' => (string)$room['id']]);
 $events = $eventsStmt->fetchAll() ?: [];
 
 $byRound = [];

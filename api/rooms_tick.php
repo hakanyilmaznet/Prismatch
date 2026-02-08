@@ -14,7 +14,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 header('Content-Type: application/json');
 
 $email = $_SESSION['user_email'] ?? null;
-if (!$email) {
+$userId = $_SESSION['user_id'] ?? null;
+if (!$email || !$userId) {
   http_response_code(403);
   echo json_encode(['error' => 'login_required']);
   exit;
@@ -34,7 +35,7 @@ if (!$room) {
   exit;
 }
 
-$roomId = (int)$room['id'];
+$roomId = (string)$room['id'];
 if ($room['status'] === 'finished' || (int)$room['rounds_total'] <= 0) {
   echo json_encode(['ok' => true, 'status' => 'finished']);
   exit;
@@ -88,9 +89,10 @@ if ($endedAt === null && $elapsed >= ($countdownMs + $showMs + $answerMs)) {
   foreach ($players as $p) {
     if (($p['status'] ?? '') === 'eliminated') continue;
     $emailP = (string)($p['email'] ?? '');
+    $userIdP = (string)($p['user_id'] ?? '');
     if ($emailP === '' || isset($correctSet[$emailP])) continue;
-    room_mark_eliminated($roomId, $emailP, $current);
-    room_log_event($roomId, $current, $emailP, 'timeout', [
+    room_mark_eliminated($roomId, $userIdP, $current);
+    room_log_event($roomId, $current, $userIdP, $emailP, 'timeout', [
       'picked' => null,
       'target' => $target,
       'response_ms' => $answerMs,

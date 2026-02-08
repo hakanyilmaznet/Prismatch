@@ -1,0 +1,12 @@
+-- Drop all Prismatch tables (UUID schema)
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS room_events;
+DROP TABLE IF EXISTS room_rounds;
+DROP TABLE IF EXISTS room_players;
+DROP TABLE IF EXISTS rooms;
+DROP TABLE IF EXISTS rounds;
+DROP TABLE IF EXISTS games;
+DROP TABLE IF EXISTS daily_rounds;
+DROP TABLE IF EXISTS daily_scores;
+DROP TABLE IF EXISTS users;
+SET FOREIGN_KEY_CHECKS = 1;
