@@ -59,8 +59,14 @@ foreach ($events as $e) {
   $r = (int)$e['round_index'];
   if (!isset($byRound[$r])) $byRound[$r] = [];
   $payload = json_decode($e['payload_json'], true);
+  $email = (string)($e['email'] ?? '');
+  $displayName = user_display_name_from_row([
+    'username' => (string)($e['username'] ?? ''),
+    'email' => $email,
+  ]);
   $byRound[$r][] = [
-    'display_name' => user_display_name_from_row(['username' => $e['username'] ?? '', 'email' => $e['email'] ?? '']),
+    'email' => $email,
+    'display_name' => $displayName !== '' ? $displayName : $email,
     'type' => $e['event_type'],
     'payload' => $payload ?: [],
     'created_at' => $e['created_at'],
@@ -183,14 +189,14 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                     : tt('room_event_eliminated', 'eliminated');
                   $msg = str_replace('{color}', $picked, $msg);
                 ?>
-                <div class="small text-danger">✖ <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
+                <div class="small text-danger">✖ <?= htmlspecialchars($ev['display_name']) ?> <?= htmlspecialchars($msg) ?></div>
               <?php elseif ($ev['type'] === 'answer'): ?>
                 <?php
                   $score = (int)($ev['payload']['score_delta'] ?? 0);
                   $msg = tt('room_event_correct', 'correct (+{score})');
                   $msg = str_replace('{score}', (string)$score, $msg);
                 ?>
-                <div class="small">✓ <?= htmlspecialchars($ev['email']) ?> <?= htmlspecialchars($msg) ?></div>
+                <div class="small">✓ <?= htmlspecialchars($ev['display_name']) ?> <?= htmlspecialchars($msg) ?></div>
               <?php endif; ?>
             <?php endforeach; ?>
           </div>
