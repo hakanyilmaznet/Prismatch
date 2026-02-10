@@ -73,7 +73,7 @@ $viewerCountry = cf_country();
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= h(t('daily_leaderboard_title')) ?> â€” <?= h(t('app_name')) ?></title>
+  <title><?= h(t('daily_leaderboard_title')) ?> — <?= h(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -88,232 +88,130 @@ $viewerCountry = cf_country();
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>
     :root{ color-scheme: light dark; }
-    :root,
-    [data-bs-theme="dark"]{
-      --bg:#0a0f1b;
-      --card:rgba(255,255,255,.08);
-      --bd:rgba(255,255,255,.18);
-      --mut:rgba(229,234,255,.7);
-      --accent:#49f2b2;
-      --accent2:#ff6b5b;
-      --ink:#ffffff;
-    }
-    [data-bs-theme="light"]{
-      --bg:#fff4e8;
-      --card:rgba(255,255,255,.9);
-      --bd:rgba(27,31,42,.12);
-      --mut:rgba(31,27,43,.68);
-      --accent:#20b77d;
-      --accent2:#ff6b5b;
-      --ink:#1f1b2b;
-    }
     body{
       margin:0;
       font-family:"Rubik","Segoe UI","Helvetica Neue",sans-serif;
-      background:var(--bg);
-      color:var(--ink);
-      padding:18px;
-      padding-bottom:84px;
+      background: var(--bs-body-bg);
+      color: var(--bs-body-color);
+      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
     }
-    body::after{ display:none; }
-    a{ color:var(--accent2); text-decoration:none; }
-    .wrap{ max-width:980px; margin:0 auto; }
-    .top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-    h1{ font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; letter-spacing:.2px; }
-    .btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 14px; border-radius:999px;
-      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-      border:1px solid rgba(255,255,255,.18);
-      color:#fff;
-    }
-    .btn:hover{ border-color: rgba(255,255,255,.28); }
-    .card{
-      background:linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      border:1px solid var(--bd);
-      border-radius:16px;
-      padding:14px;
-      margin:12px 0;
-      box-shadow: 0 26px 60px rgba(0,0,0,.35);
-    }
-    .table-wrap{ width:100%; overflow-x:auto; border-radius: 12px; }
-    .muted{ color:var(--mut); font-size:12px; }
+    .wrap{ max-width:980px; margin:0 auto; padding:18px; display:grid; gap:18px; }
+    .cardx{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:16px; }
+    [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.08); }
+    h1{ margin:0 0 6px 0; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
+    .muted{ opacity:.7; font-size:12px; }
     table{ width:100%; border-collapse:collapse; }
     th,td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.10); text-align:left; vertical-align:top; font-size:14px; }
-    th{
-      font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif;
-      color:rgba(255,255,255,.86);
-      font-weight:700;
-    }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:6px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(8,16,23,.35);
-      font-size:12px;
-    }
-    .flagIcon{
-      width:18px;
-      height:18px;
-      border-radius:50%;
-      object-fit:cover;
-      box-shadow: 0 2px 6px rgba(0,0,0,.35);
-      border:1px solid rgba(255,255,255,.25);
-    }
-    .rowTop{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .select{
-      appearance:none; -webkit-appearance:none;
-      padding:10px 40px 10px 14px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
-      color:#fff; outline:none; cursor:pointer;
-      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' opacity='0.7' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
-      background-repeat:no-repeat; background-position:right 14px center;
-    }
+    th{ font-weight:700; }
     .right{ text-align:right; }
-    html[dir="rtl"] th, html[dir="rtl"] td{ text-align:right; }
-    html[dir="rtl"] .right{ text-align:left; }
-    @media (max-width: 780px){
-      .top{ align-items:flex-start; }
-      .rowTop{ align-items:flex-start; }
-    }
-  
-    
-    /* fun-bg */
-    :root{ --grid: rgba(255,255,255,0.08); }
-    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
-    body::before,
-    body::after{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:-1;
-    }
-    body::before{
-      background:
-        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
-        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
-        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
-      opacity:0.6;
-    }
-    body::after{
-      background: radial-gradient(var(--grid) 1px, transparent 1px);
-      background-size: 28px 28px;
-      opacity:0.32;
-    }
-    h1, h2, h3{
-      position: relative;
-      display: inline-block;
-      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
-      letter-spacing:.2px;
-    }
-    h1::after, h2::after, h3::after{
-      content:"";
-      position:absolute;
-      left: 0;
-      bottom: -6px;
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
-      z-index:-1;
-    }
-}$/',$c)) $seen[$c] = true;
-            }
-            ksort($seen);
-            foreach (array_keys($seen) as $c):
-              $sel = ($countryFilter === $c) ? 'selected' : '';
-          ?>
-            <option value="<?= h($c) ?>" <?= $sel ?>><?= h($c) ?></option>
-          <?php endforeach; ?>
-        </select>
-          <button class="btn" type="submit">
-            <img class="bi-icon" src="bootstrap-icons/search.svg" alt="" aria-hidden="true" />
-            <?= h(t('btn_apply')) ?>
-          </button>
-      </form>
-    </div>
-
-    <div class="card">
-      <div class="table-wrap">
-        <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th><?= h(t('th_country')) ?></th>
-            <th><?= h(t('th_player')) ?></th>
-            <th class="right"><?= h(t('th_score')) ?></th>
-            <th class="right"><?= h(t('th_duration')) ?></th>
-            <th class="right"><?= h(t('th_level')) ?></th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php if (!$rows): ?>
-          <tr><td colspan="6" class="muted"><?= h(t('msg_no_scores_yet')) ?></td></tr>
-        <?php else: ?>
-          <?php foreach ($rows as $i => $r):
-            $c = strtoupper((string)(isset($r['country']) ? $r['country'] : ''));
-          ?>
-            <tr>
-              <td><?= (int)($i+1) ?></td>
-              <td>
-                <?php if ($c): ?>
-                  <?php $flagUrl = country_flag_icon_url($c); ?>
-                  <?php if ($flagUrl !== ''): ?>
-                    <img class="flagIcon" src="<?= h($flagUrl) ?>" alt="<?= h($c) ?>" />
-                  <?php endif; ?>
-                  <span class="muted"><?= h($c) ?></span>
-                <?php else: ?>
-                  <span class="muted">-</span>
-                <?php endif; ?>
-              </td>
-              <td><?= h(mask_email((string)$r['email'])) ?></td>
-              <td class="right"><?= (int)$r['score'] ?></td>
-              <td class="right"><?= h(mmss((int)$r['duration_ms'])) ?></td>
-              <td class="right"><?= (int)$r['reached_level'] ?></td>
-            </tr>
-          <?php endforeach; ?>
-        <?php endif; ?>
-        </tbody>
-        </table>
+    .flagIcon{ width:18px; height:18px; border-radius:50%; object-fit:cover; box-shadow:0 2px 6px rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.25); }
+    .filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  </style>
+</head>
+<body>
+  <?php include __DIR__ . '/header.php'; ?>
+  <main class="wrap">
+    <?php
+      $countries = [];
+      foreach ($rows as $r) {
+        $c = strtoupper((string)($r['country'] ?? ''));
+        if ($c !== '' && preg_match('/^[A-Z]{2}$/', $c)) $countries[$c] = true;
+      }
+      if ($viewerCountry && preg_match('/^[A-Z]{2}$/', $viewerCountry)) $countries[$viewerCountry] = true;
+      ksort($countries);
+    ?>
+    <div class="cardx">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+          <h1><?= h(t('daily_leaderboard_title')) ?></h1>
+          <div class="muted" id="dailyDate" data-utc-date="<?= h($challengeDate) ?>"><?= h($challengeDate) ?></div>
+        </div>
+        <form class="filters" method="get">
+          <input class="form-control" type="date" name="d" value="<?= h($challengeDate) ?>" />
+          <select class="form-select" name="country">
+            <option value=""><?= h(t('filter_country_all') !== 'filter_country_all' ? t('filter_country_all') : 'All countries') ?></option>
+            <?php foreach (array_keys($countries) as $c): ?>
+              <option value="<?= h($c) ?>" <?= $countryFilter === $c ? 'selected' : '' ?>><?= h($c) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <button class="btn btn-primary" type="submit"><?= h(t('btn_apply') !== 'btn_apply' ? t('btn_apply') : 'Apply') ?></button>
+        </form>
       </div>
     </div>
 
-    <?php if (is_file(__DIR__ . '/footer.php')) include __DIR__ . '/footer.php'; ?>
-  </div>
+    <div class="cardx">
+      <?php if (!$rows): ?>
+        <div class="muted"><?= h(t('msg_no_scores_yet')) ?></div>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th><?= h(t('th_country')) ?></th>
+                <th><?= h(t('th_player')) ?></th>
+                <th class="right"><?= h(t('th_score')) ?></th>
+                <th class="right"><?= h(t('th_duration')) ?></th>
+                <th class="right"><?= h(t('th_level')) ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($rows as $i => $r):
+                $c = strtoupper((string)($r['country'] ?? ''));
+              ?>
+              <tr>
+                <td><?= (int)($i+1) ?></td>
+                <td>
+                  <?php if ($c): ?>
+                    <?php $flagUrl = country_flag_icon_url($c); ?>
+                    <?php if ($flagUrl !== ''): ?>
+                      <img class="flagIcon" src="<?= h($flagUrl) ?>" alt="<?= h($c) ?>" />
+                    <?php endif; ?>
+                    <span class="muted"><?= h($c) ?></span>
+                  <?php else: ?>
+                    <span class="muted">-</span>
+                  <?php endif; ?>
+                </td>
+                <td><?= h(display_player_name($r)) ?></td>
+                <td class="right"><?= h((string)($r['score'] ?? '-')) ?></td>
+                <td class="right"><?= h(mmss((int)($r['duration_ms'] ?? 0))) ?></td>
+                <td class="right"><?= h((string)($r['reached_level'] ?? '-')) ?></td>
+              </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </div>
+  </main>
 
-<script>
-function setTimezoneIfNeeded(){
-  if (document.cookie.includes('tz=')) return;
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (!tz) return;
-    fetch('api/set_timezone.php', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({timezone: tz}),
-      credentials: 'same-origin'
-    }).then(() => location.reload()).catch(()=>{});
-  } catch(e){}
-}
-
-function applyLocalDate(){
-  const el = document.getElementById('dailyDate');
-  if (!el) return;
-  const utc = el.getAttribute('data-utc-date');
-  if (!utc) return;
-  const d = new Date(utc + 'T00:00:00Z');
-  if (isNaN(d.getTime())) return;
-  el.textContent = d.toLocaleDateString();
-}
-
-setTimezoneIfNeeded();
-applyLocalDate();
-</script>
-
+  <?php if (is_file(__DIR__ . '/footer.php')) include __DIR__ . '/footer.php'; ?>
+  <script>
+  function setTimezoneIfNeeded(){
+    if (document.cookie.includes('tz=')) return;
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (!tz) return;
+      fetch('api/set_timezone.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({timezone: tz}),
+        credentials: 'same-origin'
+      }).then(() => location.reload()).catch(()=>{});
+    } catch(e){}
+  }
+  function applyLocalDate(){
+    const el = document.getElementById('dailyDate');
+    if (!el) return;
+    const utc = el.getAttribute('data-utc-date');
+    if (!utc) return;
+    const d = new Date(utc + 'T00:00:00Z');
+    if (isNaN(d.getTime())) return;
+    el.textContent = d.toLocaleDateString();
+  }
+  setTimezoneIfNeeded();
+  applyLocalDate();
+  </script>
 </body>
 </html>
-
-
-

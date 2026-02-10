@@ -132,38 +132,80 @@ $nextUrl = $_SESSION['login_next'] ?? '';
       background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
       z-index:-1;
     }
-}`);
-}
+  </style>
+</head>
+<body>
+  <?php include __DIR__ . '/header.php'; ?>
 
-form?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  setMsg('');
-  const username = (input?.value || '').trim();
-  if (!username) {
-    setMsg('Kullanıcı adı gerekli.', 'error');
-    return;
+  <main class="wrap">
+    <div class="cardx">
+      <h1><?= htmlspecialchars(t('home_cta_login')) ?></h1>
+      <p class="muted"><?= htmlspecialchars(t('login_intro') !== 'login_intro' ? t('login_intro') : 'Sign in to save your results and continue on any device.') ?></p>
+      <div class="login-actions">
+        <a class="btn btn-primary" href="login.php?provider=google<?= $nextUrl ? '&next=' . rawurlencode($nextUrl) : '' ?>">
+          <?= htmlspecialchars(t('login_google') !== 'login_google' ? t('login_google') : 'Continue with Google') ?>
+        </a>
+        <a class="btn btn-outline-secondary" href="index.php">
+          <?= htmlspecialchars(t('btn_back_home') !== 'btn_back_home' ? t('btn_back_home') : 'Back to home') ?>
+        </a>
+      </div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= htmlspecialchars(t('login_local_title') !== 'login_local_title' ? t('login_local_title') : 'Local login') ?></h2>
+      <p class="muted"><?= htmlspecialchars(t('login_local_desc') !== 'login_local_desc' ? t('login_local_desc') : 'Use a display name without creating an account.') ?></p>
+      <form id="localLoginForm">
+        <label class="form-label" for="localUsername"><?= htmlspecialchars(t('username') !== 'username' ? t('username') : 'Username') ?></label>
+        <input id="localUsername" class="form-control" type="text" minlength="2" maxlength="30" autocomplete="off" />
+        <div class="login-actions" style="margin-top:12px">
+          <button class="btn btn-primary" type="submit"><?= htmlspecialchars(t('btn_continue') !== 'btn_continue' ? t('btn_continue') : 'Continue') ?></button>
+        </div>
+        <div id="localMsg" class="muted" role="status" aria-live="polite" style="margin-top:8px"></div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+  const NEXT_URL = <?= json_encode($nextUrl) ?>;
+  const form = document.getElementById('localLoginForm');
+  const input = document.getElementById('localUsername');
+  const msg = document.getElementById('localMsg');
+
+  function setMsg(text, type = ''){
+    if (!msg) return;
+    msg.textContent = text || '';
+    msg.classList.remove('pm-error', 'pm-success');
+    if (type === 'error') msg.classList.add('pm-error');
+    if (type === 'success') msg.classList.add('pm-success');
   }
-  try {
-    let existingId = '';
-    try { existingId = localStorage.getItem('prismatchUserId') || ''; } catch(e) {}
-    const res = await fetch('api/local_login.php', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({username, user_id: existingId || undefined})
-    });
-    const data = await res.json();
-    if (data && data.ok && data.user_id) {
-      try { localStorage.setItem('prismatchUserId', data.user_id); } catch(e) {}
-      window.location.href = NEXT_URL || 'index.php';
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    setMsg('');
+    const username = (input?.value || '').trim();
+    if (!username) {
+      setMsg('Username is required.', 'error');
       return;
     }
-    setMsg((data && data.error) ? data.error : 'Giriş başarısız.', 'error');
-  } catch (err) {
-    setMsg('Giriş başarısız.', 'error');
-  }
-});
-</script>
+    try {
+      let existingId = '';
+      try { existingId = localStorage.getItem('prismatchUserId') || ''; } catch(e) {}
+      const res = await fetch('api/local_login.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({username, user_id: existingId || undefined})
+      });
+      const data = await res.json();
+      if (data && data.ok && data.user_id) {
+        try { localStorage.setItem('prismatchUserId', data.user_id); } catch(e) {}
+        window.location.href = NEXT_URL || 'index.php';
+        return;
+      }
+      setMsg((data && data.error) ? data.error : 'Login failed.', 'error');
+    } catch (err) {
+      setMsg('Login failed.', 'error');
+    }
+  });
+  </script>
 </body>
 </html>
-
-

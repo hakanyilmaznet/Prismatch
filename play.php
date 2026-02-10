@@ -534,6 +534,9 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       font-size: 12px;
       color: var(--muted);
     }
+    .pm-error{ color: #dc3545; font-weight: 600; }
+    .pm-success{ color: #198754; font-weight: 600; }
+    .bi-icon{ width:16px; height:16px; display:inline-block; }
 
     .stats{
       width: min(640px, 100%);
@@ -582,6 +585,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     @keyframes floaty{
       0%,100%{ transform: translateY(0); }
       50%{ transform: translateY(-6px); }
+    }
   
     
     /* fun-bg */
@@ -624,32 +628,171 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
       z-index:-1;
     }
-}. Total perfect matches: {correct}'),
-  'gameover_title' => tt('gameover_title', 'Game over'),
-  'gameover_body' => tt('gameover_body', '{reason} Tap to try again.'),
-  'reason_wrong' => tt('reason_wrong', 'Wrong match.'),
-  'reason_timeup' => tt('reason_timeup', 'Time’s up.'),
-  'status_ready' => tt('status_ready', 'Ready.'),
-  'status_finished' => tt('status_finished', 'Finished'),
-  'btn_play_again' => tt('btn_play_again', 'Play again'),
-  'btn_restart' => tt('btn_restart', 'Restart'),
-  'btn_view_history' => tt('btn_view_history', 'My Sessions'),
-  'sound_on' => tt('sound_on', 'Sound: On'),
-  'sound_off' => tt('sound_off', 'Sound: Off'),
-  'th_score' => tt('th_score', 'Score'),
-  'daily_once' => tt('daily_once', 'Daily challenge: one attempt per day.'),
-  'daily_login_required' => tt('daily_login_required', 'Log in to play the daily challenge.'),
-  'daily_completed' => tt('daily_completed', 'You already played today. Come back tomorrow!'),
-  'save_after_title' => tt('save_after_title', 'Save your score?'),
-  'save_after_body' => tt('save_after_body', 'Log in with {google} to save this session and view detailed stats.'),
-  'save_with_google' => tt('save_with_google', 'Save with {google}'),
-  'continue_without_saving' => tt('continue_without_saving', 'Continue without saving'),
-  'save_pending' => tt('save_pending', 'Save queued. It will sync on next load.'),
-  'a11y_color_option' => tt('a11y_color_option', 'Color option {n}'),
-  'no_results' => tt('no_results', 'No results'),
-  'right_answer_messages' => $rightAnswerMessages,
-  'wrong_answer_messages' => $wrongAnswerMessages,
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hud">
+      <div class="chip">
+        <span class="label"><?= htmlspecialchars(tt('hud_stage', 'Stage')) ?></span>
+        <span class="value" id="hudLevel">-</span>
+      </div>
+      <div class="chip">
+        <span class="label"><?= htmlspecialchars(tt('hud_correct', 'Correct')) ?></span>
+        <span class="value" id="hudCorrect">0</span>
+      </div>
+      <div class="chip">
+        <span class="label"><?= htmlspecialchars(tt('hud_show', 'Show')) ?></span>
+        <span class="value" id="hudShow">-</span>
+      </div>
+      <div class="chip">
+        <span class="label"><?= htmlspecialchars(tt('hud_time', 'Time')) ?></span>
+        <span class="value" id="hudTime">-</span>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div id="center" class="center">
+        <img class="logo" src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>" />
+        <div class="title">
+          <?= htmlspecialchars($isDailyMode ? tt('daily_title', 'Daily Challenge') : tt('play_title', 'Ready to play?')) ?>
+        </div>
+        <div class="subtitle">
+          <?= htmlspecialchars($isDailyMode ? tt('daily_once', 'Daily challenge: one attempt per day.') : tt('play_subtitle', 'Remember the shown color, then pick it from the grid.')) ?>
+        </div>
+        <div class="action-row">
+          <button id="btnStart" class="btn primary" type="button">
+            <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
+            <?= htmlspecialchars(tt('btn_start', 'Start')) ?>
+          </button>
+          <?php if ($userEmail): ?>
+            <a class="btn" href="games.php">
+              <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
+              <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
+            </a>
+          <?php endif; ?>
+        </div>
+      </div>
+      <div id="statusBadge" class="badge"><?= htmlspecialchars(tt('status_ready', 'Ready.')) ?></div>
+    </div>
+
+    <?php if (!empty($stats)): ?>
+      <div class="stats">
+        <div class="stat">
+          <div class="k"><?= htmlspecialchars(tt('stats_total_plays', 'Total plays')) ?></div>
+          <div class="v"><?= (int)($stats['total_plays'] ?? 0) ?></div>
+        </div>
+        <div class="stat">
+          <div class="k"><?= htmlspecialchars(tt('stats_total_wins', 'Total wins')) ?></div>
+          <div class="v"><?= (int)($stats['total_wins'] ?? 0) ?></div>
+        </div>
+        <div class="stat">
+          <div class="k"><?= htmlspecialchars(tt('stats_best_level', 'Best level')) ?></div>
+          <div class="v"><?= (int)($stats['best_level'] ?? 0) ?></div>
+        </div>
+        <div class="stat">
+          <div class="k"><?= htmlspecialchars(tt('stats_total_correct', 'Total correct')) ?></div>
+          <div class="v"><?= (int)($stats['total_correct'] ?? 0) ?></div>
+        </div>
+      </div>
+    <?php endif; ?>
+
+    <div class="footer">
+      <div class="badge">
+        <?= htmlspecialchars($isDailyMode ? tt('daily_once', 'Daily challenge: one attempt per day.') : tt('play_hint', 'Answer quickly to earn a higher score.')) ?>
+      </div>
+      <button id="btnMute" class="btn mute-toggle" type="button" aria-pressed="false">
+        <span class="mute-dot" aria-hidden="true"></span>
+        <span id="muteLabel"><?= htmlspecialchars(tt('sound_on', 'Sound: On')) ?></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="answerOverlay" class="answerOverlay" hidden>
+    <div id="answerCard" class="answerCard" role="dialog" aria-modal="true" aria-label="<?= htmlspecialchars(tt('answer_popup', 'Answer')) ?>">
+      <div class="answerIconWrap">
+        <img id="answerIcon" class="answerIcon" src="success-checkmark.svg" alt="" aria-hidden="true" />
+      </div>
+      <div id="answerText" class="answerMessage">-</div>
+      <p class="answerSub"><?= htmlspecialchars(tt('answer_sub', 'Keep going!')) ?></p>
+    </div>
+  </div>
+
+  <div id="dailyCompletedModal" class="modalOverlay" hidden>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="<?= htmlspecialchars(tt('daily_completed_title', 'Daily complete')) ?>">
+      <h2 class="modalTitle"><?= htmlspecialchars(tt('daily_completed_title', 'Daily complete')) ?></h2>
+      <p id="dailyCompletedText" class="modalText"><?= htmlspecialchars(tt('daily_completed', 'You already played today. Come back tomorrow!')) ?></p>
+      <div class="modalActions">
+        <button id="dailyCompletedOk" class="btn primary" type="button">
+          <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('btn_back_home', 'Back to home')) ?>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dailyLoginModal" class="modalOverlay" hidden>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="<?= htmlspecialchars(tt('daily_login_title', 'Login required')) ?>">
+      <h2 class="modalTitle"><?= htmlspecialchars(tt('daily_login_title', 'Login required')) ?></h2>
+      <p class="modalText"><?= htmlspecialchars(tt('daily_login_required', 'Log in to play the daily challenge.')) ?></p>
+      <div class="modalActions">
+        <a class="btn primary" href="login.php?next=<?= rawurlencode('play.php?daily=1') ?>">
+          <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
+        </a>
+        <button id="dailyLoginBack" class="btn" type="button">
+          <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('btn_back_home', 'Back to home')) ?>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const I18N = <?= json_encode([
+    'app_name' => tt('app_name', 'Prismatch'),
+    'countdown_help' => tt('countdown_help', 'Remember the shown color, then pick it from the grid.'),
+    'hud_stage' => tt('hud_stage', 'Stage'),
+    'remember_this' => tt('remember_this', 'Remember this color.'),
+    'question_pick_target' => tt('question_pick_target', 'Which color was shown? Pick the target.'),
+    'question_hint' => tt('question_hint', 'Use Tab/Shift+Tab and Enter/Space to pick.'),
+    'badge_ready' => tt('badge_ready', 'Ready. Countdown...'),
+    'badge_showing_target' => tt('badge_showing_target', 'Showing target...'),
+    'badge_answer' => tt('badge_answer', 'Answer now!'),
+    'toast_pick' => tt('toast_pick', 'Pick within 5 seconds'),
+    'badge_correct' => tt('badge_correct', 'Perfect match! Next stage...'),
+    'badge_wrong' => tt('badge_wrong', 'Wrong match. Game over.'),
+    'toast_correct' => tt('toast_correct', 'Perfect Match!'),
+    'toast_wrong' => tt('toast_wrong', 'Wrong Match!'),
+    'win_title' => tt('win_title', 'You matched them all!'),
+    'win_body' => tt('win_body', 'You reached stage {level}. Total perfect matches: {correct}'),
+    'gameover_title' => tt('gameover_title', 'Game over'),
+    'gameover_body' => tt('gameover_body', '{reason} Tap to try again.'),
+    'reason_wrong' => tt('reason_wrong', 'Wrong match.'),
+    'reason_timeup' => tt('reason_timeup', 'Time\'s up.'),
+    'status_ready' => tt('status_ready', 'Ready.'),
+    'status_finished' => tt('status_finished', 'Finished'),
+    'btn_play_again' => tt('btn_play_again', 'Play again'),
+    'btn_restart' => tt('btn_restart', 'Restart'),
+    'btn_view_history' => tt('btn_view_history', 'My Sessions'),
+    'sound_on' => tt('sound_on', 'Sound: On'),
+    'sound_off' => tt('sound_off', 'Sound: Off'),
+    'th_score' => tt('th_score', 'Score'),
+    'daily_once' => tt('daily_once', 'Daily challenge: one attempt per day.'),
+    'daily_login_required' => tt('daily_login_required', 'Log in to play the daily challenge.'),
+    'daily_completed' => tt('daily_completed', 'You already played today. Come back tomorrow!'),
+    'save_after_title' => tt('save_after_title', 'Save your score?'),
+    'save_after_body' => tt('save_after_body', 'Log in with {google} to save this session and view detailed stats.'),
+    'save_with_google' => tt('save_with_google', 'Save with {google}'),
+    'continue_without_saving' => tt('continue_without_saving', 'Continue without saving'),
+    'save_pending' => tt('save_pending', 'Save queued. It will sync on next load.'),
+    'a11y_color_option' => tt('a11y_color_option', 'Color option {n}'),
+    'no_results' => tt('no_results', 'No results'),
+    'err_palette' => tt('err_palette', 'Insufficient color pool.'),
+    'right_answer_messages' => $rightAnswerMessages,
+    'wrong_answer_messages' => $wrongAnswerMessages,
+  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
 const tjs = (key, fallback = '') => {
   const v = I18N[key];
@@ -1583,5 +1726,6 @@ if (FLASH_MSG) toastQuick(FLASH_MSG);
 
 </body>
 </html>
+
 
 

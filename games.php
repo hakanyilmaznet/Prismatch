@@ -110,7 +110,7 @@ foreach ($rows as $g) {
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= h(TT('games_title','My Games')) ?> â€” <?= h(TT('app_name','Prismatch')) ?></title>
+  <title><?= h(TT('games_title','My Sessions')) ?> — <?= h(TT('app_name','Prismatch')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -120,170 +120,97 @@ foreach ($rows as $g) {
     'type' => 'website',
     'robots' => 'noindex,nofollow',
     'lang' => $lang,
-    'site_name' => TT('app_name','Prismatch'),
+    'site_name' => t('app_name'),
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>
     :root{ color-scheme: light dark; }
-    :root,
-    [data-bs-theme="dark"]{
-      --bg:#0a0f1b;
-      --card:rgba(255,255,255,.08);
-      --bd:rgba(255,255,255,.16);
-      --mut:rgba(229,234,255,.7);
-      --link:#ff6b5b;
-      --accent:#49f2b2;
-      --accent2:#ffd36b;
-      --ink:#ffffff;
-    }
-    [data-bs-theme="light"]{
-      --bg:#fff4e8;
-      --card:rgba(255,255,255,.9);
-      --bd:rgba(27,31,42,.12);
-      --mut:rgba(31,27,43,.68);
-      --link:#ff6b5b;
-      --accent:#20b77d;
-      --accent2:#ffb24b;
-      --ink:#1f1b2b;
-    }
-    *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family:"Rubik","Segoe UI","Helvetica Neue",sans-serif;
-      background:var(--bg);
-      color:var(--ink);
-      padding:18px;
-      padding-bottom:84px;
+      background: var(--bs-body-bg);
+      color: var(--bs-body-color);
+      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
     }
-    body::after{ display:none; }
-    a{ color:var(--link); text-decoration:none; }
-    .wrap{ max-width:1080px; margin:0 auto; }
-    .top{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-    h1{ font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; letter-spacing:.2px; margin:0; }
-    .sub{ color:var(--mut); font-size:12px; }
-    .actions{ display:flex; gap:10px; flex-wrap:wrap; }
-    .btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 14px; border-radius:999px;
-      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-      border:1px solid rgba(255,255,255,.18);
-      color:#fff;
-    }
-    .btn:hover{ border-color: rgba(255,255,255,.28); }
-    .btn-detail{
-      background:#ff8b5c;
-      border-color:#ffb48f;
-      color:#081017;
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:.4px;
-      box-shadow:0 10px 22px rgba(255,139,92,.35);
-      min-width:98px;
-      justify-content:center;
-      white-space:nowrap;
-    }
-    .card{
-      background:linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      border:1px solid var(--bd);
-      border-radius:18px;
-      padding:14px;
-      margin:14px 0;
-      box-shadow:0 26px 60px rgba(0,0,0,.35);
-    }
+    .wrap{ max-width:1080px; margin:0 auto; padding:18px; display:grid; gap:18px; }
+    .cardx{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:16px; }
+    [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.08); }
+    h1{ margin:0 0 6px 0; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
+    .muted{ opacity:.7; font-size:12px; }
     table{ width:100%; border-collapse:collapse; }
     th,td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.10); text-align:left; vertical-align:top; font-size:14px; }
-    th{
-      font-family:"Fraunces","Times New Roman",serif;
-      color:rgba(255,255,255,.86);
-      font-weight:700;
-    }
-    .muted{ color:var(--mut); font-size:12px; }
+    th{ font-weight:700; }
     .right{ text-align:right; }
     .pill{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(8,16,23,.35); font-size:12px; white-space:nowrap; }
     .pill-won{ border-color:rgba(53,208,186,.35); background:rgba(53,208,186,.12); }
     .pill-fin{ border-color:rgba(255,255,255,.20); background:rgba(8,16,23,.35); }
-    .pill-meta{ border-color:rgba(255,139,92,.35); background:rgba(255,139,92,.12); }
     .flagIcon{ width:16px; height:16px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,.25); box-shadow:0 2px 6px rgba(0,0,0,.35); }
     .metaRow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .grid-cards{ display:none; gap:12px; }
-    .gameCard{
-      border:1px solid rgba(255,255,255,.15);
-      border-radius:16px;
-      padding:12px;
-      background:rgba(8,16,23,.35);
-      box-shadow:0 18px 40px rgba(0,0,0,.35);
-      animation: rise .35s ease both;
-    }
-    .cardHead{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
-    .cardTitle{ font-weight:800; }
-    .cardGrid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px 12px; margin-top:10px; }
-    .label{ color:var(--mut); font-size:11px; }
-    .value{ font-weight:700; }
+  </style>
+</head>
+<body>
+  <?php include __DIR__ . '/header.php'; ?>
+  <main class="wrap">
+    <div class="cardx">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+          <h1><?= h(TT('games_title','My Sessions')) ?></h1>
+          <div class="muted"><?= h(TT('games_subtitle','Your recent game sessions.')) ?></div>
+        </div>
+        <a class="btn btn-outline-secondary" href="play.php">
+          <?= h(TT('btn_play_again','Play again')) ?>
+        </a>
+      </div>
+    </div>
 
-    @keyframes rise{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:translateY(0);} }
+    <div class="cardx">
+      <?php if (!$games): ?>
+        <div class="muted"><?= h(TT('no_results','No results')) ?></div>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th><?= h(TT('th_date','Date')) ?></th>
+                <th><?= h(TT('th_score','Score')) ?></th>
+                <th><?= h(TT('th_level','Level')) ?></th>
+                <th><?= h(TT('th_correct','Correct')) ?></th>
+                <th><?= h(TT('th_duration','Duration')) ?></th>
+                <th><?= h(TT('th_status','Status')) ?></th>
+                <th class="right"><?= h(TT('th_action','Action')) ?></th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($games as $g): ?>
+              <tr>
+                <td><?= (int)$g['index'] ?></td>
+                <td><?= h($g['date_label']) ?></td>
+                <td><?= h(fmt_num($g['score'], $lang, 0)) ?></td>
+                <td><?= h(fmt_num($g['reached_level'], $lang, 0)) ?></td>
+                <td><?= h(fmt_num($g['total_correct'], $lang, 0)) ?></td>
+                <td><?= h($g['duration_label']) ?></td>
+                <td><?= pill($g['status_text'], $g['status_class']) ?></td>
+                <td class="right">
+                  <div class="metaRow">
+                    <?php if (!empty($g['flag_url'])): ?>
+                      <img class="flagIcon" src="<?= h($g['flag_url']) ?>" alt="" aria-hidden="true" />
+                    <?php endif; ?>
+                    <a class="btn btn-sm btn-outline-secondary" href="<?= h($g['detail_url']) ?>">
+                      <?= h(TT('btn_view_details','View')) ?>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </div>
+  </main>
 
-    @media (max-width: 900px){
-      table{ display:none; }
-      .grid-cards{ display:grid; }
-    }
-    @media (max-width: 720px){
-      .actions{ width:100%; }
-      .actions .btn{ flex:1 1 auto; justify-content:center; }
-    }
-    html[dir="rtl"] th, html[dir="rtl"] td{ text-align:right; }
-    html[dir="rtl"] .right{ text-align:left; }
-  
-    
-    /* fun-bg */
-    :root{ --grid: rgba(255,255,255,0.08); }
-    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
-    body::before,
-    body::after{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:-1;
-    }
-    body::before{
-      background:
-        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
-        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
-        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
-      opacity:0.6;
-    }
-    body::after{
-      background: radial-gradient(var(--grid) 1px, transparent 1px);
-      background-size: 28px 28px;
-      opacity:0.32;
-    }
-    h1, h2, h3{
-      position: relative;
-      display: inline-block;
-      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
-      letter-spacing:.2px;
-    }
-    h1::after, h2::after, h3::after{
-      content:"";
-      position:absolute;
-      left: 0;
-      bottom: -6px;
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
-      z-index:-1;
-    }
-},
-        body: JSON.stringify({timezone: tz}),
-        credentials: 'same-origin'
-      }).then(() => location.reload()).catch(()=>{});
-    } catch(e){}
-  }
-  setTimezoneIfNeeded();
-  </script>
+  <?php if (is_file(__DIR__ . '/footer.php')) include __DIR__ . '/footer.php'; ?>
 </body>
 </html>
-
-
-

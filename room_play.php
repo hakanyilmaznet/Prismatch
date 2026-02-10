@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/bootstrap.php';
 if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
   error_reporting(E_ALL);
@@ -11,6 +11,7 @@ require_once __DIR__ . '/i18n.php';
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 $userEmail = $_SESSION['user_email'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -533,6 +534,33 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       background: rgba(61, 214, 160, 0.15);
       border: 1px solid rgba(61, 214, 160, 0.35);
     }
+    .rank-arrow{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      margin-right:6px;
+      border:1px solid transparent;
+    }
+    .rank-arrow.up{
+      color:#0f5132;
+      background: rgba(61,214,160,0.25);
+      border-color: rgba(61,214,160,0.45);
+    }
+    .rank-arrow.down{
+      color:#842029;
+      background: rgba(255,77,77,0.25);
+      border-color: rgba(255,77,77,0.45);
+    }
+    .rank-arrow.same{
+      color: rgba(255,255,255,0.65);
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+    }
     @keyframes flash{ from{ transform: translateY(-4px); } to{ transform: translateY(0); } }
 
     .room-meta{
@@ -540,6 +568,52 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       gap:10px;
       align-items:center;
       flex-wrap:wrap;
+    }
+    .players-card{
+      background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 18px 46px rgba(0,0,0,0.35);
+    }
+    .players-title{
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      margin: 0 0 10px 0;
+      letter-spacing: .2px;
+    }
+    .players-list{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .player-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.18);
+      background: rgba(8,16,23,0.35);
+      font-size:12px;
+      font-weight:600;
+    }
+    .player-pill.eliminated{
+      opacity:0.75;
+      border-color: rgba(255,77,77,0.35);
+      color: rgba(255,180,180,0.9);
+    }
+    .player-pill .dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background: rgba(61, 214, 160, 0.95);
+      box-shadow: 0 0 0 3px rgba(61, 214, 160, 0.18);
+    }
+    .player-pill.eliminated .dot{
+      background: rgba(255,77,77,0.95);
+      box-shadow: 0 0 0 3px rgba(255,77,77,0.18);
     }
   
     
@@ -582,30 +656,109 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       border-radius: 999px;
       background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
       z-index:-1;
-    }
-}')) ?>,
-  rightMessages: <?= json_encode($rightAnswerMessages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
-  wrongMessages: <?= json_encode($wrongAnswerMessages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
-  statusReady: <?= json_encode(tt('status_ready', 'Ready.')) ?>,
-  statusFinished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
-  waiting: <?= json_encode(tt('room_waiting', 'Waiting for host...')) ?>,
-  intermission: <?= json_encode(tt('room_intermission', 'Next stage...')) ?>,
-  roomActive: <?= json_encode(tt('room_active', 'Active')) ?>,
-  roomEliminated: <?= json_encode(tt('room_eliminated', 'Eliminated')) ?>,
-  roomFinished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
-  roomLeaderboard: <?= json_encode(tt('room_leaderboard', 'Leaderboard')) ?>,
-  roomPlayer: <?= json_encode(tt('room_player', 'Player')) ?>,
-  roomScore: <?= json_encode(tt('room_score', 'Score')) ?>,
-  roomStatus: <?= json_encode(tt('room_status', 'Status')) ?>,
-  roomFinishedTitle: <?= json_encode(tt('room_finished_title', 'Game finished')) ?>,
-  roomFinishedDesc: <?= json_encode(tt('room_finished_desc', 'All players are eliminated. Final leaderboard is below.')) ?>,
-  roomFinishedIconAlt: <?= json_encode(tt('room_finished_icon_alt', 'Finish badge')) ?>,
-  roomTitle: <?= json_encode(tt('room_live_title', 'Room Match')) ?>,
-  joinFailed: <?= json_encode(tt('error_generic', 'Error')) ?>,
-  soundOn: <?= json_encode(tt('sound_on', 'Sound On')) ?>,
-  soundOff: <?= json_encode(tt('sound_off', 'Sound Off')) ?>,
-};
+    }  </style>
+  <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <div class="hud">
+      <div class="chip">
+        <span class="label"><?= htmlspecialchars(tt('hud_stage', 'Stage')) ?></span>
+        <span class="value" id="hudLevel">-</span>
+      </div>
+      <div class="chip">
+        <span class="label"><?= htmlspecialchars(tt('hud_correct', 'Correct')) ?></span>
+        <span class="value" id="hudCorrect">0</span>
+      </div>
+      <div class="chip">
+        <span class="label"><?= htmlspecialchars(tt('hud_show', 'Show')) ?></span>
+        <span class="value" id="hudShow">-</span>
+      </div>
+      <div class="chip">
+        <span class="label"><?= htmlspecialchars(tt('hud_time', 'Time')) ?></span>
+        <span class="value" id="hudTime">-</span>
+      </div>
+    </div>
 
+    <div class="stage">
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div class="room-meta">
+        <span id="roomInfo" class="badge"><?= htmlspecialchars(tt('room_live_title', 'Room Match')) ?></span>
+        <span id="playersBadge" class="badge"></span>
+        <span id="selfStatusBadge" class="badge"></span>
+        <button id="startBtn" class="btn primary" type="button"><?= htmlspecialchars(tt('room_start', 'Start Round')) ?></button>
+      </div>
+      <div id="center" class="center">
+        <div class="title"><?= htmlspecialchars(tt('room_live_title', 'Room Match')) ?></div>
+        <div class="subtitle"><?= htmlspecialchars(tt('room_waiting', 'Waiting for host...')) ?></div>
+      </div>
+      <div id="statusBadge" class="badge"><?= htmlspecialchars(tt('status_ready', 'Ready.')) ?></div>
+    </div>
+
+    <div class="players-card">
+      <div class="players-title"><?= htmlspecialchars(tt('room_players', 'Players')) ?></div>
+      <div id="playersList" class="players-list"></div>
+    </div>
+
+    <div class="footer">
+      <button id="btnMute" class="btn mute-toggle" type="button" aria-pressed="false">
+        <span class="mute-dot" aria-hidden="true"></span>
+        <span id="muteLabel"><?= htmlspecialchars(tt('sound_on', 'Sound On')) ?></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="answerOverlay" class="answerOverlay" hidden>
+    <div id="answerCard" class="answerCard" role="dialog" aria-modal="true" aria-label="<?= htmlspecialchars(tt('answer_popup', 'Answer')) ?>">
+      <div class="answerIconWrap">
+        <img id="answerIcon" class="answerIcon" src="success-checkmark.svg" alt="" aria-hidden="true" />
+      </div>
+      <div id="answerText" class="answerMessage">-</div>
+      <p class="answerSub"><?= htmlspecialchars(tt('answer_sub', 'Keep going!')) ?></p>
+    </div>
+  </div>
+
+  <script>
+  const STR = {
+    rightMessages: <?= json_encode($rightAnswerMessages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+    wrongMessages: <?= json_encode($wrongAnswerMessages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+    statusReady: <?= json_encode(tt('status_ready', 'Ready.')) ?>,
+    statusFinished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
+    waiting: <?= json_encode(tt('room_waiting', 'Waiting for host...')) ?>,
+    intermission: <?= json_encode(tt('room_intermission', 'Next stage...')) ?>,
+    roomActive: <?= json_encode(tt('room_active', 'Active')) ?>,
+    roomEliminated: <?= json_encode(tt('room_eliminated', 'Eliminated')) ?>,
+    roomFinished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
+    roomLeaderboard: <?= json_encode(tt('room_leaderboard', 'Leaderboard')) ?>,
+    roomPlayer: <?= json_encode(tt('room_player', 'Player')) ?>,
+    roomScore: <?= json_encode(tt('room_score', 'Score')) ?>,
+    roomStatus: <?= json_encode(tt('room_status', 'Status')) ?>,
+    roomFinishedTitle: <?= json_encode(tt('room_finished_title', 'Game finished')) ?>,
+    roomFinishedDesc: <?= json_encode(tt('room_finished_desc', 'All players are eliminated. Final leaderboard is below.')) ?>,
+    roomFinishedIconAlt: <?= json_encode(tt('room_finished_icon_alt', 'Finish badge')) ?>,
+    roomTitle: <?= json_encode(tt('room_live_title', 'Room Match')) ?>,
+    joinFailed: <?= json_encode(tt('error_generic', 'Error')) ?>,
+    notOwner: <?= json_encode(tt('room_not_owner', 'Only the room owner can start rounds.')) ?>,
+    soundOn: <?= json_encode(tt('sound_on', 'Sound On')) ?>,
+    soundOff: <?= json_encode(tt('sound_off', 'Sound Off')) ?>,
+    toastCorrect: <?= json_encode(tt('badge_correct', 'Correct')) ?>,
+    toastWrong: <?= json_encode(tt('badge_wrong', 'Wrong')) ?>,
+    badgeCorrect: <?= json_encode(tt('badge_correct', 'Correct')) ?>,
+    badgeWrong: <?= json_encode(tt('badge_wrong', 'Wrong')) ?>,
+    badgeTimeUp: <?= json_encode(tt('badge_timeup', 'Time up')) ?>,
+    countdownHelp: <?= json_encode(tt('countdown_help', 'Remember the shown color, then pick it from the grid.')) ?>,
+    rememberThis: <?= json_encode(tt('remember_this', 'Remember this color.')) ?>,
+    badgeShow: <?= json_encode(tt('badge_showing_target', 'Showing target...')) ?>,
+    questionTitle: <?= json_encode(tt('question_pick_target', 'Which color was shown? Pick the target.')) ?>,
+    questionHint: <?= json_encode(tt('question_hint', 'Use Tab/Shift+Tab and Enter/Space to pick.')) ?>,
+    a11yColorOption: <?= json_encode(tt('a11y_color_option', 'Color option {n}')) ?>,
+    badgeAnswer: <?= json_encode(tt('badge_answer', 'Answer now!')) ?>,
+    toastPick: <?= json_encode(tt('toast_pick', 'Pick within 5 seconds')) ?>,
+  };
+  const ME = <?= json_encode($userEmail) ?>;
+  const GUID = <?= json_encode($guid) ?>;
+  const P_KEY = <?= json_encode(PUSHER_KEY) ?>;
+  const P_CLUSTER = <?= json_encode(PUSHER_CLUSTER) ?>;
 const elCenter = document.getElementById('center');
 const elToast = document.getElementById('toast');
 const elBadge = document.getElementById('statusBadge');
@@ -614,6 +767,7 @@ const hudTime = document.getElementById('hudTime');
 const hudCorrect = document.getElementById('hudCorrect');
 const hudShow = document.getElementById('hudShow');
 const playersBadge = document.getElementById('playersBadge');
+const playersList = document.getElementById('playersList');
 const selfStatusBadge = document.getElementById('selfStatusBadge');
 const roomInfo = document.getElementById('roomInfo');
 const startBtn = document.getElementById('startBtn');
@@ -876,9 +1030,16 @@ function buildLeaderboardCard(players){
     const statusLabel = p.status === 'eliminated' ? STR.roomEliminated : STR.roomActive;
     const statusClass = p.status === 'eliminated' ? 'eliminated' : 'active';
     const statusHtml = `<span class="status-pill ${statusClass}">${statusLabel}</span>`;
-    tr.innerHTML = `<td>${idx+1}</td><td>${p.email}</td><td>${p.score}</td><td>${statusHtml}</td>`;
-    if (p.status === 'eliminated') tr.classList.add('eliminated');
     const prevRow = state.leaderboardPrev.get(p.email);
+    let arrow = '-';
+    let arrowClass = 'same';
+    if (prevRow && typeof prevRow.rank === 'number') {
+      if (prevRow.rank > idx) { arrow = '^'; arrowClass = 'up'; }
+      else if (prevRow.rank < idx) { arrow = 'v'; arrowClass = 'down'; }
+    }
+    const arrowHtml = `<span class="rank-arrow ${arrowClass}" aria-hidden="true">${arrow}</span>`;
+    tr.innerHTML = `<td>${arrowHtml}${idx+1}</td><td>${p.email}</td><td>${p.score}</td><td>${statusHtml}</td>`;
+    if (p.status === 'eliminated') tr.classList.add('eliminated');
     if (!prevRow || prevRow.rank !== idx || prevRow.score !== p.score || prevRow.status !== p.status) {
       tr.classList.add('flash');
     }
@@ -1009,7 +1170,7 @@ function runTargetShow(){
   card.style.background = state.targetColor || '#000';
 
   render(makeStack(
-    h1(`${STR.roomTitle} · ${state.round}`),
+    h1(`${STR.roomTitle} Â· ${state.round}`),
     p(STR.rememberThis),
     card
   ));
@@ -1068,7 +1229,7 @@ function runQuestionGrid(){
   });
 
   render(makeStack(
-    h1(`${STR.roomTitle} · ${state.round}`),
+    h1(`${STR.roomTitle} Â· ${state.round}`),
     qWrap,
     grid
   ));
@@ -1156,9 +1317,18 @@ async function onTimeUp(buttons){
 }
 
 function renderPlayers(players){
-  if (!playersBadge) return;
-  const names = players.map(p => p.email + (p.status === 'eliminated' ? ' ✕' : '')).join(' • ');
-  playersBadge.textContent = names || '';
+  if (!playersBadge && !playersList) return;
+  const names = players.map(p => p.email + (p.status === 'eliminated' ? ' ?' : '')).join(' | ');
+  if (playersBadge) playersBadge.textContent = names || '';
+  if (playersList){
+    playersList.innerHTML = '';
+    (players || []).forEach((p) => {
+      const pill = document.createElement('div');
+      pill.className = 'player-pill' + ((p.status === 'eliminated') ? ' eliminated' : '');
+      pill.innerHTML = '<span class="dot" aria-hidden="true"></span>' + String(p.email || '-');
+      playersList.appendChild(pill);
+    });
+  }
 }
 
 async function joinRoom(){
@@ -1173,7 +1343,7 @@ async function joinRoom(){
     return;
   }
   const room = data.room;
-  const isHost = room.owner_email === ME;
+  const isHost = (room.owner_id && ME_ID) ? (String(room.owner_id) === String(ME_ID)) : (String(room.owner_email || '').toLowerCase() === String(ME || '').toLowerCase());
   if (startBtn) startBtn.style.display = isHost ? 'inline-flex' : 'none';
   if (roomInfo) roomInfo.textContent = room.name ? room.name : STR.roomTitle;
   if (room.current_round > 0) state.round = room.current_round;
@@ -1190,11 +1360,26 @@ async function joinRoom(){
 }
 
 async function startNextRound(){
-  await fetch('api/rooms_next_round.php', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({guid: GUID})
-  });
+  try {
+    const res = await fetch('api/rooms_next_round.php', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({guid: GUID})
+    });
+    if (!res.ok) {
+      let err = 'error';
+      try {
+        const j = await res.json();
+        if (j && j.error) err = j.error;
+      } catch(e) {}
+      const msg = err === 'not_owner'
+        ? (STR.notOwner || 'Only the room owner can start rounds.')
+        : (STR.joinFailed || 'Error');
+      setBadge(msg, 'error');
+    }
+  } catch (e) {
+    setBadge(STR.joinFailed || 'Error', 'error');
+  }
 }
 
 startBtn?.addEventListener('click', startNextRound);
@@ -1261,6 +1446,33 @@ channel.bind('room:finished', () => {
   finishRoom();
 });
 
+function syncFromTick(data){
+  if (state.finished) return;
+  if (!data || !data.round || !data.question) return;
+  const sameRound = state.round === data.round;
+  if (sameRound && state.phase !== 'idle' && state.phase !== 'intermission') return;
+
+  state.answered = false;
+  state.lastAnswerCorrect = null;
+  state.round = data.round;
+  state.roundsTotal = data.rounds_total || state.roundsTotal;
+  state.targetColor = data.question?.target || null;
+  state.gridColors = data.question?.grid || [];
+  state.targetShowMs = data.show_ms || 3000;
+  state.answerMs = data.answer_ms || 5000;
+  state.countdownMs = data.countdown_ms || 3000;
+  updateHUD(state.answerMs);
+
+  const elapsed = (typeof data.elapsed_ms === 'number') ? data.elapsed_ms : 0;
+  if (elapsed <= state.countdownMs) {
+    runCountdown();
+  } else if (elapsed <= (state.countdownMs + state.targetShowMs)) {
+    runTargetShow();
+  } else {
+    runQuestionGrid();
+  }
+}
+
 joinRoom().catch(() => setBadge(STR.joinFailed, 'error'));
 setInterval(() => {
   if (!state.finished) {
@@ -1270,6 +1482,18 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -139,7 +139,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= h(L('title')) ?> â€” <?= h(L('app')) ?></title>
+  <title><?= h(L('title')) ?> — <?= h(L('app')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -154,100 +154,114 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>
     :root{ color-scheme: light dark; }
-    :root,
-    [data-bs-theme="dark"]{ --bg:#0a0f1b; --card:rgba(255,255,255,.08); --bd:rgba(255,255,255,.18); --mut:rgba(229,234,255,.7); --link:#ff6b5b; --text:#ffffff; }
-    [data-bs-theme="light"]{ --bg:#fff4e8; --card:rgba(255,255,255,.9); --bd:rgba(27,31,42,.12); --mut:rgba(31,27,43,.68); --link:#ff6b5b; --text:#1f1b2b; }
     body{
       margin:0;
       font-family:"Rubik","Segoe UI","Helvetica Neue",sans-serif;
-      background:
-        radial-gradient(1100px 640px at 12% 12%, rgba(53,208,186,.18), transparent 60%),
-        radial-gradient(900px 520px at 85% 25%, rgba(255,139,92,.20), transparent 62%),
-        radial-gradient(900px 700px at 50% 90%, rgba(247,195,82,.14), transparent 65%),
-        var(--bg);
-      color:var(--text, #fff);
-      padding:18px;
+      background: var(--bs-body-bg);
+      color: var(--bs-body-color);
+      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
     }
-    body::after{
-      content:"";
-      position:fixed;
-      inset:0;
-      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 22px 22px;
-      opacity:.18;
-      pointer-events:none;
-      z-index:-1;
-    }
-    a{ color:var(--link); text-decoration:none; }
-    .wrap{ max-width:980px; margin:0 auto; }
-    .card{
-      background:linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      border:1px solid var(--bd);
-      border-radius:18px;
-      padding:16px;
-      margin:14px 0;
-      box-shadow: 0 26px 60px rgba(0,0,0,.35);
-    }
-    .top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .btn{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 14px; border-radius:999px;
-      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-      border:1px solid rgba(255,255,255,.18);
-      color:#fff;
-    }
+    .wrap{ max-width:980px; margin:0 auto; padding:18px; display:grid; gap:18px; }
+    .cardx{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:16px; }
+    [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.08); }
+    h1{ margin:0 0 6px 0; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
+    h2{ margin:18px 0 10px 0; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; font-size:16px; }
+    .muted{ opacity:.7; font-size:12px; }
+    .pre{ white-space:pre-line; line-height:1.55; }
+    .links{ display:flex; gap:10px; flex-wrap:wrap; }
     .google-badge{ display:inline-flex; align-items:center; gap:6px; font-weight:600; }
     .google-icon{ width:16px; height:16px; display:inline-block; }
     .google-text{ line-height:1; }
-    h1{ margin:0 0 6px 0; font-size:24px; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
-    h2{ margin:18px 0 10px 0; font-size:16px; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
-    .muted{ color:var(--mut); font-size:12px; }
-    .pre{ white-space:pre-line; line-height:1.55; }
-    .links{ display:flex; gap:10px; flex-wrap:wrap; }
-    hr{ border:0; border-top:1px solid rgba(255,255,255,.12); margin:14px 0; }
-    @media (max-width: 640px){
-      .links{ width:100%; }
-      .links .btn{ width:100%; justify-content:center; }
-    }
-  
-    
-    /* fun-bg */
-    :root{ --grid: rgba(255,255,255,0.08); }
-    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
-    body::before,
-    body::after{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:-1;
-    }
-    body::before{
-      background:
-        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
-        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
-        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
-      opacity:0.6;
-    }
-    body::after{
-      background: radial-gradient(var(--grid) 1px, transparent 1px);
-      background-size: 28px 28px;
-      opacity:0.32;
-    }
-    h1, h2, h3{
-      position: relative;
-      display: inline-block;
-      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
-      letter-spacing:.2px;
-    }
-    h1::after, h2::after, h3::after{
-      content:"";
-      position:absolute;
-      left: 0;
-      bottom: -6px;
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
-      z-index:-1;
-    }
+  </style>
+</head>
+<body>
+  <?php include __DIR__ . '/header.php'; ?>
+  <main class="wrap">
+    <?php $google = '{google}'; ?>
+    <div class="cardx">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+          <h1><?= h(L('title')) ?></h1>
+          <div class="muted"><?= h(L('last_updated')) ?>: <?= h($updated) ?></div>
+        </div>
+        <div class="links">
+          <a class="btn btn-outline-secondary" href="index.php"><?= h(L('back_home')) ?></a>
+          <a class="btn btn-outline-secondary" href="terms.php"><?= h(L('tos')) ?></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_1')) ?></h2>
+      <div class="pre">
+        <strong><?= h(L('s1_1')) ?></strong>
+        <?= "\n" . h(L('s1_1_body', ['google' => $google])) ?>
+      </div>
+      <div class="pre" style="margin-top:10px">
+        <strong><?= h(L('s1_2')) ?></strong>
+        <?= "\n" . h(L('s1_2_body')) ?>
+      </div>
+      <div class="pre" style="margin-top:10px">
+        <strong><?= h(L('s1_3')) ?></strong>
+        <?= "\n" . h(L('s1_3_body')) ?>
+      </div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_2')) ?></h2>
+      <div class="pre"><?= h(L('s2_body', ['google' => $google])) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_3')) ?></h2>
+      <div class="pre"><?= h(L('s3_body')) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_4')) ?></h2>
+      <div class="pre"><?= h(L('s4_body')) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_5')) ?></h2>
+      <div class="pre"><?= h(L('s5_body', ['google' => $google])) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_6')) ?></h2>
+      <div class="pre"><?= h(L('s6_body')) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_7')) ?></h2>
+      <div class="pre"><?= h(L('s7_body')) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_8')) ?></h2>
+      <div class="pre"><?= h(L('s8_body')) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_9')) ?></h2>
+      <div class="pre"><?= h(L('s9_body')) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('section_10')) ?></h2>
+      <div class="pre"><?= h(L('contact_body')) ?></div>
+    </div>
+
+    <div class="cardx">
+      <h2><?= h(L('google_note_title', ['google' => $google])) ?></h2>
+      <div class="pre"><?= h(L('google_note_body', ['google' => $google])) ?></div>
+      <div style="margin-top:10px">
+        <a class="btn btn-outline-secondary" href="https://policies.google.com/privacy" rel="noopener" target="_blank"><?= h(L('google_privacy', ['google' => $google])) ?></a>
+      </div>
+    </div>
+  </main>
+
+  <?php if (is_file(__DIR__ . '/footer.php')) include __DIR__ . '/footer.php'; ?>
+</body>
+</html>

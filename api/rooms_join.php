@@ -50,6 +50,7 @@ if (!add_room_player((string)$room['id'], $userId, $email)) {
       'rounds_total' => (int)$room['rounds_total'],
       'current_round' => (int)$room['current_round'],
       'owner_email' => $room['owner_email'],
+      'owner_id' => $room['owner_id'] ?? null,
   ],
   'players' => list_room_players((string)$room['id']),
 ]);

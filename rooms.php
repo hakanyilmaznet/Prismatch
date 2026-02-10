@@ -103,55 +103,65 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
     .grid{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
     .muted{ opacity:.7; }
-    .form-msg{
-      font-size: 12px;
-      margin-top: 6px;
-      line-height: 1.35;
-    }
-  
-    
-    /* fun-bg */
-    :root{ --grid: rgba(255,255,255,0.08); }
-    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
-    body::before,
-    body::after{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:-1;
-    }
-    body::before{
-      background:
-        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
-        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
-        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
-      opacity:0.6;
-    }
-    body::after{
-      background: radial-gradient(var(--grid) 1px, transparent 1px);
-      background-size: 28px 28px;
-      opacity:0.32;
-    }
-    h1, h2, h3{
-      position: relative;
-      display: inline-block;
-      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
-      letter-spacing:.2px;
-    }
-    h1::after, h2::after, h3::after{
-      content:"";
-      position:absolute;
-      left: 0;
-      bottom: -6px;
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
-      z-index:-1;
-    }
-}
-              ?>
+    .form-msg{ font-size: 12px; margin-top: 6px; line-height: 1.35; }
+  </style>
+</head>
+<body>
+  <?php include __DIR__ . '/header.php'; ?>
+  <main class="wrap">
+    <div class="cardx">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+          <h1><?= htmlspecialchars(tt('rooms_title', 'Rooms')) ?></h1>
+          <div class="muted"><?= htmlspecialchars(tt('rooms_desc', 'Create or join rooms to compete live.')) ?></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cardx">
+      <h2 class="h5 mb-2"><?= htmlspecialchars(tt('rooms_create_title', 'Create a room')) ?></h2>
+      <div class="grid">
+        <div>
+          <label class="form-label" for="roomNameInput"><?= htmlspecialchars(tt('rooms_name_label', 'Room name')) ?></label>
+          <input id="roomNameInput" class="form-control" type="text" maxlength="80" />
+          <div id="createMsg" class="form-msg muted"></div>
+        </div>
+        <div>
+          <button id="createRoomBtn" class="btn btn-primary" type="button"><?= htmlspecialchars(tt('rooms_create_btn', 'Create room')) ?></button>
+          <a id="openRoomBtn" class="btn btn-outline-secondary" href="#" hidden><?= htmlspecialchars(tt('rooms_open', 'Open')) ?></a>
+          <div id="shareWrap" class="mt-2" hidden>
+            <label class="form-label" for="shareLink"><?= htmlspecialchars(tt('rooms_share_link', 'Share link')) ?></label>
+            <div class="input-group">
+              <input id="shareLink" class="form-control" type="text" readonly />
+              <button id="copyLinkBtn" class="btn btn-outline-secondary" type="button"><?= htmlspecialchars(tt('rooms_copy', 'Copy')) ?></button>
+            </div>
+            <div id="shareMsg" class="form-msg muted"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cardx">
+      <h2 class="h5 mb-2"><?= htmlspecialchars(tt('rooms_history', 'History')) ?></h2>
+      <?php if (!$rooms): ?>
+        <div class="muted"><?= htmlspecialchars(tt('no_results', 'No results')) ?></div>
+      <?php else: ?>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th><?= htmlspecialchars(tt('room_name', 'Name')) ?></th>
+                <th><?= htmlspecialchars(tt('room_status', 'Status')) ?></th>
+                <th><?= htmlspecialchars(tt('room_rounds', 'Rounds')) ?></th>
+                <th><?= htmlspecialchars(tt('room_winner', 'Winner')) ?></th>
+                <th><?= htmlspecialchars(tt('room_created', 'Created')) ?></th>
+                <th class="text-end"><?= htmlspecialchars(tt('room_action', 'Action')) ?></th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($rooms as $r):
+              $winner = room_winner_name((string)($r['id'] ?? ''));
+            ?>
               <tr>
                 <td><?= htmlspecialchars($r['name'] ?: '-') ?></td>
                 <td><?= htmlspecialchars(room_status_label($r['status'] ?? '')) ?></td>
@@ -166,14 +176,14 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                 </td>
               </tr>
             <?php endforeach; ?>
-          </tbody>
-        </table>
-      </div>
-    <?php endif; ?>
-  </div>
-</main>
+            </tbody>
+          </table>
+        </div>
+      <?php endif; ?>
+    </div>
+  </main>
 
-<?php include __DIR__ . '/footer.php'; ?>
+  <?php include __DIR__ . '/footer.php'; ?>
 
 <script>
   const createBtn = document.getElementById('createRoomBtn');
@@ -199,17 +209,17 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   createBtn?.addEventListener('click', async () => {
     setMsg(createMsg);
     setMsg(shareMsg);
-      const name = (roomNameInput.value || '').trim();
-      if (!name) {
-        setMsg(createMsg, STR.nameRequired, 'error');
-        return;
-      }
-      try {
-        const res = await fetch('api/rooms_create.php', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({rounds_total: 50, name})
-        });
+    const name = (roomNameInput.value || '').trim();
+    if (!name) {
+      setMsg(createMsg, STR.nameRequired, 'error');
+      return;
+    }
+    try {
+      const res = await fetch('api/rooms_create.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({rounds_total: 50, name})
+      });
       const data = await res.json();
       if (data.ok && data.guid) {
         const url = 'room_play.php?guid=' + encodeURIComponent(data.guid);
@@ -250,6 +260,3 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 </script>
 </body>
 </html>
-
-
-

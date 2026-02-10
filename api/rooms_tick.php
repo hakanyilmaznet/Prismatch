@@ -168,6 +168,24 @@ if ($endedAt !== null) {
   }
 }
 
+if ($endedAt === null) {
+  $question = room_round_question($roomId, $current);
+  if ($question) {
+    echo json_encode([
+      'ok' => true,
+      'round' => $current,
+      'rounds_total' => (int)$room['rounds_total'],
+      'question' => $question,
+      'countdown_ms' => $countdownMs,
+      'show_ms' => $showMs,
+      'answer_ms' => $answerMs,
+      'started_at' => $round['started_at'],
+      'elapsed_ms' => $elapsed,
+    ]);
+    exit;
+  }
+}
+
 echo json_encode(['ok' => true]);
 
 
