@@ -108,10 +108,7 @@ function L(string $k, array $vars = []): string {
 }
 
 function google_badge_html(): string {
-  return '<span class="badge text-bg-light border text-dark d-inline-flex align-items-center gap-1">'
-    . '<img src="google.svg" alt="Google" width="14" height="14" />'
-    . '<span>Google</span>'
-    . '</span>';
+  return '<span class="google-badge"><img src="google.svg" class="google-icon" alt="Google" /><span class="google-text">Google</span></span>';
 }
 
 function h($s): string {
@@ -139,7 +136,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     })();
   </script>
   <link href="css/bootstrap.min.css" rel="stylesheet" />
-  <link href="theme.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -156,88 +152,138 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     'site_name' => L('app'),
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
-  </head>
-<body class="bg-body">
+  <style>
+    :root{ color-scheme: light dark; }
+    :root,
+    [data-bs-theme="dark"]{ --bg:#0b0d12; --card:rgba(255,255,255,.08); --bd:rgba(255,255,255,.18); --mut:rgba(237,242,255,.68); --link:#ff7d5d; --text:#ffffff; }
+    [data-bs-theme="light"]{ --bg:#f6f3ee; --card:rgba(255,255,255,.9); --bd:rgba(27,31,42,.12); --mut:rgba(27,31,42,.65); --link:#e4573f; --text:#1b1f2a; }
+    body{
+      margin:0;
+      font-family:"Plus Jakarta Sans","Segoe UI","Helvetica Neue",sans-serif;
+      background:
+        radial-gradient(1100px 640px at 12% 12%, rgba(53,208,186,.18), transparent 60%),
+        radial-gradient(900px 520px at 85% 25%, rgba(255,139,92,.20), transparent 62%),
+        radial-gradient(900px 700px at 50% 90%, rgba(247,195,82,.14), transparent 65%),
+        var(--bg);
+      color:var(--text, #fff);
+      padding:18px;
+    }
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 22px 22px;
+      opacity:.18;
+      pointer-events:none;
+      z-index:-1;
+    }
+    a{ color:var(--link); text-decoration:none; }
+    .wrap{ max-width:980px; margin:0 auto; }
+    .card{
+      background:linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      border:1px solid var(--bd);
+      border-radius:18px;
+      padding:16px;
+      margin:14px 0;
+      box-shadow: 0 26px 60px rgba(0,0,0,.35);
+    }
+    .top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:999px;
+      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.18);
+      color:#fff;
+    }
+    .google-badge{ display:inline-flex; align-items:center; gap:6px; font-weight:600; }
+    .google-icon{ width:16px; height:16px; display:inline-block; }
+    .google-text{ line-height:1; }
+    h1{ margin:0 0 6px 0; font-size:24px; font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; }
+    h2{ margin:18px 0 10px 0; font-size:16px; font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; }
+    .muted{ color:var(--mut); font-size:12px; }
+    .pre{ white-space:pre-line; line-height:1.55; }
+    .links{ display:flex; gap:10px; flex-wrap:wrap; }
+    hr{ border:0; border-top:1px solid rgba(255,255,255,.12); margin:14px 0; }
+    @media (max-width: 640px){
+      .links{ width:100%; }
+      .links .btn{ width:100%; justify-content:center; }
+    }
+  </style>
+</head>
+<body>
 <?php include __DIR__ . '/header.php'; ?>
-  <div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div class="wrap">
+    <div class="top">
       <div>
         <h1><?= h(L('title')) ?></h1>
-        <div class="text-body-secondary small"><?= h(L('last_updated')) ?>: <?= h($updated) ?></div>
+        <div class="muted"><?= h(L('last_updated')) ?>: <?= h($updated) ?></div>
       </div>
-        <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2" href="play.php">
-          <img width="16" height="16" class="me-2" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+        <div class="links">
+        <a class="btn" href="play.php">
+          <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
           <?= h(L('back_home')) ?>
         </a>
-        <a class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2" href="terms.php">
-          <img width="16" height="16" class="me-2" src="bootstrap-icons/journal-text.svg" alt="" aria-hidden="true" />
+        <a class="btn" href="terms.php">
+          <img class="bi-icon" src="bootstrap-icons/journal-text.svg" alt="" aria-hidden="true" />
           <?= h(L('tos')) ?>
         </a>
         </div>
     </div>
 
-    <div class="card"><div class="card-body">
+    <div class="card">
       <h2><?= h(L('section_1')) ?></h2>
       <h2 style="margin-top:10px"><?= h(L('s1_1')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s1_1_body'))) ?></div>
+      <div class="pre"><?= h(L('s1_1_body')) ?></div>
 
       <h2><?= h(L('s1_2')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s1_2_body'))) ?></div>
+      <div class="pre"><?= h(L('s1_2_body')) ?></div>
 
       <h2><?= h(L('s1_3')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s1_3_body'))) ?></div>
+      <div class="pre"><?= h(L('s1_3_body')) ?></div>
 
       <hr>
 
       <h2><?= h(L('section_2')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s2_body'))) ?></div>
+      <div class="pre"><?= h(L('s2_body')) ?></div>
 
       <h2><?= h(L('section_3')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s3_body'))) ?></div>
+      <div class="pre"><?= h(L('s3_body')) ?></div>
 
       <h2><?= h(L('section_4')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s4_body'))) ?></div>
+      <div class="pre"><?= h(L('s4_body')) ?></div>
 
       <h2><?= h(L('section_5')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s5_body'))) ?></div>
-      <div class="text-body-secondary small mt-2">
+      <div class="pre"><?= h(L('s5_body')) ?></div>
+      <div class="muted" style="margin-top:8px">
         <a href="https://policies.google.com/privacy" target="_blank" rel="noopener"><?= h(L('google_privacy')) ?></a>
       </div>
 
       <h2><?= h(L('section_6')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s6_body'))) ?></div>
+      <div class="pre"><?= h(L('s6_body')) ?></div>
 
       <h2><?= h(L('section_7')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s7_body'))) ?></div>
+      <div class="pre"><?= h(L('s7_body')) ?></div>
 
       <h2><?= h(L('section_8')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s8_body'))) ?></div>
+      <div class="pre"><?= h(L('s8_body')) ?></div>
 
       <h2><?= h(L('section_9')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('s9_body'))) ?></div>
+      <div class="pre"><?= h(L('s9_body')) ?></div>
 
       <h2><?= h(L('section_10')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('contact_body'))) ?></div>
+      <div class="pre"><?= h(L('contact_body')) ?></div>
 
       <hr>
 
       <h2><?= h(L('google_note_title')) ?></h2>
-      <div class="mb-3"><?= nl2br(h(L('google_note_body'))) ?></div>
+      <div class="pre"><?= h(L('google_note_body')) ?></div>
     </div>
-  </div>
 
     <?php include __DIR__ . '/footer.php'; ?>
   </div>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 

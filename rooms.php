@@ -72,7 +72,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     })();
   </script>
   <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <link href="theme.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -89,53 +88,70 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     'site_name' => tt('app_name', 'Prismatch'),
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
-  </head>
-<body class="bg-body">
+  <style>
+    :root{ color-scheme: light dark; }
+    body{
+      margin:0;
+      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+      background: var(--bs-body-bg);
+      color: var(--bs-body-color);
+      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
+    }
+    .wrap{ max-width: 980px; margin:0 auto; padding: 18px; display:grid; gap:18px; }
+    .cardx{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius: 16px; padding:16px; }
+    [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
+    .grid{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .muted{ opacity:.7; }
+    .form-msg{
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
 <?php include __DIR__ . '/header.php'; ?>
 
-<main class="container py-4">
-  <div class="card p-3">
+<main class="wrap">
+  <div class="cardx">
     <h1 class="h4 m-0"><?= htmlspecialchars(tt('rooms_title', 'Rooms')) ?></h1>
-    <div class="text-body-secondary small"><?= htmlspecialchars(tt('rooms_desc', 'Create or join rooms to compete live.')) ?></div>
+    <div class="muted"><?= htmlspecialchars(tt('rooms_desc', 'Create or join rooms to compete live.')) ?></div>
   </div>
 
-  <div class="row g-3">
-    <div class="col-md-6">
-      <div class="card p-3">
+  <div class="grid">
+    <div class="cardx">
       <h2 class="h6"><?= htmlspecialchars(tt('rooms_create', 'Create room')) ?></h2>
-      <div class="text-body-secondary small mb-2"><?= htmlspecialchars(tt('rooms_name_label', 'Room name')) ?></div>
+      <div class="mb-2 muted"><?= htmlspecialchars(tt('rooms_name_label', 'Room name')) ?></div>
       <input type="text" id="roomNameInput" class="form-control mb-2" maxlength="80"
              placeholder="<?= htmlspecialchars(tt('rooms_name_placeholder', 'Give your room a name')) ?>" />
       <div class="input-group mb-2">
         <button class="btn btn-primary" id="createRoomBtn"><?= htmlspecialchars(tt('rooms_create_btn', 'Create')) ?></button>
       </div>
-      <div id="createMsg" class="small"></div>
+      <div id="createMsg" class="form-msg"></div>
       <div id="shareWrap" class="mt-3" hidden>
-        <div class="text-body-secondary small mb-2"><?= htmlspecialchars(tt('rooms_share_label', 'Share room link')) ?></div>
+        <div class="small muted mb-2"><?= htmlspecialchars(tt('rooms_share_label', 'Share room link')) ?></div>
         <div class="input-group">
           <input type="text" id="shareLink" class="form-control" readonly />
           <button class="btn btn-outline-primary" id="copyLinkBtn"><?= htmlspecialchars(tt('rooms_share_copy', 'Copy link')) ?></button>
         </div>
-        <div id="shareMsg" class="small mt-1"></div>
-      </div>
+        <div id="shareMsg" class="form-msg mt-1"></div>
       </div>
     </div>
 
-    <div class="col-md-6">
-      <div class="card p-3">
+    <div class="cardx">
       <h2 class="h6"><?= htmlspecialchars(tt('rooms_join', 'Join room')) ?></h2>
-      <div class="text-body-secondary small"><?= htmlspecialchars(tt('rooms_join_hint', 'Join by opening the room link.')) ?></div>
+      <div class="muted"><?= htmlspecialchars(tt('rooms_join_hint', 'Join by opening the room link.')) ?></div>
       <a class="btn btn-outline-primary mt-3" id="openRoomBtn" href="#" hidden>
         <?= htmlspecialchars(tt('rooms_open', 'Open')) ?>
       </a>
-      </div>
     </div>
   </div>
 
-  <div class="card p-3">
+  <div class="cardx">
     <h2 class="h6"><?= htmlspecialchars(tt('rooms_recent', 'Your rooms')) ?></h2>
     <?php if (!$rooms): ?>
-      <div class="text-body-secondary small"><?= htmlspecialchars(tt('rooms_empty', 'No rooms yet.')) ?></div>
+      <div class="muted"><?= htmlspecialchars(tt('rooms_empty', 'No rooms yet.')) ?></div>
     <?php else: ?>
       <div class="table-responsive">
         <table class="table table-sm align-middle">
@@ -192,9 +208,8 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   const setMsg = (el, text = '', type = '') => {
     if (!el) return;
     el.textContent = text || '';
-    el.classList.remove('text-danger', 'text-success');
-    if (text && type === 'error') el.classList.add('text-danger');
-    if (text && type === 'success') el.classList.add('text-success');
+    el.classList.remove('pm-error', 'pm-success');
+    if (text && type) el.classList.add(`pm-${type}`);
   };
   const STR = {
     shareCopied: <?= json_encode(tt('rooms_share_copied', 'Link copied.')) ?>,
@@ -256,12 +271,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 </script>
 </body>
 </html>
-
-
-
-
-
-
 
 
 

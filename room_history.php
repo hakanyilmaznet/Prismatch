@@ -93,7 +93,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     })();
   </script>
   <link href="css/bootstrap.min.css" rel="stylesheet" />
-  <link href="theme.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -110,13 +109,29 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     'site_name' => tt('app_name', 'Prismatch'),
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
-  </head>
-<body class="bg-body">
+  <style>
+    :root{ color-scheme: light dark; }
+    body{
+      margin:0;
+      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+      background: var(--bs-body-bg);
+      color: var(--bs-body-color);
+      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
+    }
+    .wrap{ max-width: 1100px; margin:0 auto; padding: 18px; display:grid; gap:16px; }
+    .panel{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius: 16px; padding:16px; }
+    [data-bs-theme="light"] .panel{ background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
+    .muted{ opacity:.7; }
+    .color-swatch{ width:18px; height:18px; border-radius: 6px; display:inline-block; vertical-align:middle; border:1px solid rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
 <?php include __DIR__ . '/header.php'; ?>
-<main class="container py-4">
+<main class="wrap">
   <div class="panel">
     <div class="h5 m-0"><?= htmlspecialchars(tt('room_history_title', 'Room History')) ?></div>
-    <div class="text-body-secondary small">
+    <div class="muted small">
       <?= htmlspecialchars($room['name'] ?: tt('rooms_name', 'Room')) ?> • <?= htmlspecialchars(tt('room_guid', 'GUID')) ?>: <?= htmlspecialchars($room['guid']) ?> • <?= htmlspecialchars(room_status_label($room['status'] ?? '')) ?>
     </div>
   </div>
@@ -152,7 +167,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <div class="panel">
     <div class="h6"><?= htmlspecialchars(tt('room_rounds', 'Rounds')) ?></div>
     <?php if (!$rounds): ?>
-      <div class="text-body-secondary small"><?= htmlspecialchars(tt('room_no_rounds', 'No rounds recorded.')) ?></div>
+      <div class="muted"><?= htmlspecialchars(tt('room_no_rounds', 'No rounds recorded.')) ?></div>
     <?php else: ?>
       <?php foreach ($rounds as $r): ?>
         <?php $q = json_decode($r['question_json'], true); $target = $q['target'] ?? ''; ?>
@@ -163,7 +178,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           ?>
           <div class="fw-semibold"><?= htmlspecialchars($roundLabel) ?></div>
           <?php if ($target): ?>
-            <div class="text-body-secondary small"><?= htmlspecialchars(tt('room_target_label', 'Target')) ?>: <span class="rounded-circle border d-inline-block" style="width:12px;height:12px;background:<?= htmlspecialchars($target) ?>"></span> <?= htmlspecialchars($target) ?></div>
+            <div class="muted small"><?= htmlspecialchars(tt('room_target_label', 'Target')) ?>: <span class="color-swatch" style="background:<?= htmlspecialchars($target) ?>"></span> <?= htmlspecialchars($target) ?></div>
           <?php endif; ?>
           <div class="mt-2">
             <?php foreach (($byRound[(int)$r['round_index']] ?? []) as $ev): ?>
@@ -194,11 +209,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 <?php include __DIR__ . '/footer.php'; ?>
 </body>
 </html>
-
-
-
-
-
 
 
 
