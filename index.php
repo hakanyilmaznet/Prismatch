@@ -43,7 +43,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <?= seo_meta([
@@ -57,73 +57,101 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     'site_name' => tt('app_name', 'Prismatch'),
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
-  <style>
+    <style>
     :root{ color-scheme: light dark; }
     :root,
     [data-bs-theme="dark"]{
-      --bg: #0b0d12;
-      --text: #f7f7f4;
-      --muted: rgba(237,242,255,0.68);
-      --panel: rgba(255,255,255,0.08);
-      --panel-soft: rgba(255,255,255,0.05);
-      --surface: rgba(14,16,22,0.7);
-      --accent: #ff7d5d;
-      --accent2: #3dd6a0;
-      --accent3: #ffd08a;
-      --shadow: 0 32px 70px rgba(0,0,0,0.55);
-      --radius: 20px;
-      --grid: rgba(255,255,255,0.06);
+      --bg: #0a0f1b;
+      --text: #f7f3ff;
+      --muted: rgba(229,234,255,0.7);
+      --panel: rgba(255,255,255,0.12);
+      --panel-soft: rgba(255,255,255,0.08);
+      --surface: rgba(12,16,28,0.7);
+      --accent: #ff6b5b;
+      --accent2: #49f2b2;
+      --accent3: #ffd36b;
+      --accent4: #7c89ff;
+      --shadow: 0 36px 70px rgba(0,0,0,0.55);
+      --radius: 24px;
+      --grid: rgba(255,255,255,0.08);
     }
     [data-bs-theme="light"]{
-      --bg: #f6f3ee;
-      --text: #1b1f2a;
-      --muted: rgba(27,31,42,0.65);
-      --panel: rgba(255,255,255,0.9);
-      --panel-soft: rgba(255,255,255,0.6);
-      --surface: rgba(255,255,255,0.86);
-      --accent: #e4573f;
-      --accent2: #1e9b79;
-      --accent3: #f4b66a;
-      --shadow: 0 26px 60px rgba(26,28,35,0.16);
-      --radius: 20px;
-      --grid: rgba(27,31,42,0.08);
+      --bg: #fff4e8;
+      --text: #1f1b2b;
+      --muted: rgba(31,27,43,0.68);
+      --panel: rgba(255,255,255,0.95);
+      --panel-soft: rgba(255,255,255,0.75);
+      --surface: rgba(255,255,255,0.92);
+      --accent: #ff6b5b;
+      --accent2: #20b77d;
+      --accent3: #ffb24b;
+      --accent4: #6c79ff;
+      --shadow: 0 28px 56px rgba(40,29,12,0.18);
+      --radius: 24px;
+      --grid: rgba(31,27,43,0.1);
     }
     *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
       color: var(--text);
       background: var(--bg);
       min-height:100vh;
-      padding: 24px;
+      padding: 26px;
       padding-bottom: calc(100px + env(safe-area-inset-bottom));
     }
     body::after{
       content:"";
       position:fixed;
       inset:0;
-      background-image: radial-gradient(var(--grid) 1px, transparent 1px);
-      background-size: 24px 24px;
-      opacity:.35;
+      background:
+        radial-gradient(700px 700px at 10% 10%, rgba(255,107,91,0.22), transparent 60%),
+        radial-gradient(640px 640px at 90% 15%, rgba(124,137,255,0.2), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.18), transparent 60%),
+        radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: auto, auto, auto, 26px 26px;
+      opacity:.6;
       pointer-events:none;
       z-index:-1;
     }
     a{ color: inherit; text-decoration:none; }
-    .page{ max-width: 1120px; margin:0 auto; display:flex; flex-direction:column; gap:28px; }
+    .page{ max-width: 1160px; margin:0 auto; display:flex; flex-direction:column; gap:30px; }
 
     .hero{
+      position:relative;
       display:grid;
-      gap:18px;
+      gap:22px;
       background: var(--surface);
-      border: 1px solid var(--grid);
-      border-radius: var(--radius);
-      padding: 26px;
+      border: 2px solid var(--grid);
+      border-radius: calc(var(--radius) + 6px);
+      padding: 28px;
       box-shadow: var(--shadow);
+      overflow:hidden;
     }
+    .hero::before,
+    .hero::after{
+      content:"";
+      position:absolute;
+      border-radius: 999px;
+      filter: blur(2px);
+      opacity:.8;
+      z-index:0;
+    }
+    .hero::before{
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(255,178,75,0.8), transparent 70%);
+      top: -40px; right: -30px;
+    }
+    .hero::after{
+      width: 210px; height: 210px;
+      background: radial-gradient(circle, rgba(73,242,178,0.7), transparent 70%);
+      bottom: -60px; left: -40px;
+    }
+    .hero > *{ position:relative; z-index:1; }
     .hero h1{
       margin:0 0 10px 0;
-      font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif;
-      font-size: clamp(30px, 6vw, 46px);
+      font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif;
+      font-size: clamp(32px, 6vw, 52px);
       letter-spacing:.2px;
     }
     .hero p{ margin:0; color: var(--muted); line-height:1.6; }
@@ -131,51 +159,65 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     .hero .eyebrow{
       display:inline-flex; align-items:center; gap:8px;
       font-size:12px; letter-spacing:.3px; text-transform:uppercase; font-weight:700;
-      color: var(--text);
-      background: var(--panel-soft);
+      color: #1b1511;
+      background: linear-gradient(135deg, #ffd36b, #ffb24b);
       border-radius: 999px;
       padding: 6px 12px;
       margin-bottom: 12px;
     }
+    [data-bs-theme="dark"] .hero .eyebrow{ color: #1b1511; }
     .hero .quick{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 18px; }
     .hero .lead{ font-size:15px; }
+    .hero .icon-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 14px; }
+    .icon-pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:2px solid var(--grid);
+      background: var(--panel-soft);
+      font-size:12px;
+      font-weight:600;
+    }
+    .icon-pill img{ width:16px; height:16px; opacity:.9; }
+    .icon-pill.pop{ background: linear-gradient(135deg, rgba(255,211,107,0.9), rgba(255,107,91,0.75)); color:#1b1511; }
+    .icon-pill.chill{ background: linear-gradient(135deg, rgba(124,137,255,0.2), rgba(73,242,178,0.25)); }
 
     .btn{
       display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      padding: 10px 16px;
+      padding: 11px 18px;
       border-radius: 999px;
-      border:1px solid var(--grid);
+      border:2px solid var(--grid);
       background: var(--panel);
       color: var(--text);
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing:.2px;
       transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
       white-space: nowrap;
     }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,125,93,0.55); box-shadow: 0 16px 32px rgba(255,125,93,0.18); }
+    .btn:hover{ transform: translateY(-2px); border-color: rgba(255,107,91,0.6); box-shadow: 0 18px 34px rgba(255,107,91,0.22); }
     .btn.primary{
-      background: linear-gradient(135deg, #ff7d5d, #ffd08a);
-      border-color: rgba(255,125,93,0.55);
-      color:#101318;
-      box-shadow: 0 18px 36px rgba(255,125,93,0.25);
+      background: linear-gradient(135deg, #ff6b5b, #ffd36b);
+      border-color: rgba(255,107,91,0.6);
+      color:#14111b;
+      box-shadow: 0 20px 38px rgba(255,107,91,0.3);
     }
 
     .chip{
-      background: var(--panel-soft);
-      border:1px solid var(--grid);
-      padding:6px 10px;
+      background: var(--panel);
+      border:2px solid var(--grid);
+      padding:6px 12px;
       border-radius: 999px;
       font-size:12px;
       color: var(--text);
     }
 
     .showcase{
-      border-radius: calc(var(--radius) + 6px);
-      border:1px dashed var(--grid);
+      border-radius: calc(var(--radius) + 10px);
+      border:2px dashed var(--grid);
       background:
-        radial-gradient(180px 180px at 20% 20%, rgba(61,214,160,0.2), transparent 70%),
-        radial-gradient(220px 220px at 80% 20%, rgba(255,125,93,0.18), transparent 70%),
-        radial-gradient(260px 260px at 50% 80%, rgba(255,208,138,0.2), transparent 70%),
+        radial-gradient(180px 180px at 20% 20%, rgba(73,242,178,0.25), transparent 70%),
+        radial-gradient(220px 220px at 80% 20%, rgba(255,107,91,0.2), transparent 70%),
+        radial-gradient(260px 260px at 50% 80%, rgba(255,211,107,0.25), transparent 70%),
         var(--panel-soft);
       min-height: 220px;
       padding: 20px;
@@ -189,7 +231,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       font-size:12px;
       padding:6px 12px;
       border-radius:999px;
-      border:1px solid var(--grid);
+      border:2px solid var(--grid);
       background: rgba(12,14,20,0.4);
       color: var(--text);
     }
@@ -197,7 +239,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     .showcase strong{ font-size:18px; }
 
     .section-title{
-      font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif;
+      font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif;
       margin: 8px 0 12px 0;
       font-size: 20px;
       letter-spacing:.2px;
@@ -205,8 +247,8 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     .grid{ display:grid; gap:14px; }
     .card{
       background: var(--surface);
-      border:1px solid var(--grid);
-      border-radius: 18px;
+      border:2px solid var(--grid);
+      border-radius: 20px;
       padding: 18px;
       box-shadow: var(--shadow);
     }
@@ -218,28 +260,52 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     .step .num{
       width:32px; height:32px;
       border-radius: 12px;
-      background: var(--panel-soft);
+      background: linear-gradient(135deg, rgba(255,211,107,0.9), rgba(255,107,91,0.8));
       display:flex; align-items:center; justify-content:center;
       font-weight:700;
+      color: #1b1511;
     }
 
-    .score-grid{ display:grid; gap:14px; }
-    .score-card{
+    .fun-grid{ display:grid; gap:14px; }
+    .fun-card{
       background: var(--surface);
-      border:1px solid var(--grid);
-      border-radius: 18px;
+      border:2px solid var(--grid);
+      border-radius: 22px;
       padding: 18px;
       box-shadow: var(--shadow);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
     }
-    .score-card code{
-      display:inline-block;
-      background: var(--panel-soft);
-      border:1px solid var(--grid);
-      padding:4px 8px;
-      border-radius: 8px;
-      font-family: "Space Grotesk", "Segoe UI", sans-serif;
-      font-size: 12px;
-      color: var(--text);
+    .fun-card .ribbon{
+      position:absolute;
+      top:12px; right:12px;
+      padding:4px 10px;
+      border-radius: 999px;
+      font-size:11px;
+      font-weight:700;
+      color:#1b1511;
+      background: linear-gradient(135deg, #ffd36b, #ffb24b);
+      border:1px solid rgba(0,0,0,0.08);
+    }
+    .fun-card .ribbon.fast{ background: linear-gradient(135deg, #ff8a6b, #ffd36b); }
+    .fun-card .ribbon.daily{ background: linear-gradient(135deg, #7c89ff, #49f2b2); color:#10131b; }
+    .fun-card .ribbon.bonus{ background: linear-gradient(135deg, #ffb24b, #ff6b5b); }
+    .fun-card .spark{
+      width:40px; height:40px;
+      border-radius: 14px;
+      display:grid; place-items:center;
+      font-weight:800;
+      color:#1b1511;
+      background: linear-gradient(135deg, #49f2b2, #ffd36b);
+    }
+    .fun-card p{ margin:0; color: var(--muted); line-height:1.5; }
+    .fun-card .spark{ animation: pulse 2.2s ease-in-out infinite; }
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); box-shadow: 0 0 0 rgba(255,211,107,0.0); }
+      50%{ transform: scale(1.06); box-shadow: 0 0 20px rgba(255,211,107,0.35); }
     }
 
     .reveal{ animation: fadeUp .6s ease both; }
@@ -249,19 +315,60 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       .hero{ grid-template-columns: 1.1fr 0.9fr; align-items:center; }
       .grid.cols-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
       .grid.cols-2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .score-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .fun-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
     }
-  </style>
+  
+    /* fun-bg */
+    :root{ --grid: rgba(255,255,255,0.08); }
+    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+    }
+    body::before{
+      background:
+        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
+        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
+      opacity:0.6;
+    }
+    body::after{
+      background: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity:0.32;
+    }
+    h1, h2, h3{
+      position: relative;
+      display: inline-block;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      letter-spacing:.2px;
+    }
+    h1::after, h2::after, h3::after{
+      content:"";
+      position:absolute;
+      left: 0;
+      bottom: -6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
+      z-index:-1;
+    }
+</style>
 </head>
 <body>
   <div class="page">
     <?php include __DIR__ . '/header.php'; ?>
         <section class="hero reveal" style="animation-delay:.04s">
       <div>
-        <span class="eyebrow"><?= htmlspecialchars(tt('home_showcase_badge', 'Mini eðitim • 3 adým')) ?></span>
-        <h1><?= htmlspecialchars(tt('home_hero_title', 'Renkleri hatýrla, doðru tonu yakala.')) ?></h1>
-        <p><?= htmlspecialchars(tt('home_hero_subtitle', 'Prismatch, hýzla deðiþen renkleri kýsa süreli hafýzanda tutmaný ister. Her turda süre kýsalýr, grid yoðunlaþýr ve tek bir doðru renk seni bir sonraki aþamaya taþýr.')) ?></p>
-        <p class="lead"><?= htmlspecialchars(tt('home_creative', 'Renklerin hafýzada þiir gibi kaldýðý bir ritme gir: Ýpucu kaybolur, zihnin tonu yakalar. Her doðru seçim, bir sonraki sahneyi açar.')) ?></p>
+        <span class="eyebrow"><?= htmlspecialchars(tt('home_showcase_badge', 'Mini eÄŸitim â€¢ 3 adÄ±m')) ?></span>
+        <h1><?= htmlspecialchars(tt('home_hero_title', 'Renkleri hatÄ±rla, doÄŸru tonu yakala.')) ?></h1>
+        <p><?= htmlspecialchars(tt('home_hero_subtitle', 'Prismatch, hÄ±zla deÄŸiÅŸen renkleri kÄ±sa sÃ¼reli hafÄ±zanda tutmanÄ± ister. Her turda sÃ¼re kÄ±salÄ±r, grid yoÄŸunlaÅŸÄ±r ve tek bir doÄŸru renk seni bir sonraki aÅŸamaya taÅŸÄ±r.')) ?></p>
+        <p class="lead"><?= htmlspecialchars(tt('home_creative', 'Renklerin hafÄ±zada ÅŸiir gibi kaldÄ±ÄŸÄ± bir ritme gir: Ä°pucu kaybolur, zihnin tonu yakalar. Her doÄŸru seÃ§im, bir sonraki sahneyi aÃ§ar.')) ?></p>
           <div class="cta">
             <a class="btn primary" href="play.php">
               <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
@@ -269,7 +376,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             </a>
             <a class="btn" href="play.php?daily=1">
               <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" />
-              <?= htmlspecialchars(tt('home_cta_daily', 'Günlük Meydan Okuma')) ?>
+              <?= htmlspecialchars(tt('home_cta_daily', 'GÃ¼nlÃ¼k Meydan Okuma')) ?>
             </a>
             <a class="btn" href="daily_leaderboard.php">
               <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
@@ -277,34 +384,39 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             </a>
           </div>
         <div class="quick">
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin açan kýsa turlar')) ?></span>
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_2_title', 'Günlük meydan okuma')) ?></span>
-          <span class="chip"><?= htmlspecialchars(tt('home_benefit_3_title', 'Çok dil ve istatistik')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin aÃ§an kÄ±sa turlar')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_2_title', 'GÃ¼nlÃ¼k meydan okuma')) ?></span>
+          <span class="chip"><?= htmlspecialchars(tt('home_benefit_3_title', 'Ã‡ok dil ve istatistik')) ?></span>
+        </div>
+        <div class="icon-row" aria-hidden="true">
+          <span class="icon-pill pop"><img src="bootstrap-icons/lightning-charge-fill.svg" alt="" />HÄ±z</span>
+          <span class="icon-pill chill"><img src="bootstrap-icons/palette-fill.svg" alt="" />Renk</span>
+          <span class="icon-pill"><img src="bootstrap-icons/stars.svg" alt="" />Bonus</span>
         </div>
       </div>
       <div class="showcase">
-        <strong><?= htmlspecialchars(tt('home_showcase_title', 'Bir tur nasýl iþler?')) ?></strong>
-        <div><?= htmlspecialchars(tt('home_showcase_body', 'Hedef rengi gör, hafýzanda tut ve 5 saniye içinde gridde bul.')) ?></div>
+        <strong><?= htmlspecialchars(tt('home_showcase_title', 'Bir tur nasÄ±l iÅŸler?')) ?></strong>
+        <div><?= htmlspecialchars(tt('home_showcase_body', 'Hedef rengi gÃ¶r, hafÄ±zanda tut ve 5 saniye iÃ§inde gridde bul.')) ?></div>
         <div class="steps" style="margin-top:8px">
           <div class="step">
             <div class="num">1</div>
             <div>
               <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_1_title', 'Hedef rengi izle')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_1_body', 'Ekranda kýsa süre gösterilen rengi dikkatle aklýnda tut.')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_1_body', 'Ekranda kÄ±sa sÃ¼re gÃ¶sterilen rengi dikkatle aklÄ±nda tut.')) ?></div>
             </div>
           </div>
           <div class="step">
             <div class="num">2</div>
             <div>
-              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_2_title', 'Gridde doðru rengi seç')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_2_body', 'Zaman bitmeden, hatýrladýðýn rengi 9 seçenek arasýnda bul.')) ?></div>
+              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_2_title', 'Gridde doÄŸru rengi seÃ§')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_2_body', 'Zaman bitmeden, hatÄ±rladÄ±ÄŸÄ±n rengi 9 seÃ§enek arasÄ±nda bul.')) ?></div>
             </div>
           </div>
           <div class="step">
             <div class="num">3</div>
             <div>
-              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_3_title', 'Aþamalarý geç, skoru yükselt')) ?></div>
-              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_3_body', 'Her doðru eþleþme seni bir üst aþamaya taþýr.')) ?></div>
+              <div style="font-weight:700"><?= htmlspecialchars(tt('home_step_3_title', 'AÅŸamalarÄ± geÃ§, skoru yÃ¼kselt')) ?></div>
+              <div style="color:var(--muted)"><?= htmlspecialchars(tt('home_step_3_body', 'Her doÄŸru eÅŸleÅŸme seni bir Ã¼st aÅŸamaya taÅŸÄ±r.')) ?></div>
             </div>
           </div>
         </div>
@@ -312,54 +424,57 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     </section>
 
     <section class="reveal" style="animation-delay:.1s">
-      <div class="section-title"><?= htmlspecialchars(tt('home_intro_title', 'Proje ne saðlýyor?')) ?></div>
+      <div class="section-title"><?= htmlspecialchars(tt('home_intro_title', 'Proje ne saÄŸlÄ±yor?')) ?></div>
       <div class="grid cols-2">
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_intro_headline', 'Hýzlý odak & hafýza egzersizi')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_intro_body', 'Kýsa süreli hatýrlama ve dikkat kontrolünü ölçen mikro turlar, gün içinde pratik yapmak için ideal.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_intro_headline', 'HÄ±zlÄ± odak & hafÄ±za egzersizi')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_intro_body', 'KÄ±sa sÃ¼reli hatÄ±rlama ve dikkat kontrolÃ¼nÃ¼ Ã¶lÃ§en mikro turlar, gÃ¼n iÃ§inde pratik yapmak iÃ§in ideal.')) ?></p>
         </div>
         <div class="card">
           <h3><?= htmlspecialchars(tt('home_intro_headline2', 'Geri bildirim ve ilerleme')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_intro_body2', 'Aþama, doðru eþleþme ve süre kayýtlarýyla geliþimini takip edebilir, günlük hedef koyabilirsin.')) ?></p>
+          <p><?= htmlspecialchars(tt('home_intro_body2', 'AÅŸama, doÄŸru eÅŸleÅŸme ve sÃ¼re kayÄ±tlarÄ±yla geliÅŸimini takip edebilir, gÃ¼nlÃ¼k hedef koyabilirsin.')) ?></p>
         </div>
       </div>
     </section>
 
     <section class="reveal" style="animation-delay:.16s">
-      <div class="section-title"><?= htmlspecialchars(tt('home_benefits_title', 'Öne çýkan faydalar')) ?></div>
+      <div class="section-title"><?= htmlspecialchars(tt('home_benefits_title', 'Ã–ne Ã§Ä±kan faydalar')) ?></div>
       <div class="grid cols-3">
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin açan kýsa turlar')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_1_body', 'Her tur birkaç saniye sürer; kýsa molalarda bile kolayca oynanýr.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_1_title', 'Zihin aÃ§an kÄ±sa turlar')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_1_body', 'Her tur birkaÃ§ saniye sÃ¼rer; kÄ±sa molalarda bile kolayca oynanÄ±r.')) ?></p>
         </div>
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_2_title', 'Günlük meydan okuma')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_2_body', 'Her gün tek deneme hakkýyla odak ve süre yönetimini geliþtirir.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_2_title', 'GÃ¼nlÃ¼k meydan okuma')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_2_body', 'Her gÃ¼n tek deneme hakkÄ±yla odak ve sÃ¼re yÃ¶netimini geliÅŸtirir.')) ?></p>
         </div>
         <div class="card">
-          <h3><?= htmlspecialchars(tt('home_benefit_3_title', 'Çok dil ve istatistik')) ?></h3>
-          <p><?= htmlspecialchars(tt('home_benefit_3_body', 'Farklý dillerde oynar, performansýný kayýt altýna alýrsýn.')) ?></p>
+          <h3><?= htmlspecialchars(tt('home_benefit_3_title', 'Ã‡ok dil ve istatistik')) ?></h3>
+          <p><?= htmlspecialchars(tt('home_benefit_3_body', 'FarklÄ± dillerde oynar, performansÄ±nÄ± kayÄ±t altÄ±na alÄ±rsÄ±n.')) ?></p>
         </div>
       </div>
     </section>
 
-    <section class="reveal" style="animation-delay:.22s">
-      <div class="section-title"><?= htmlspecialchars(tt('home_score_title', 'Scoring algorithm')) ?></div>
-      <div class="score-grid">
-        <div class="score-card">
-          <strong><?= htmlspecialchars(tt('home_score_rule_1', 'Level impact (70%)')) ?></strong>
-          <p><?= htmlspecialchars(tt('home_score_rule_1_body', 'The higher the stage you reach, the higher your score.')) ?></p>
-          <code>levelFactor = reachedLevel / 50</code>
+        <section class="reveal" style="animation-delay:.22s">
+      <div class="section-title"><?= htmlspecialchars(tt('home_fun_title', 'EÄŸlenceli modlar ve sÃ¼rprizler')) ?></div>
+      <div class="fun-grid">
+        <div class="fun-card">
+          <span class="ribbon fast">HÄ±zlÄ±</span>
+          <div class="spark">POP</div>
+          <strong><?= htmlspecialchars(tt('home_fun_1_title', 'Mini turlar')) ?></strong>
+          <p><?= htmlspecialchars(tt('home_fun_1_body', '60 saniye, 3 seviye, tek amaÃ§: rengi yakala!')) ?></p>
         </div>
-        <div class="score-card">
-          <strong><?= htmlspecialchars(tt('home_score_rule_2', 'Speed impact (30%)')) ?></strong>
-          <p><?= htmlspecialchars(tt('home_score_rule_2_body', 'For correct answers, we use target show time / response time ratio.')) ?></p>
-          <code>timeFactor = min(1, avgRatio / 1.5)</code>
+        <div class="fun-card">
+          <span class="ribbon daily">GÃ¼nlÃ¼k</span>
+          <div class="spark">GO</div>
+          <strong><?= htmlspecialchars(tt('home_fun_2_title', 'GÃ¼nlÃ¼k meydan okuma')) ?></strong>
+          <p><?= htmlspecialchars(tt('home_fun_2_body', 'BugÃ¼nlÃ¼k tek ÅŸans. Herkes aynÄ± renklerle yarÄ±ÅŸÄ±r.')) ?></p>
         </div>
-        <div class="score-card">
-          <strong><?= htmlspecialchars(tt('home_score_rule_3', 'Final formula')) ?></strong>
-          <p><?= htmlspecialchars(tt('home_score_rule_3_body', 'Level and speed are scaled to a 0–1000 score.')) ?></p>
-          <code>score = round(1000 * (0.7*levelFactor + 0.3*timeFactor))</code>
+        <div class="fun-card">
+          <span class="ribbon bonus">Bonus</span>
+          <div class="spark">WOW</div>
+          <strong><?= htmlspecialchars(tt('home_fun_3_title', 'SÃ¼rpriz Ã¶dÃ¼ller')) ?></strong>
+          <p><?= htmlspecialchars(tt('home_fun_3_body', 'Seri doÄŸru seÃ§im = rozet, yeni tema, gizli bonus.')) ?></p>
         </div>
       </div>
     </section>

@@ -109,7 +109,7 @@ foreach ($rows as $g) {
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
   <title><?= h(TT('games_title','My Games')) ?> — <?= h(TT('app_name','Prismatch')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
@@ -127,29 +127,29 @@ foreach ($rows as $g) {
     :root{ color-scheme: light dark; }
     :root,
     [data-bs-theme="dark"]{
-      --bg:#0b0d12;
+      --bg:#0a0f1b;
       --card:rgba(255,255,255,.08);
       --bd:rgba(255,255,255,.16);
-      --mut:rgba(237,242,255,.68);
-      --link:#ff7d5d;
-      --accent:#3dd6a0;
-      --accent2:#ffd08a;
+      --mut:rgba(229,234,255,.7);
+      --link:#ff6b5b;
+      --accent:#49f2b2;
+      --accent2:#ffd36b;
       --ink:#ffffff;
     }
     [data-bs-theme="light"]{
-      --bg:#f6f3ee;
+      --bg:#fff4e8;
       --card:rgba(255,255,255,.9);
       --bd:rgba(27,31,42,.12);
-      --mut:rgba(27,31,42,.65);
-      --link:#e4573f;
-      --accent:#1e9b79;
-      --accent2:#f4b66a;
-      --ink:#1b1f2a;
+      --mut:rgba(31,27,43,.68);
+      --link:#ff6b5b;
+      --accent:#20b77d;
+      --accent2:#ffb24b;
+      --ink:#1f1b2b;
     }
     *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family:"Plus Jakarta Sans","Segoe UI","Helvetica Neue",sans-serif;
+      font-family:"Rubik","Segoe UI","Helvetica Neue",sans-serif;
       background:var(--bg);
       color:var(--ink);
       padding:18px;
@@ -159,7 +159,7 @@ foreach ($rows as $g) {
     a{ color:var(--link); text-decoration:none; }
     .wrap{ max-width:1080px; margin:0 auto; }
     .top{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-    h1{ font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; letter-spacing:.2px; margin:0; }
+    h1{ font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; letter-spacing:.2px; margin:0; }
     .sub{ color:var(--mut); font-size:12px; }
     .actions{ display:flex; gap:10px; flex-wrap:wrap; }
     .btn{
@@ -232,148 +232,49 @@ foreach ($rows as $g) {
     }
     html[dir="rtl"] th, html[dir="rtl"] td{ text-align:right; }
     html[dir="rtl"] .right{ text-align:left; }
-  </style>
-</head>
-<body>
-<?php include __DIR__ . '/header.php'; ?>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <h1><?= h(TT('games_title','My Games')) ?></h1>
-        <div class="sub"><?= h(t('logged_in_as', ['email'=>$userEmail])) ?></div>
-      </div>
-        <div class="actions">
-          <a class="btn" href="play.php">
-            <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
-            <?= h(TT('btn_back_to_game','Back to game')) ?>
-          </a>
-          <a class="btn" href="logout.php">
-            <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
-            <?= h(TT('logout','Logout')) ?>
-          </a>
-        </div>
-    </div>
-
-    <div class="card">
-      <?php if (!$games): ?>
-        <div class="muted"><?= h(TT('msg_no_games','No games yet.')) ?></div>
-      <?php else: ?>
-        <table>
-          <thead>
-            <tr>
-              <th><?= h(TT('label_date','Date')) ?></th>
-              <th><?= h(TT('label_duration','Duration')) ?></th>
-              <th><?= h(TT('th_score','Score')) ?></th>
-              <th><?= h(TT('label_reached_level','Stage')) ?></th>
-              <th><?= h(TT('label_total_correct','Correct')) ?></th>
-              <th><?= h(TT('label_status','Status')) ?></th>
-              <th><?= h(TT('label_country','Country')) ?></th>
-              <th class="right" style="width:140px"><?= h(TT('btn_details','Details')) ?></th>
-            </tr>
-          </thead>
-          <tbody>
-          <?php foreach ($games as $g): ?>
-            <tr>
-              <td>
-                <div><?= h($g['date_label']) ?></div>
-                <div class="muted">#<?= h((string)$g['index']) ?> · <?= h(TT('label_id','ID')) ?> <?= h((string)$g['id']) ?></div>
-              </td>
-              <td><?= h($g['duration_label']) ?></td>
-              <td><?= h(fmt_num($g['score'], $lang, 0)) ?></td>
-              <td><?= h(fmt_num($g['reached_level'], $lang, 0)) ?></td>
-              <td><?= h(fmt_num($g['total_correct'], $lang, 0)) ?></td>
-              <td><?= pill($g['status_text'], $g['status_class']) ?></td>
-              <td>
-                <div class="metaRow">
-                  <?php if ($g['country'] !== ''): ?>
-                    <span class="pill pill-meta" title="<?= h(TT('label_country','Country')) ?>: <?= h($g['country']) ?>">
-                      <?php if ($g['flag_url'] !== ''): ?>
-                        <img class="flagIcon" src="<?= h($g['flag_url']) ?>" alt="<?= h($g['country']) ?>" />
-                      <?php else: ?>
-                        <span><?= h($g['country']) ?></span>
-                      <?php endif; ?>
-                    </span>
-                  <?php endif; ?>
-                </div>
-              </td>
-              <td class="right" style="white-space:nowrap">
-                <a class="btn btn-detail" href="<?= h($g['detail_url']) ?>">
-                  <img class="bi-icon" src="bootstrap-icons/info-circle.svg" alt="" aria-hidden="true" />
-                  <?= h(TT('btn_details','Details')) ?>
-                </a>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-          </tbody>
-        </table>
-
-        <div class="grid-cards">
-          <?php foreach ($games as $g): ?>
-            <div class="gameCard">
-              <div class="cardHead">
-                <div>
-                  <div class="cardTitle"><?= h($g['date_label']) ?></div>
-                  <div class="muted">#<?= h((string)$g['index']) ?> · <?= h(TT('label_id','ID')) ?> <?= h((string)$g['id']) ?></div>
-                </div>
-                <?= pill($g['status_text'], $g['status_class']) ?>
-              </div>
-              <div class="cardGrid">
-                <div>
-                  <div class="label"><?= h(TT('label_duration','Duration')) ?></div>
-                  <div class="value"><?= h($g['duration_label']) ?></div>
-                </div>
-                <div>
-                  <div class="label"><?= h(TT('th_score','Score')) ?></div>
-                  <div class="value"><?= h(fmt_num($g['score'], $lang, 0)) ?></div>
-                </div>
-                <div>
-                  <div class="label"><?= h(TT('label_reached_level','Stage')) ?></div>
-                  <div class="value"><?= h(fmt_num($g['reached_level'], $lang, 0)) ?></div>
-                </div>
-                <div>
-                  <div class="label"><?= h(TT('label_total_correct','Correct')) ?></div>
-                  <div class="value"><?= h(fmt_num($g['total_correct'], $lang, 0)) ?></div>
-                </div>
-                <div>
-                  <div class="label"><?= h(TT('label_country','Country')) ?></div>
-                  <div class="value">
-                    <span class="metaRow">
-                      <?php if ($g['country'] !== ''): ?>
-                        <span class="pill pill-meta">
-                          <?php if ($g['flag_url'] !== ''): ?>
-                            <img class="flagIcon" src="<?= h($g['flag_url']) ?>" alt="<?= h($g['country']) ?>" />
-                          <?php else: ?>
-                            <span><?= h($g['country']) ?></span>
-                          <?php endif; ?>
-                        </span>
-                      <?php endif; ?>
-                    </span>
-                  </div>
-                </div>
-              </div>
-                <div style="margin-top:10px">
-                  <a class="btn btn-detail" href="<?= h($g['detail_url']) ?>">
-                    <img class="bi-icon" src="bootstrap-icons/info-circle.svg" alt="" aria-hidden="true" />
-                    <?= h(TT('btn_details','Details')) ?>
-                  </a>
-                </div>
-            </div>
-          <?php endforeach; ?>
-        </div>
-      <?php endif; ?>
-    </div>
-
-    <?php if (is_file(__DIR__ . '/footer.php')) include __DIR__ . '/footer.php'; ?>
-  </div>
-  <script>
-  function setTimezoneIfNeeded(){
-    if (document.cookie.includes('tz=')) return;
-    try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (!tz) return;
-      fetch('api/set_timezone.php', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
+  
+    
+    /* fun-bg */
+    :root{ --grid: rgba(255,255,255,0.08); }
+    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+    }
+    body::before{
+      background:
+        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
+        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
+      opacity:0.6;
+    }
+    body::after{
+      background: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity:0.32;
+    }
+    h1, h2, h3{
+      position: relative;
+      display: inline-block;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      letter-spacing:.2px;
+    }
+    h1::after, h2::after, h3::after{
+      content:"";
+      position:absolute;
+      left: 0;
+      bottom: -6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
+      z-index:-1;
+    }
+},
         body: JSON.stringify({timezone: tz}),
         credentials: 'same-origin'
       }).then(() => location.reload()).catch(()=>{});

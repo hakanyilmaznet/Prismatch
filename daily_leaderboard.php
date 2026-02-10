@@ -72,7 +72,7 @@ $viewerCountry = cf_country();
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
   <title><?= h(t('daily_leaderboard_title')) ?> — <?= h(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
@@ -90,26 +90,26 @@ $viewerCountry = cf_country();
     :root{ color-scheme: light dark; }
     :root,
     [data-bs-theme="dark"]{
-      --bg:#0b0d12;
+      --bg:#0a0f1b;
       --card:rgba(255,255,255,.08);
       --bd:rgba(255,255,255,.18);
-      --mut:rgba(237,242,255,.68);
-      --accent:#3dd6a0;
-      --accent2:#ff7d5d;
+      --mut:rgba(229,234,255,.7);
+      --accent:#49f2b2;
+      --accent2:#ff6b5b;
       --ink:#ffffff;
     }
     [data-bs-theme="light"]{
-      --bg:#f6f3ee;
+      --bg:#fff4e8;
       --card:rgba(255,255,255,.9);
       --bd:rgba(27,31,42,.12);
-      --mut:rgba(27,31,42,.65);
-      --accent:#1e9b79;
-      --accent2:#e4573f;
-      --ink:#1b1f2a;
+      --mut:rgba(31,27,43,.68);
+      --accent:#20b77d;
+      --accent2:#ff6b5b;
+      --ink:#1f1b2b;
     }
     body{
       margin:0;
-      font-family:"Plus Jakarta Sans","Segoe UI","Helvetica Neue",sans-serif;
+      font-family:"Rubik","Segoe UI","Helvetica Neue",sans-serif;
       background:var(--bg);
       color:var(--ink);
       padding:18px;
@@ -119,7 +119,7 @@ $viewerCountry = cf_country();
     a{ color:var(--accent2); text-decoration:none; }
     .wrap{ max-width:980px; margin:0 auto; }
     .top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-    h1{ font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; letter-spacing:.2px; }
+    h1{ font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; letter-spacing:.2px; }
     .btn{
       display:inline-flex; align-items:center; gap:8px;
       padding:10px 14px; border-radius:999px;
@@ -141,7 +141,7 @@ $viewerCountry = cf_country();
     table{ width:100%; border-collapse:collapse; }
     th,td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.10); text-align:left; vertical-align:top; font-size:14px; }
     th{
-      font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif;
+      font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif;
       color:rgba(255,255,255,.86);
       font-weight:700;
     }
@@ -177,47 +177,49 @@ $viewerCountry = cf_country();
       .top{ align-items:flex-start; }
       .rowTop{ align-items:flex-start; }
     }
-  </style>
-</head>
-<body>
-<?php include __DIR__ . '/header.php'; ?>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <h1 style="margin:0 0 6px 0"><?= h(t('daily_leaderboard_title')) ?></h1>
-        <div class="rowTop">
-          <span class="pill">🗓️ <span id="dailyDate" data-utc-date="<?= h($challengeDate) ?>"><?= h($challengeDate) ?></span> (<?= h(t('label_utc')) ?>)</span>
-          <?php if ($viewerCountry): ?>
-            <?php $viewerFlag = country_flag_icon_url($viewerCountry); ?>
-            <!-- <span class="pill">
-              <?php if ($viewerFlag !== ''): ?>
-                <img class="flagIcon" src="<?= h($viewerFlag) ?>" alt="<?= h($viewerCountry) ?>" />
-              <?php endif; ?>
-              <span><?= h($viewerCountry) ?></span>
-            </span> -->
-          <?php endif; ?>
-        </div>
-        <div class="muted"><?= h(t('daily_leaderboard_note')) ?></div>
-      </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap">
-          <a class="btn" href="play.php">
-            <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
-            <?= h(t('btn_back_to_game')) ?>
-          </a>
-        </div>
-    </div>
-
-    <div class="card">
-      <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
-        <input type="date" name="d" value="<?= h($challengeDate) ?>" class="select" style="padding-right:14px;background-image:none" />
-        <select name="country" class="select" aria-label="<?= h(t('label_country')) ?>">
-          <option value=""><?= h(t('filter_all_countries')) ?></option>
-          <?php
-            // Build countries present in result set (for quick filter)
-            $seen = [];
-            foreach (daily_leaderboard($challengeDate, null, 200) as $r) {
-              $c = strtoupper((string)(isset($r['country']) ? $r['country'] : ''));
-              if ($c && preg_match('/^[A-Z]{2}$/',$c)) $seen[$c] = true;
+  
+    
+    /* fun-bg */
+    :root{ --grid: rgba(255,255,255,0.08); }
+    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+    }
+    body::before{
+      background:
+        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
+        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
+      opacity:0.6;
+    }
+    body::after{
+      background: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity:0.32;
+    }
+    h1, h2, h3{
+      position: relative;
+      display: inline-block;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      letter-spacing:.2px;
+    }
+    h1::after, h2::after, h3::after{
+      content:"";
+      position:absolute;
+      left: 0;
+      bottom: -6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
+      z-index:-1;
+    }
+}$/',$c)) $seen[$c] = true;
             }
             ksort($seen);
             foreach (array_keys($seen) as $c):

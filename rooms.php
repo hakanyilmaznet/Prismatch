@@ -74,7 +74,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <?= seo_meta([
@@ -92,7 +92,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     :root{ color-scheme: light dark; }
     body{
       margin:0;
-      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
       background: var(--bs-body-bg);
       color: var(--bs-body-color);
       padding-top: calc(var(--pm-header-offset, 0px) + 18px);
@@ -108,70 +108,49 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       margin-top: 6px;
       line-height: 1.35;
     }
-  </style>
-</head>
-<body>
-<?php include __DIR__ . '/header.php'; ?>
-
-<main class="wrap">
-  <div class="cardx">
-    <h1 class="h4 m-0"><?= htmlspecialchars(tt('rooms_title', 'Rooms')) ?></h1>
-    <div class="muted"><?= htmlspecialchars(tt('rooms_desc', 'Create or join rooms to compete live.')) ?></div>
-  </div>
-
-  <div class="grid">
-    <div class="cardx">
-      <h2 class="h6"><?= htmlspecialchars(tt('rooms_create', 'Create room')) ?></h2>
-      <div class="mb-2 muted"><?= htmlspecialchars(tt('rooms_name_label', 'Room name')) ?></div>
-      <input type="text" id="roomNameInput" class="form-control mb-2" maxlength="80"
-             placeholder="<?= htmlspecialchars(tt('rooms_name_placeholder', 'Give your room a name')) ?>" />
-      <div class="input-group mb-2">
-        <button class="btn btn-primary" id="createRoomBtn"><?= htmlspecialchars(tt('rooms_create_btn', 'Create')) ?></button>
-      </div>
-      <div id="createMsg" class="form-msg"></div>
-      <div id="shareWrap" class="mt-3" hidden>
-        <div class="small muted mb-2"><?= htmlspecialchars(tt('rooms_share_label', 'Share room link')) ?></div>
-        <div class="input-group">
-          <input type="text" id="shareLink" class="form-control" readonly />
-          <button class="btn btn-outline-primary" id="copyLinkBtn"><?= htmlspecialchars(tt('rooms_share_copy', 'Copy link')) ?></button>
-        </div>
-        <div id="shareMsg" class="form-msg mt-1"></div>
-      </div>
-    </div>
-
-    <div class="cardx">
-      <h2 class="h6"><?= htmlspecialchars(tt('rooms_join', 'Join room')) ?></h2>
-      <div class="muted"><?= htmlspecialchars(tt('rooms_join_hint', 'Join by opening the room link.')) ?></div>
-      <a class="btn btn-outline-primary mt-3" id="openRoomBtn" href="#" hidden>
-        <?= htmlspecialchars(tt('rooms_open', 'Open')) ?>
-      </a>
-    </div>
-  </div>
-
-  <div class="cardx">
-    <h2 class="h6"><?= htmlspecialchars(tt('rooms_recent', 'Your rooms')) ?></h2>
-    <?php if (!$rooms): ?>
-      <div class="muted"><?= htmlspecialchars(tt('rooms_empty', 'No rooms yet.')) ?></div>
-    <?php else: ?>
-      <div class="table-responsive">
-        <table class="table table-sm align-middle">
-          <thead>
-            <tr>
-              <th><?= htmlspecialchars(tt('rooms_name', 'Name')) ?></th>
-              <th><?= htmlspecialchars(tt('rooms_status', 'Status')) ?></th>
-              <th><?= htmlspecialchars(tt('rooms_rounds', 'Rounds')) ?></th>
-              <th><?= htmlspecialchars(tt('rooms_winner', 'Winner')) ?></th>
-              <th><?= htmlspecialchars(tt('rooms_created', 'Created')) ?></th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($rooms as $r): ?>
-              <?php
-                $winner = null;
-                if (($r['status'] ?? '') === 'finished') {
-                  $winner = room_winner_name((string)$r['id']);
-                }
+  
+    
+    /* fun-bg */
+    :root{ --grid: rgba(255,255,255,0.08); }
+    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+    }
+    body::before{
+      background:
+        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
+        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
+      opacity:0.6;
+    }
+    body::after{
+      background: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity:0.32;
+    }
+    h1, h2, h3{
+      position: relative;
+      display: inline-block;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      letter-spacing:.2px;
+    }
+    h1::after, h2::after, h3::after{
+      content:"";
+      position:absolute;
+      left: 0;
+      bottom: -6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
+      z-index:-1;
+    }
+}
               ?>
               <tr>
                 <td><?= htmlspecialchars($r['name'] ?: '-') ?></td>

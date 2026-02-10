@@ -49,7 +49,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <?= seo_meta([
@@ -67,34 +67,34 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     :root{ color-scheme: light dark; }
     :root,
     [data-bs-theme="dark"]{
-      --bg: #0b0d12;
-      --panel: rgba(255,255,255,0.07);
-      --panel2: rgba(255,255,255,0.12);
-      --text: #f7f7f4;
-      --muted: rgba(237,242,255,0.68);
-      --accent: #ff7d5d;
-      --accent2: #3dd6a0;
-      --accent3: #ffd08a;
-      --shadow: 0 30px 70px rgba(0,0,0,0.55);
-      --radius: 20px;
+      --bg: #0a0f1b;
+      --panel: rgba(255,255,255,0.12);
+      --panel2: rgba(255,255,255,0.16);
+      --text: #f7f3ff;
+      --muted: rgba(229,234,255,0.7);
+      --accent: #ff6b5b;
+      --accent2: #49f2b2;
+      --accent3: #ffd36b;
+      --shadow: 0 36px 70px rgba(0,0,0,0.55);
+      --radius: 24px;
     }
     [data-bs-theme="light"]{
-      --bg: #f6f3ee;
-      --panel: rgba(255,255,255,0.9);
-      --panel2: rgba(255,255,255,0.7);
-      --text: #1b1f2a;
-      --muted: rgba(27,31,42,0.65);
-      --accent: #e4573f;
-      --accent2: #1e9b79;
-      --accent3: #f4b66a;
-      --shadow: 0 26px 60px rgba(26,28,35,0.16);
-      --radius: 20px;
+      --bg: #fff4e8;
+      --panel: rgba(255,255,255,0.95);
+      --panel2: rgba(255,255,255,0.8);
+      --text: #1f1b2b;
+      --muted: rgba(31,27,43,0.68);
+      --accent: #ff6b5b;
+      --accent2: #20b77d;
+      --accent3: #ffb24b;
+      --shadow: 0 28px 56px rgba(40,29,12,0.18);
+      --radius: 24px;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body{
       margin:0;
-      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
       background: var(--bg);
       color: var(--text);
       display:flex;
@@ -171,7 +171,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     .title{
-      font-family: "Space Grotesk", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
       font-size: 20px;
       font-weight: 800;
       letter-spacing: 0.2px;
@@ -362,7 +362,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       animation: popIn 320ms ease;
     }
     .answerMessage{
-      font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif;
+      font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif;
       font-size: clamp(18px, 3.8vw, 22px);
       font-weight: 700;
       line-height: 1.4;
@@ -541,93 +541,49 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       align-items:center;
       flex-wrap:wrap;
     }
-  </style>
-</head>
-<body>
-<?php include __DIR__ . '/header.php'; ?>
-
-<main class="app" aria-label="<?= htmlspecialchars(tt('room_live_title', 'Room Match')) ?>">
-  <section class="hud" aria-label="<?= htmlspecialchars(tt('room_round', 'Round')) ?>">
-    <div class="chip" role="status" aria-live="polite">
-      <span class="label"><?= htmlspecialchars(tt('hud_stage', 'Stage')) ?></span>
-      <span class="value" id="hudLevel">-</span>
-    </div>
-    <div class="chip" role="status" aria-live="polite">
-      <span class="label"><?= htmlspecialchars(tt('hud_answer_time', 'Answer Time')) ?></span>
-      <span class="value" id="hudTime">-</span>
-    </div>
-    <div class="chip" role="status" aria-live="polite">
-      <span class="label"><?= htmlspecialchars(tt('hud_correct', 'Perfect Matches')) ?></span>
-      <span class="value" id="hudCorrect">0</span>
-    </div>
-    <div class="chip" role="status" aria-live="polite">
-      <span class="label"><?= htmlspecialchars(tt('hud_target_show', 'Target Show')) ?></span>
-      <span class="value" id="hudShow">-</span>
-    </div>
-  </section>
-
-  <section class="stage" id="stage" aria-label="<?= htmlspecialchars(tt('room_live_title', 'Room Match')) ?>">
-    <div class="toast" id="toast" aria-live="polite"></div>
-    <div class="center" id="center">
-      <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?> logo" width="84" height="84" class="logo" />
-      <div class="title"><?= htmlspecialchars(tt('room_live_title', 'Room Match')) ?></div>
-      <div class="subtitle" id="roomInfo"><?= htmlspecialchars(tt('room_waiting', 'Waiting for host...')) ?></div>
-      <div class="room-meta">
-        <button class="btn primary" id="startBtn" type="button"><?= htmlspecialchars(tt('room_start', 'Start')) ?></button>
-        <a class="btn" href="rooms.php"><?= htmlspecialchars(tt('rooms_back', 'Back to rooms')) ?></a>
-      </div>
-    </div>
-  </section>
-
-  <section class="footer" aria-label="<?= htmlspecialchars(tt('controls', 'Controls')) ?>">
-    <span class="badge" id="statusBadge"><?= htmlspecialchars(tt('status_ready', 'Ready.')) ?></span>
-    <div class="room-meta">
-      <span class="badge pm-success" id="selfStatusBadge"><?= htmlspecialchars(tt('room_active', 'Active')) ?></span>
-      <span class="badge" id="playersBadge"></span>
-    </div>
-    <button class="btn mute-toggle" id="btnMute" type="button" aria-pressed="false">
-      <span class="mute-dot" aria-hidden="true"></span>
-      <span id="muteLabel"><?= htmlspecialchars(tt('sound_on', 'Sound On')) ?></span>
-    </button>
-  </section>
-</main>
-
-<div class="answerOverlay" id="answerOverlay" hidden role="dialog" aria-modal="true" aria-live="polite">
-  <div class="answerCard" id="answerCard">
-    <div class="answerIconWrap">
-      <img class="answerIcon" id="answerIcon" src="success-checkmark.svg" alt="" aria-hidden="true" />
-    </div>
-    <div class="answerMessage" id="answerText"></div>
-    <p class="answerSub"><?= htmlspecialchars(tt('badge_answer', 'Pick the match!')) ?></p>
-  </div>
-</div>
-
-<?php include __DIR__ . '/footer.php'; ?>
-
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-<script>
-const GUID = <?= json_encode($guid) ?>;
-const ME = <?= json_encode($userEmail) ?>;
-const P_KEY = <?= json_encode(PUSHER_KEY) ?>;
-const P_CLUSTER = <?= json_encode(PUSHER_CLUSTER) ?>;
-
-const STR = {
-  appName: <?= json_encode(tt('app_name', 'Prismatch')) ?>,
-  badgeReady: <?= json_encode(tt('badge_ready', 'Ready. Countdown…')) ?>,
-  badgeShow: <?= json_encode(tt('badge_showing_target', 'Showing target…')) ?>,
-  badgeAnswer: <?= json_encode(tt('badge_answer', 'Pick the match!')) ?>,
-  badgeCorrect: <?= json_encode(tt('badge_correct', 'Perfect match! Next stage…')) ?>,
-  badgeWrong: <?= json_encode(tt('badge_wrong', 'Wrong match. Game over.')) ?>,
-  badgeTimeUp: <?= json_encode(tt('badge_timeup', 'Time’s up. Game over.')) ?>,
-  toastCorrect: <?= json_encode(tt('toast_correct', '✅ Perfect Match!')) ?>,
-  toastWrong: <?= json_encode(tt('toast_wrong', '❌ Wrong Match!')) ?>,
-  toastTimeUp: <?= json_encode(tt('toast_timeup', '⏰ Time’s up!')) ?>,
-  toastPick: <?= json_encode(tt('toast_pick', '⏱️ Pick within 5 seconds')) ?>,
-  countdownHelp: <?= json_encode(tt('countdown_help', 'Remember the shown color, then pick it from the grid.')) ?>,
-  rememberThis: <?= json_encode(tt('remember_this', 'Remember this color.')) ?>,
-  questionTitle: <?= json_encode(tt('question_pick_target', 'Which color was shown? Pick the target.')) ?>,
-  questionHint: <?= json_encode(tt('question_hint', 'Use Tab/Shift+Tab and Enter/Space to pick.')) ?>,
-  a11yColorOption: <?= json_encode(tt('a11y_color_option', 'Color option {n}')) ?>,
+  
+    
+    /* fun-bg */
+    :root{ --grid: rgba(255,255,255,0.08); }
+    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+    }
+    body::before{
+      background:
+        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
+        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
+      opacity:0.6;
+    }
+    body::after{
+      background: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity:0.32;
+    }
+    h1, h2, h3{
+      position: relative;
+      display: inline-block;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      letter-spacing:.2px;
+    }
+    h1::after, h2::after, h3::after{
+      content:"";
+      position:absolute;
+      left: 0;
+      bottom: -6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
+      z-index:-1;
+    }
+}')) ?>,
   rightMessages: <?= json_encode($rightAnswerMessages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
   wrongMessages: <?= json_encode($wrongAnswerMessages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
   statusReady: <?= json_encode(tt('status_ready', 'Ready.')) ?>,

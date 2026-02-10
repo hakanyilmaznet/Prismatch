@@ -127,7 +127,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
   <title><?= h(L('title')) ?> — <?= h(L('app')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
@@ -144,11 +144,11 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <style>
     :root{ color-scheme: light dark; }
     :root,
-    [data-bs-theme="dark"]{ --bg:#0b0d12; --card:rgba(255,255,255,.08); --bd:rgba(255,255,255,.18); --mut:rgba(237,242,255,.68); --link:#ff7d5d; --text:#ffffff; }
-    [data-bs-theme="light"]{ --bg:#f6f3ee; --card:rgba(255,255,255,.9); --bd:rgba(27,31,42,.12); --mut:rgba(27,31,42,.65); --link:#e4573f; --text:#1b1f2a; }
+    [data-bs-theme="dark"]{ --bg:#0a0f1b; --card:rgba(255,255,255,.08); --bd:rgba(255,255,255,.18); --mut:rgba(229,234,255,.7); --link:#ff6b5b; --text:#ffffff; }
+    [data-bs-theme="light"]{ --bg:#fff4e8; --card:rgba(255,255,255,.9); --bd:rgba(27,31,42,.12); --mut:rgba(31,27,43,.68); --link:#ff6b5b; --text:#1f1b2b; }
     body{
       margin:0;
-      font-family:"Plus Jakarta Sans","Segoe UI","Helvetica Neue",sans-serif;
+      font-family:"Rubik","Segoe UI","Helvetica Neue",sans-serif;
       background:
         radial-gradient(1100px 640px at 12% 12%, rgba(61,214,160,.18), transparent 60%),
         radial-gradient(900px 520px at 85% 25%, rgba(255,125,93,.20), transparent 62%),
@@ -188,8 +188,8 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     .google-badge{ display:inline-flex; align-items:center; gap:6px; font-weight:600; }
     .google-icon{ width:16px; height:16px; display:inline-block; }
     .google-text{ line-height:1; }
-    h1{ margin:0 0 6px 0; font-size:24px; font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; }
-    h2{ margin:18px 0 10px 0; font-size:16px; font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif; }
+    h1{ margin:0 0 6px 0; font-size:24px; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
+    h2{ margin:18px 0 10px 0; font-size:16px; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
     .muted{ color:var(--mut); font-size:12px; }
     .pre{ white-space:pre-line; line-height:1.55; }
     .links{ display:flex; gap:10px; flex-wrap:wrap; }
@@ -198,69 +198,45 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       .links{ width:100%; }
       .links .btn{ width:100%; justify-content:center; }
     }
-  </style>
-</head>
-<body>
-<?php include __DIR__ . '/header.php'; ?>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <h1><?= h(L('title')) ?></h1>
-        <div class="muted"><?= h(L('last_updated')) ?>: <?= h($updated) ?></div>
-      </div>
-        <div class="links">
-        <a class="btn" href="play.php">
-          <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
-          <?= h(L('back_home')) ?>
-        </a>
-        <a class="btn" href="privacy.php">
-          <img class="bi-icon" src="bootstrap-icons/shield-lock.svg" alt="" aria-hidden="true" />
-          <?= h(L('privacy')) ?>
-        </a>
-        </div>
-    </div>
-
-    <div class="card">
-      <div class="pre"><?= h(L('intro')) ?></div>
-
-      <h2><?= h(L('s1')) ?></h2>
-      <div class="pre"><?= h(L('s1_body')) ?></div>
-
-      <h2><?= h(L('s2')) ?></h2>
-      <div class="pre"><?= h(L('s2_body')) ?></div>
-
-      <h2><?= h(L('s3')) ?></h2>
-      <div class="pre"><?= h(L('s3_body')) ?></div>
-
-      <h2><?= h(L('s4')) ?></h2>
-      <div class="pre"><?= h(L('s4_body')) ?></div>
-
-      <h2><?= h(L('s5')) ?></h2>
-      <div class="pre"><?= h(L('s5_body')) ?></div>
-
-      <h2><?= h(L('s6')) ?></h2>
-      <div class="pre"><?= h(L('s6_body')) ?></div>
-
-      <h2><?= h(L('s7')) ?></h2>
-      <div class="pre"><?= h(L('s7_body')) ?></div>
-
-      <h2><?= h(L('s8')) ?></h2>
-      <div class="pre"><?= h(L('s8_body')) ?></div>
-
-      <h2><?= h(L('s9')) ?></h2>
-      <div class="pre"><?= h(L('s9_body')) ?></div>
-
-      <h2><?= h(L('s10')) ?></h2>
-      <div class="pre"><?= h(L('s10_body')) ?></div>
-
-      <h2><?= h(L('s11')) ?></h2>
-      <div class="pre"><?= h(L('s11_body')) ?></div>
-    </div>
-
-    <?php include __DIR__ . '/footer.php'; ?>
-  </div>
-</body>
-</html>
-
-
-
+  
+    
+    /* fun-bg */
+    :root{ --grid: rgba(255,255,255,0.08); }
+    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+    }
+    body::before{
+      background:
+        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
+        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
+      opacity:0.6;
+    }
+    body::after{
+      background: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity:0.32;
+    }
+    h1, h2, h3{
+      position: relative;
+      display: inline-block;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      letter-spacing:.2px;
+    }
+    h1::after, h2::after, h3::after{
+      content:"";
+      position:absolute;
+      left: 0;
+      bottom: -6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
+      z-index:-1;
+    }

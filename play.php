@@ -86,7 +86,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
 
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
@@ -106,34 +106,34 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     :root{ color-scheme: light dark; }
     :root,
     [data-bs-theme="dark"]{
-      --bg: #0b0d12;
-      --panel: rgba(255,255,255,0.07);
-      --panel2: rgba(255,255,255,0.12);
-      --text: #f7f7f4;
-      --muted: rgba(237,242,255,0.68);
-      --accent: #ff7d5d;
-      --accent2: #3dd6a0;
-      --accent3: #ffd08a;
-      --shadow: 0 30px 70px rgba(0,0,0,0.55);
-      --radius: 20px;
+      --bg: #0a0f1b;
+      --panel: rgba(255,255,255,0.12);
+      --panel2: rgba(255,255,255,0.16);
+      --text: #f7f3ff;
+      --muted: rgba(229,234,255,0.7);
+      --accent: #ff6b5b;
+      --accent2: #49f2b2;
+      --accent3: #ffd36b;
+      --shadow: 0 36px 70px rgba(0,0,0,0.55);
+      --radius: 24px;
     }
     [data-bs-theme="light"]{
-      --bg: #f6f3ee;
-      --panel: rgba(255,255,255,0.9);
-      --panel2: rgba(255,255,255,0.7);
-      --text: #1b1f2a;
-      --muted: rgba(27,31,42,0.65);
-      --accent: #e4573f;
-      --accent2: #1e9b79;
-      --accent3: #f4b66a;
-      --shadow: 0 26px 60px rgba(26,28,35,0.16);
-      --radius: 20px;
+      --bg: #fff4e8;
+      --panel: rgba(255,255,255,0.95);
+      --panel2: rgba(255,255,255,0.8);
+      --text: #1f1b2b;
+      --muted: rgba(31,27,43,0.68);
+      --accent: #ff6b5b;
+      --accent2: #20b77d;
+      --accent3: #ffb24b;
+      --shadow: 0 28px 56px rgba(40,29,12,0.18);
+      --radius: 24px;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body{
       margin:0;
-      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
       background: var(--bg);
       color: var(--text);
       display:flex;
@@ -210,7 +210,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     }
 
     .title{
-      font-family: "Space Grotesk", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
       font-size: 20px;
       font-weight: 800;
       letter-spacing: 0.2px;
@@ -401,7 +401,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       animation: popIn 320ms ease;
     }
     .answerMessage{
-      font-family:"Space Grotesk","Segoe UI","Helvetica Neue",sans-serif;
+      font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif;
       font-size: clamp(18px, 3.8vw, 22px);
       font-weight: 700;
       line-height: 1.4;
@@ -447,7 +447,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     }
     .modalTitle{
       margin: 0 0 6px 0;
-      font-family: "Space Grotesk", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
       font-size: 18px;
     }
     .modalText{
@@ -582,167 +582,49 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     @keyframes floaty{
       0%,100%{ transform: translateY(0); }
       50%{ transform: translateY(-6px); }
-  </style>
-</head>
-<body>
-<?php include __DIR__ . '/header.php'; ?>
-<main class="app" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
-
-  <section class="hud" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
-    <div class="chip" role="status" aria-live="polite">
-      <span class="label"><?= htmlspecialchars(tt('hud_stage', 'Stage')) ?></span>
-      <span class="value" id="hudLevel">1 / 50</span>
-    </div>
-    <div class="chip" role="status" aria-live="polite">
-      <span class="label"><?= htmlspecialchars(tt('hud_answer_time', 'Answer Time')) ?></span>
-      <span class="value" id="hudTime">5.0s</span>
-    </div>
-    <div class="chip" role="status" aria-live="polite">
-      <span class="label"><?= htmlspecialchars(tt('hud_correct', 'Perfect Matches')) ?></span>
-      <span class="value" id="hudCorrect">0</span>
-    </div>
-    <div class="chip" role="status" aria-live="polite">
-      <span class="label"><?= htmlspecialchars(tt('hud_target_show', 'Target Show')) ?></span>
-      <span class="value" id="hudShow">3.0s</span>
-    </div>
-
-  </section>
-
-  <section class="stage" id="stage" aria-label="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>">
-    <div class="toast" id="toast" aria-live="polite"></div>
-
-    <div class="center" id="center">
-      <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?> logo" width="84" height="84" class="logo" />
-      <div class="title"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></div>
-      <div class="subtitle">
-        <?php if ($userEmail): ?>
-          <?= htmlspecialchars(t('subtitle_authed', ['email' => $userEmail])) ?>
-        <?php else: ?>
-          <?= htmlspecialchars(tt('subtitle_guest', 'Play without signing in. If you want to save results, log in at the end.')) ?>
-        <?php endif; ?>
-      </div>
-
-      <?php if ($flash): ?>
-        <div class="subtitle"><strong><?= htmlspecialchars($flash) ?></strong></div>
-      <?php endif; ?>
-      <?php if ($isDailyMode): ?>
-        <div class="subtitle"><strong><?= htmlspecialchars(tt('daily_once', 'Daily challenge: one attempt per day.')) ?></strong></div>
-      <?php endif; ?>
-
-      <?php if ($userEmail && $stats): ?>
-        <div class="stats" aria-label="<?= htmlspecialchars(tt('stats_title', 'Stats')) ?>">
-          <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_total_games', 'Total Games')) ?></div><div class="v"><?= (int)$stats['total_plays'] ?></div></div>
-          <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_total_wins', 'Total Wins')) ?></div><div class="v"><?= (int)$stats['total_wins'] ?></div></div>
-          <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_best_level', 'Best Stage')) ?></div><div class="v"><?= (int)$stats['best_level'] ?></div></div>
-          <div class="stat"><div class="k"><?= htmlspecialchars(tt('stats_total_correct', 'Total Correct')) ?></div><div class="v"><?= (int)$stats['total_correct'] ?></div></div>
-        </div>
-
-        <div class="action-row">
-          <a class="btn" href="games.php">
-            <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
-            <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
-          </a>
-          <?php if ($isDailyMode): ?>
-          <a class="btn" href="daily_leaderboard.php">
-            <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
-            <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
-          </a>
-          <?php endif; ?>
-          <a class="btn" href="logout.php">
-            <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
-            <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
-          </a>
-        </div>
-      <?php else: ?>
-          <div class="action-row">
-          <?php if ($isDailyMode): ?>
-          <a class="btn" href="daily_leaderboard.php">
-            <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
-            <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
-          </a>
-          <?php endif; ?>
-        </div>
-      <?php endif; ?>
-
-      <button class="btn primary" id="btnStart" type="button">
-        <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
-        <?= htmlspecialchars(tt('btn_start', 'Hemen Oyna')) ?>
-      </button>
-    </div>
-  </section>
-
-  <section class="footer" aria-label="<?= htmlspecialchars(tt('controls', 'Controls')) ?>">
-    <span class="badge" id="statusBadge"><?= htmlspecialchars(tt('status_ready', 'Ready.')) ?></span>
-    <button class="btn mute-toggle" id="btnMute" type="button" aria-pressed="false">
-      <span class="mute-dot" aria-hidden="true"></span>
-      <span id="muteLabel"><?= htmlspecialchars(tt('sound_on', 'Sound On')) ?></span>
-    </button>
-  </section>
-
-</main>
-
-<div class="answerOverlay" id="answerOverlay" hidden role="dialog" aria-modal="true" aria-live="polite">
-  <div class="answerCard" id="answerCard">
-    <div class="answerIconWrap">
-      <img class="answerIcon" id="answerIcon" src="success-checkmark.svg" alt="" aria-hidden="true" />
-    </div>
-    <div class="answerMessage" id="answerText"></div>
-    <p class="answerSub"><?= htmlspecialchars(tt('badge_answer', 'Answer now!')) ?></p>
-  </div>
-</div>
-
-<div class="modalOverlay" id="dailyCompletedModal" hidden role="dialog" aria-modal="true" aria-labelledby="dailyCompletedTitle">
-  <div class="modalCard">
-    <h2 class="modalTitle" id="dailyCompletedTitle"><?= htmlspecialchars(tt('daily_title', 'Daily Challenge')) ?></h2>
-    <p class="modalText" id="dailyCompletedText"><?= htmlspecialchars(tt('daily_completed', 'You already played today. Come back tomorrow!')) ?></p>
-    <div class="modalActions">
-      <button class="btn primary" id="dailyCompletedOk" type="button">
-        <img class="bi-icon" src="bootstrap-icons/check-circle.svg" alt="" aria-hidden="true" />
-        <?= htmlspecialchars(tt('btn_ok', 'OK')) ?>
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="modalOverlay" id="dailyLoginModal" hidden role="dialog" aria-modal="true" aria-labelledby="dailyLoginTitle">
-  <div class="modalCard">
-    <h2 class="modalTitle" id="dailyLoginTitle"><?= htmlspecialchars(tt('daily_title', 'Daily Challenge')) ?></h2>
-    <p class="modalText" id="dailyLoginText"><?= htmlspecialchars(tt('daily_login_required', 'Log in to play the daily challenge.')) ?></p>
-    <div class="modalActions">
-      <a class="btn primary" id="dailyLoginGo" href="login.php">
-        <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
-        <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
-      </a>
-      <button class="btn" id="dailyLoginBack" type="button">
-        <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
-        <?= htmlspecialchars(tt('btn_back_to_game', 'Back to Game')) ?>
-      </button>
-    </div>
-  </div>
-</div>
-
-<script>
-"use strict";
-
-const I18N = <?= json_encode([
-  'app_name' => tt('app_name', 'Prismatch'),
-  'hud_stage' => tt('hud_stage', 'Stage'),
-  'countdown_help' => tt('countdown_help', 'Remember the shown color, then pick it from the grid.'),
-  'remember_this' => tt('remember_this', 'Remember this color.'),
-  'question_pick_target' => tt('question_pick_target', 'Which color was shown? Pick the target.'),
-  'question_hint' => tt('question_hint', 'Use Tab/Shift+Tab and Enter/Space to pick.'),
-  'badge_ready' => tt('badge_ready', 'Ready. Countdown…'),
-  'badge_showing_target' => tt('badge_showing_target', 'Showing target…'),
-  'badge_answer' => tt('badge_answer', 'Answer now!'),
-  'badge_correct' => tt('badge_correct', 'Perfect match! Next stage…'),
-  'badge_wrong' => tt('badge_wrong', 'Wrong match. Game over.'),
-  'toast_correct' => tt('toast_correct', '✅ Perfect Match!'),
-  'toast_wrong' => tt('toast_wrong', '❌ Wrong Match!'),
-  'toast_timeup' => tt('toast_timeup', '⏰ Time’s up!'),
-  'toast_pick' => tt('toast_pick', '⏱️ Pick within 5 seconds'),
-  'note_answer_window' => tt('note_answer_window', '⏱️ 5 seconds to answer'),
-  'win_title' => tt('win_title', '🏆 You matched them all!'),
-  'win_body' => tt('win_body', 'You reached stage {level}. Total perfect matches: {correct}'),
+  
+    
+    /* fun-bg */
+    :root{ --grid: rgba(255,255,255,0.08); }
+    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+    }
+    body::before{
+      background:
+        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
+        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
+      opacity:0.6;
+    }
+    body::after{
+      background: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity:0.32;
+    }
+    h1, h2, h3{
+      position: relative;
+      display: inline-block;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      letter-spacing:.2px;
+    }
+    h1::after, h2::after, h3::after{
+      content:"";
+      position:absolute;
+      left: 0;
+      bottom: -6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
+      z-index:-1;
+    }
+}. Total perfect matches: {correct}'),
   'gameover_title' => tt('gameover_title', 'Game over'),
   'gameover_body' => tt('gameover_body', '{reason} Tap to try again.'),
   'reason_wrong' => tt('reason_wrong', 'Wrong match.'),

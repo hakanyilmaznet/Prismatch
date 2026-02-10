@@ -72,14 +72,14 @@ $nextUrl = $_SESSION['login_next'] ?? '';
   <link href="css/bootstrap.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars(t('home_cta_login')) ?> - <?= htmlspecialchars(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <style>
     :root{ color-scheme: light dark; }
     body{
       margin:0;
-      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-family: "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
       background: var(--bs-body-bg);
       color: var(--bs-body-color);
       padding-top: calc(var(--pm-header-offset, 0px) + 18px);
@@ -90,52 +90,49 @@ $nextUrl = $_SESSION['login_next'] ?? '';
     [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
     .muted{ opacity:.7; font-size: 13px; }
     .login-actions{ display:flex; gap:10px; flex-wrap:wrap; }
-  </style>
-</head>
-<body>
-<?php include __DIR__ . '/header.php'; ?>
-<main class="wrap">
-  <div class="cardx">
-    <h1 class="h4 m-0"><?= htmlspecialchars(t('home_cta_login')) ?></h1>
-    <div class="muted"><?= htmlspecialchars(t('subtitle_guest')) ?></div>
-  </div>
-
-  <div class="cardx">
-    <h2 class="h6"><?= htmlspecialchars(t('save_with_google')) ?></h2>
-    <div class="muted mb-3">Google ile giriş yaptığınızda sadece e-posta adresiniz kaydedilir.</div>
-    <div class="login-actions">
-      <a class="btn btn-primary" href="login.php?provider=google">
-        <img class="bi-icon" src="google.svg" alt="" aria-hidden="true" />
-        Google ile giriş yap
-      </a>
-    </div>
-  </div>
-
-  <div class="cardx">
-    <h2 class="h6">Kullanıcı adı ile giriş</h2>
-    <div class="muted mb-3">Sadece kullanıcı adı girin. Bu yöntemle e-posta kaydı tutulmaz.</div>
-    <form id="localLoginForm">
-      <label class="form-label" for="usernameInput">Kullanıcı adı</label>
-      <input id="usernameInput" class="form-control" type="text" maxlength="30" required />
-      <button class="btn btn-outline-primary mt-3" type="submit">Giriş yap</button>
-      <div class="form-text mt-2" id="localLoginMsg"></div>
-    </form>
-  </div>
-</main>
-
-<?php include __DIR__ . '/footer.php'; ?>
-
-<script>
-const NEXT_URL = <?= json_encode($nextUrl) ?>;
-const form = document.getElementById('localLoginForm');
-const input = document.getElementById('usernameInput');
-const msg = document.getElementById('localLoginMsg');
-
-function setMsg(text = '', type = ''){
-  if (!msg) return;
-  msg.textContent = text;
-  msg.classList.remove('pm-error', 'pm-success');
-  if (type) msg.classList.add(`pm-${type}`);
+  
+    
+    /* fun-bg */
+    :root{ --grid: rgba(255,255,255,0.08); }
+    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
+    body::before,
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+    }
+    body::before{
+      background:
+        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
+        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
+        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
+      opacity:0.6;
+    }
+    body::after{
+      background: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity:0.32;
+    }
+    h1, h2, h3{
+      position: relative;
+      display: inline-block;
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      letter-spacing:.2px;
+    }
+    h1::after, h2::after, h3::after{
+      content:"";
+      position:absolute;
+      left: 0;
+      bottom: -6px;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
+      z-index:-1;
+    }
+}`);
 }
 
 form?.addEventListener('submit', async (e) => {
