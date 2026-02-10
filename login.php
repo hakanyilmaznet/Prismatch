@@ -8,7 +8,6 @@ if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
 
 require_once __DIR__ . '/i18n.php';
 
-
 // Session is already started in bootstrap.php
 
 function is_safe_next_path(string $path): bool {
@@ -35,16 +34,16 @@ if ($provider === 'google') {
   $state = bin2hex(random_bytes(16));
   $_SESSION['oauth_state'] = $state;
 
-$params = [
-  'client_id' => GOOGLE_CLIENT_ID,
-  'redirect_uri' => GOOGLE_REDIRECT_URI,
-  'response_type' => 'code',
-  'scope' => 'openid email',
-  'include_granted_scopes' => 'true',
-  'access_type' => 'online',
-  'prompt' => 'select_account',
-  'state' => $state,
-];
+  $params = [
+    'client_id' => GOOGLE_CLIENT_ID,
+    'redirect_uri' => GOOGLE_REDIRECT_URI,
+    'response_type' => 'code',
+    'scope' => 'openid email',
+    'include_granted_scopes' => 'true',
+    'access_type' => 'online',
+    'prompt' => 'select_account',
+    'state' => $state,
+  ];
 
   $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
   header('Location: ' . $authUrl);
@@ -70,56 +69,49 @@ $nextUrl = $_SESSION['login_next'] ?? '';
     })();
   </script>
   <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="theme.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars(t('home_cta_login')) ?> - <?= htmlspecialchars(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
-  <style>
-    :root{ color-scheme: light dark; }
-    body{
-      margin:0;
-      font-family: "Plus Jakarta Sans", "Segoe UI", "Helvetica Neue", sans-serif;
-      background: var(--bs-body-bg);
-      color: var(--bs-body-color);
-      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
-      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
-    }
-    .wrap{ max-width: 720px; margin:0 auto; padding: 18px; display:grid; gap:18px; }
-    .cardx{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius: 16px; padding:16px; }
-    [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
-    .muted{ opacity:.7; font-size: 13px; }
-    .login-actions{ display:flex; gap:10px; flex-wrap:wrap; }
-  </style>
 </head>
-<body>
+<body class="bg-body">
 <?php include __DIR__ . '/header.php'; ?>
-<main class="wrap">
-  <div class="cardx">
-    <h1 class="h4 m-0"><?= htmlspecialchars(t('home_cta_login')) ?></h1>
-    <div class="muted"><?= htmlspecialchars(t('subtitle_guest')) ?></div>
-  </div>
+<main class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 d-grid gap-3">
+      <div class="card">
+        <div class="card-body">
+          <h1 class="h4 mb-1"><?= htmlspecialchars(t('home_cta_login')) ?></h1>
+          <div class="text-body-secondary small"><?= htmlspecialchars(t('subtitle_guest')) ?></div>
+        </div>
+      </div>
 
-  <div class="cardx">
-    <h2 class="h6"><?= htmlspecialchars(t('save_with_google')) ?></h2>
-    <div class="muted mb-3">Google ile giriÅŸ yaptÄ±ÄŸÄ±nÄ±zda sadece e-posta adresiniz kaydedilir.</div>
-    <div class="login-actions">
-      <a class="btn btn-primary" href="login.php?provider=google">
-        <img class="bi-icon" src="google.svg" alt="" aria-hidden="true" />
-        Google ile giriÅŸ yap
-      </a>
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h6 mb-2"><?= htmlspecialchars(t('save_with_google')) ?></h2>
+          <div class="text-body-secondary small mb-3">Google ile giriþ yaptýðýnýzda sadece e-posta adresiniz kaydedilir.</div>
+          <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="login.php?provider=google">
+            <img src="google.svg" alt="" aria-hidden="true" width="16" height="16" />
+            Google ile giriþ yap
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h6 mb-2">Kullanýcý adý ile giriþ</h2>
+          <div class="text-body-secondary small mb-3">Sadece kullanýcý adý girin. Bu yöntemle e-posta kaydý tutulmaz.</div>
+          <form id="localLoginForm">
+            <label class="form-label" for="usernameInput">Kullanýcý adý</label>
+            <input id="usernameInput" class="form-control" type="text" maxlength="30" required />
+            <button class="btn btn-outline-primary mt-3" type="submit">Giriþ yap</button>
+            <div class="form-text mt-2" id="localLoginMsg"></div>
+          </form>
+        </div>
+      </div>
     </div>
-  </div>
-
-  <div class="cardx">
-    <h2 class="h6">KullanÄ±cÄ± adÄ± ile giriÅŸ</h2>
-    <div class="muted mb-3">Sadece kullanÄ±cÄ± adÄ± girin. Bu yÃ¶ntemle e-posta kaydÄ± tutulmaz.</div>
-    <form id="localLoginForm">
-      <label class="form-label" for="usernameInput">KullanÄ±cÄ± adÄ±</label>
-      <input id="usernameInput" class="form-control" type="text" maxlength="30" required />
-      <button class="btn btn-outline-primary mt-3" type="submit">GiriÅŸ yap</button>
-      <div class="form-text mt-2" id="localLoginMsg"></div>
-    </form>
   </div>
 </main>
 
@@ -134,8 +126,9 @@ const msg = document.getElementById('localLoginMsg');
 function setMsg(text = '', type = ''){
   if (!msg) return;
   msg.textContent = text;
-  msg.classList.remove('pm-error', 'pm-success');
-  if (type) msg.classList.add(`pm-${type}`);
+  msg.classList.remove('text-danger', 'text-success');
+  if (type === 'error') msg.classList.add('text-danger');
+  if (type === 'success') msg.classList.add('text-success');
 }
 
 form?.addEventListener('submit', async (e) => {
@@ -143,7 +136,7 @@ form?.addEventListener('submit', async (e) => {
   setMsg('');
   const username = (input?.value || '').trim();
   if (!username) {
-    setMsg('KullanÄ±cÄ± adÄ± gerekli.', 'error');
+    setMsg('Kullanýcý adý gerekli.', 'error');
     return;
   }
   try {
@@ -160,13 +153,11 @@ form?.addEventListener('submit', async (e) => {
       window.location.href = NEXT_URL || 'index.php';
       return;
     }
-    setMsg((data && data.error) ? data.error : 'GiriÅŸ baÅŸarÄ±sÄ±z.', 'error');
+    setMsg((data && data.error) ? data.error : 'Giriþ baþarýsýz.', 'error');
   } catch (err) {
-    setMsg('GiriÅŸ baÅŸarÄ±sÄ±z.', 'error');
+    setMsg('Giriþ baþarýsýz.', 'error');
   }
 });
 </script>
 </body>
 </html>
-
-
