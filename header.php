@@ -26,174 +26,285 @@ $isSessions = ($currentPage === 'games.php' || $currentPage === 'game.php');
 $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || $currentPage === 'room_history.php');
 ?>
 <style>
-  :root{ --pm-header-offset: 0px; --pm-icon-filter: none; }
-  body.pm-has-fixed-header{ padding-top: var(--pm-header-offset); }
-  .pm-header{
-    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:nowrap;
-    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,247,247,0.86));
+  :root { --pm-header-offset: 76px; --pm-icon-filter: none; }
+  body.pm-has-fixed-header { padding-top: var(--pm-header-offset); }
+
+  .pm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,247,247,0.88));
     border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 22px;
-    padding: 10px 14px;
-    box-shadow: 0 22px 70px rgba(12,14,20,0.18);
+    border-radius: 20px;
+    padding: 8px 16px;
+    box-shadow: 0 16px 48px rgba(12,14,20,0.12);
     position: fixed;
-    top: max(12px, env(safe-area-inset-top));
+    top: max(10px, env(safe-area-inset-top));
     left: 50%;
     transform: translateX(-50%);
-    width: min(1180px, calc(100% - 28px));
+    width: min(1180px, calc(100% - 24px));
     z-index: 1000;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-  }
-  .pm-header .navbar-collapse{ width:100%; }
-  .pm-header .navbar-nav{ width:100%; }
-  [data-bs-theme="dark"] .pm-header{
-    background: linear-gradient(180deg, rgba(10,12,18,0.94), rgba(10,12,18,0.82));
-    border-color: rgba(255,255,255,0.10);
-    box-shadow: 0 26px 80px rgba(0,0,0,0.6);
-  }
-  [data-bs-theme="dark"]{ --pm-icon-filter: invert(1) brightness(1.1); }
-  .pm-header::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    border-radius: 22px;
-    pointer-events:none;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
-    opacity:.35;
-  }
-  [data-bs-theme="dark"] .pm-header::after{ box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); opacity:.5; }
-  .pm-brand{ display:flex; align-items:center; gap:12px; min-width:0; text-decoration:none; color: inherit; }
-  .pm-brand img{
-    width:50px; height:50px; border-radius: 14px;
-    border:1px solid rgba(0,0,0,0.1);
-    box-shadow: 0 10px 24px rgba(10,12,18,0.18);
-  }
-  [data-bs-theme="dark"] .pm-brand img{ border-color: rgba(255,255,255,0.14); box-shadow: 0 12px 30px rgba(0,0,0,0.45); }
-  .pm-brand .pm-name{ font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; font-size: 19px; font-weight: 700; letter-spacing:.2px; }
-  .pm-brand .pm-tag{ color: rgba(30,35,50,0.62); font-size: 12px; }
-  [data-bs-theme="dark"] .pm-brand .pm-tag{ color: rgba(230,234,245,0.75); }
-  .pm-error{
-    color: #dc3545 !important;
-    font-weight: 600;
-  }
-  .pm-success{
-    color: #198754 !important;
-    font-weight: 600;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-sizing: border-box;
   }
 
-  .pm-nav{ gap:10px; }
-  .navbar-toggler{
+  [data-bs-theme="dark"] .pm-header {
+    background: linear-gradient(180deg, rgba(14,18,30,0.94), rgba(10,14,24,0.85));
+    border-color: rgba(255,255,255,0.10);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  [data-bs-theme="dark"] { --pm-icon-filter: invert(1) brightness(1.1); }
+
+  .pm-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+    flex-shrink: 0;
+  }
+  .pm-brand img {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 6px 16px rgba(10,12,18,0.12);
+  }
+  [data-bs-theme="dark"] .pm-brand img {
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .pm-brand .pm-name {
+    font-family: var(--pm-font-display, "Baloo 2", sans-serif);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.2px;
+    line-height: 1;
+  }
+
+  .navbar-toggler {
     display: none;
-    border:1px solid rgba(0,0,0,0.1);
     background: rgba(0,0,0,0.04);
-    color:#0f1117;
+    border: 1px solid rgba(0,0,0,0.1);
     border-radius: 12px;
     padding: 8px 10px;
     cursor: pointer;
+    color: inherit;
+    align-items: center;
+    justify-content: center;
   }
+  [data-bs-theme="dark"] .navbar-toggler {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.14);
+  }
+
   .navbar-collapse {
     display: flex;
     align-items: center;
-    width: 100%;
+    justify-content: space-between;
+    flex: 1;
+    gap: 12px;
   }
-  .navbar-nav {
+
+  .pm-nav {
     display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 6px;
     list-style: none;
     margin: 0;
     padding: 0;
   }
+
   .nav-item {
     list-style: none;
   }
+
   .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: inherit;
     text-decoration: none;
-    padding: 8px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 7px 13px;
     border-radius: 999px;
     transition: all 0.15s ease;
+    white-space: nowrap;
   }
   .nav-link:hover {
-    background: rgba(255, 107, 91, 0.1);
+    background: rgba(255, 107, 91, 0.12);
     color: #ff6b5b;
   }
   .nav-link.active {
-    background: linear-gradient(135deg, rgba(255,107,91,0.2), rgba(255,178,75,0.15));
-    border: 1px solid rgba(255, 107, 91, 0.3);
+    background: linear-gradient(135deg, rgba(255,107,91,0.22), rgba(255,178,75,0.18));
+    border: 1px solid rgba(255, 107, 91, 0.4);
     color: #ff6b5b;
   }
-  @media (max-width: 991.98px){
-    .navbar-toggler{ display: inline-flex; align-items:center; justify-content:center; }
-    .navbar-collapse{ display: none; width: 100%; flex-direction: column; margin-top: 12px; }
-    .navbar-collapse.show{ display: flex !important; }
-    .pm-header{ border-radius: 16px; padding: 10px 14px; flex-wrap: wrap; }
-    .pm-nav{ flex-direction:column; align-items:stretch; gap:8px; padding: 10px 0; width:100%; }
-    .pm-nav .nav-link, .pm-theme-toggle, .langWrap, .langBtn{ width:100%; justify-content:center; }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .bi-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    filter: var(--pm-icon-filter);
+  }
+  .btn.primary .bi-icon, .btn-primary .bi-icon { filter: none; }
+  .pm-theme-toggle {
+    padding: 8px 12px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+  }
+
+  .langWrap { position: relative; display: inline-flex; width: 170px; max-width: 100%; }
+  .visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  .langBtn {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: rgba(0,0,0,0.04);
+    color: inherit;
+    cursor: pointer;
+    font-size: 13px;
+    min-height: 38px;
+  }
+  [data-bs-theme="dark"] .langBtn {
+    border-color: rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+  }
+  .langBtnLeft { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .langBtnText { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+  .langCaret { width: 16px; height: 16px; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='black' opacity='0.6' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat center/16px 16px; flex: 0 0 16px; }
+  [data-bs-theme="dark"] .langCaret { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' opacity='0.75' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>"); }
+  .langPop { position: fixed; z-index: 30000; width: min(92vw, 360px); border-radius: 18px; border: 1px solid rgba(0,0,0,.12); }
+
+  @media (max-width: 991.98px) {
+    .pm-header {
+      border-radius: 18px;
+      padding: 10px 14px;
+      flex-wrap: wrap;
+      max-height: calc(100vh - 20px);
+      overflow-y: auto;
+    }
+    .navbar-toggler {
+      display: inline-flex;
+    }
+    .navbar-collapse {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      gap: 12px;
+    }
+    .navbar-collapse.show {
+      display: flex !important;
+    }
+    .pm-nav {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+      width: 100%;
+    }
+    .pm-nav .nav-link {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+    }
+    .header-actions {
+      width: 100%;
+      justify-content: space-between;
+      margin-left: 0;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255,255,255,0.08);
+    }
+    .langWrap {
+      flex: 1;
+    }
   }
 </style>
 
 <nav class="pm-header navbar">
   <a class="pm-brand" href="index.php">
-    <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>" width="44" height="44" />
-    <div>
-      <div class="pm-name"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></div>
-    </div>
+    <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>" width="40" height="40" />
+    <span class="pm-name"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></span>
   </a>
   <button class="navbar-toggler" type="button" id="pmNavToggle" aria-controls="pmNav" aria-expanded="false" aria-label="Toggle navigation">
-    <img class="bi-icon" src="bootstrap-icons/list.svg" alt="" width="24" height="24" style="display:block" />
+    <img class="bi-icon" src="bootstrap-icons/list.svg" alt="" width="22" height="22" />
   </button>
   <div class="navbar-collapse" id="pmNav">
-    <ul class="navbar-nav pm-nav gap-2 flex-column flex-lg-row flex-lg-wrap justify-content-center mx-lg-auto">
+    <ul class="navbar-nav pm-nav">
       <li class="nav-item">
-        <a class="nav-link d-flex align-items-center gap-2 text-nowrap fw-semibold bg-body-tertiary border rounded-pill px-3 py-2 shadow-sm<?= $isPlay ? ' active' : '' ?>" href="play.php">
+        <a class="nav-link<?= $isPlay ? ' active' : '' ?>" href="play.php">
           <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
           <?= htmlspecialchars(tt('home_cta_play', 'Play now')) ?>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link d-flex align-items-center gap-2 text-nowrap fw-semibold bg-body-tertiary border rounded-pill px-3 py-2 shadow-sm<?= $isDaily ? ' active' : '' ?>" href="play.php?daily=1">
+        <a class="nav-link<?= $isDaily ? ' active' : '' ?>" href="play.php?daily=1">
           <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" />
           <?= htmlspecialchars(tt('home_cta_daily', 'Daily Challenge')) ?>
         </a>
       </li>
-      <li class="w-100 d-none d-lg-block"></li>
       <li class="nav-item">
-        <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isLeaderboard ? ' active' : '' ?>" href="daily_leaderboard.php">
+        <a class="nav-link<?= $isLeaderboard ? ' active' : '' ?>" href="daily_leaderboard.php">
           <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
           <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
         </a>
       </li>
       <?php if (!empty($userEmail)): ?>
       <li class="nav-item">
-        <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isRooms ? ' active' : '' ?>" href="rooms.php">
+        <a class="nav-link<?= $isRooms ? ' active' : '' ?>" href="rooms.php">
           <img class="bi-icon" src="bootstrap-icons/people-fill.svg" alt="" aria-hidden="true" />
           <?= htmlspecialchars(tt('rooms_title', 'Rooms')) ?>
         </a>
       </li>
-      <?php endif; ?>
-      <?php if (!empty($userEmail)): ?>
-        <li class="nav-item">
-          <a class="nav-link d-flex align-items-center gap-2 text-nowrap<?= $isSessions ? ' active' : '' ?>" href="games.php">
-            <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
-            <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link d-flex align-items-center gap-2 text-nowrap" href="logout.php">
-            <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
-            <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
-          </a>
-        </li>
+      <li class="nav-item">
+        <a class="nav-link<?= $isSessions ? ' active' : '' ?>" href="games.php">
+          <img class="bi-icon" src="bootstrap-icons/clock-history.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('btn_view_history', 'My Sessions')) ?>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="logout.php">
+          <img class="bi-icon" src="bootstrap-icons/box-arrow-right.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('btn_logout', 'Logout')) ?>
+        </a>
+      </li>
       <?php else: ?>
-        <li class="nav-item">
-          <a class="nav-link d-flex align-items-center gap-2 text-nowrap" href="login.php">
-            <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
-            <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
-          </a>
-        </li>
+      <li class="nav-item">
+        <a class="nav-link" href="login.php">
+          <img class="bi-icon" src="bootstrap-icons/box-arrow-in-right.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(tt('home_cta_login', 'Sign in')) ?>
+        </a>
+      </li>
       <?php endif; ?>
     </ul>
 
-    <div class="d-flex align-items-center gap-2 ms-auto">
+    <div class="header-actions">
       <button class="btn btn-outline-secondary btn-sm pm-theme-toggle" type="button" id="themeToggle"
               aria-label="<?= htmlspecialchars(tt('theme_toggle', 'Toggle theme')) ?>"
               data-icon-light="bootstrap-icons/brightness-high-fill.svg"
@@ -241,9 +352,14 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
   if (!header || !document.body) return;
 
   function setOffset(){
+    const isMobile = window.innerWidth <= 991.98;
+    if (isMobile) {
+      document.documentElement.style.setProperty('--pm-header-offset', '76px');
+      return;
+    }
     const rect = header.getBoundingClientRect();
-    const extra = 12;
-    const offset = Math.max(0, Math.ceil(rect.height + extra));
+    const extra = 14;
+    const offset = Math.max(68, Math.ceil(rect.height + extra));
     document.documentElement.style.setProperty('--pm-header-offset', offset + 'px');
   }
 

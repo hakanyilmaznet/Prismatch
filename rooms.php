@@ -87,119 +87,26 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>
-    :root {
-      --pm-accent: #ff6b5b;
-      --pm-accent-glow: rgba(255, 107, 91, 0.25);
-      --pm-radius: 20px;
-    }
     body {
-      margin: 0;
-      font-family: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bs-body-bg);
-      color: var(--bs-body-color);
-      min-height: 100vh;
-      padding-top: calc(var(--pm-header-offset, 0px) + 24px);
-      padding-bottom: calc(var(--pm-footer-offset, 0px) + 32px);
-    }
-    .wrap {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 0 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-    .hero-card {
-      background: linear-gradient(135deg, rgba(255, 107, 91, 0.12), rgba(73, 242, 178, 0.08));
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: var(--pm-radius);
-      padding: 28px 24px;
-      backdrop-filter: blur(12px);
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
-    }
-    [data-bs-theme="dark"] .hero-card {
-      background: linear-gradient(135deg, rgba(255, 107, 91, 0.18), rgba(73, 242, 178, 0.06));
-      border-color: rgba(255, 255, 255, 0.08);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-    }
-    .hero-title {
-      font-family: "Baloo 2", sans-serif;
-      font-weight: 800;
-      font-size: 28px;
-      margin: 0 0 6px 0;
-      line-height: 1.2;
-    }
-    .card-modern {
-      background: var(--bs-card-bg, rgba(255, 255, 255, 0.85));
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: var(--pm-radius);
-      padding: 24px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.04);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    [data-bs-theme="dark"] .card-modern {
-      background: rgba(18, 22, 34, 0.7);
-      border-color: rgba(255, 255, 255, 0.08);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
-    }
-    .pulse-dot {
-      display: inline-block;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #20b77d;
-      margin-right: 4px;
-      box-shadow: 0 0 0 rgba(32, 183, 125, 0.7);
-      animation: pulse 1.8s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(32, 183, 125, 0.7); }
-      70% { box-shadow: 0 0 0 8px rgba(32, 183, 125, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(32, 183, 125, 0); }
-    }
-    .btn-create {
-      background: linear-gradient(135deg, #ff6b5b, #ff8c42);
-      border: none;
-      color: #fff;
-      font-weight: 600;
-      padding: 10px 22px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(255, 107, 91, 0.35);
-      transition: all 0.2s ease;
-    }
-    .btn-create:hover {
-      background: linear-gradient(135deg, #ff5744, #ff7e2e);
-      color: #fff;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 22px rgba(255, 107, 91, 0.45);
-    }
-    .table-modern {
-      margin-bottom: 0;
-    }
-    .table-modern th {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--bs-secondary-color);
-      border-bottom-width: 1px;
-      padding: 12px 14px;
-    }
-    .table-modern td {
-      padding: 14px;
-      vertical-align: middle;
+      padding-top: calc(var(--pm-header-offset, 0px) + 20px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 24px);
     }
     .winner-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-weight: 600;
+      font-weight: 700;
       color: #ffb020;
+    }
+    @media (max-width: 767px) {
+      .card-modern .row > div {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+      }
+      .card-modern .row {
+        gap: 12px;
+      }
     }
   </style>
 </head>

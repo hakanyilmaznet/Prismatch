@@ -87,26 +87,25 @@ $viewerCountry = cf_country();
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>
-    :root{ color-scheme: light dark; }
-    body{
-      margin:0;
-      font-family:"Rubik","Segoe UI","Helvetica Neue",sans-serif;
-      background: var(--bs-body-bg);
-      color: var(--bs-body-color);
-      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
-      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
+    body {
+      padding-top: calc(var(--pm-header-offset, 0px) + 20px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 24px);
     }
-    .wrap{ max-width:980px; margin:0 auto; padding:18px; display:grid; gap:18px; }
-    .cardx{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:16px; }
-    [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.08); }
-    h1{ margin:0 0 6px 0; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
-    .muted{ opacity:.7; font-size:12px; }
-    table{ width:100%; border-collapse:collapse; }
-    th,td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.10); text-align:left; vertical-align:top; font-size:14px; }
-    th{ font-weight:700; }
-    .right{ text-align:right; }
-    .flagIcon{ width:18px; height:18px; border-radius:50%; object-fit:cover; box-shadow:0 2px 6px rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.25); }
-    .filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    @media (max-width: 600px) {
+      .filters {
+        width: 100%;
+        margin-top: 10px;
+      }
+      .filters input, .filters select, .filters button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>

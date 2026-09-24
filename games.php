@@ -124,29 +124,15 @@ foreach ($rows as $g) {
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>
-    :root{ color-scheme: light dark; }
-    body{
-      margin:0;
-      font-family:"Rubik","Segoe UI","Helvetica Neue",sans-serif;
-      background: var(--bs-body-bg);
-      color: var(--bs-body-color);
-      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
-      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
+    body {
+      padding-top: calc(var(--pm-header-offset, 0px) + 20px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 24px);
     }
-    .wrap{ max-width:1080px; margin:0 auto; padding:18px; display:grid; gap:18px; }
-    .cardx{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:16px; padding:16px; }
-    [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.08); }
-    h1{ margin:0 0 6px 0; font-family:"Baloo 2","Rubik","Segoe UI","Helvetica Neue",sans-serif; }
-    .muted{ opacity:.7; font-size:12px; }
-    table{ width:100%; border-collapse:collapse; }
-    th,td{ padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.10); text-align:left; vertical-align:top; font-size:14px; }
-    th{ font-weight:700; }
-    .right{ text-align:right; }
-    .pill{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(8,16,23,.35); font-size:12px; white-space:nowrap; }
-    .pill-won{ border-color:rgba(53,208,186,.35); background:rgba(53,208,186,.12); }
-    .pill-fin{ border-color:rgba(255,255,255,.20); background:rgba(8,16,23,.35); }
-    .flagIcon{ width:16px; height:16px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,.25); box-shadow:0 2px 6px rgba(0,0,0,.35); }
-    .metaRow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--pm-radius-pill); font-size: 12px; font-weight: 600; }
+    .pill-won { border: 1px solid rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.15); color: var(--pm-emerald); }
+    .pill-fin { border: 1px solid var(--pm-border); background: var(--pm-bg-elevated); color: var(--pm-text-muted); }
+    .flagIcon { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid var(--pm-border); }
+    .metaRow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
   </style>
 </head>
 <body>
