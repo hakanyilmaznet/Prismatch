@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/bootstrap.php';
 if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
   error_reporting(E_ALL);
@@ -83,7 +83,7 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -1726,6 +1726,7 @@ if (FLASH_MSG) toastQuick(FLASH_MSG);
 
 </body>
 </html>
+
 
 
 

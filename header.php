@@ -83,111 +83,65 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
 
   .pm-nav{ gap:10px; }
   .navbar-toggler{
+    display: none;
     border:1px solid rgba(0,0,0,0.1);
     background: rgba(0,0,0,0.04);
     color:#0f1117;
     border-radius: 12px;
     padding: 8px 10px;
+    cursor: pointer;
   }
-  .navbar-toggler:focus{ box-shadow: 0 0 0 2px rgba(20,120,92,0.22); }
-  [data-bs-theme="dark"] .navbar-toggler{
-    border-color: rgba(255,255,255,0.16);
-    background: rgba(255,255,255,0.08);
-    color:#fff;
+  .navbar-collapse {
+    display: flex;
+    align-items: center;
+    width: 100%;
   }
-  .navbar-toggler-icon{
-    width:18px; height:18px; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%2310181f' stroke-linecap='round' stroke-width='2' viewBox='0 0 24 24'><path d='M4 7h16'/><path d='M4 12h16'/><path d='M4 17h16'/></svg>");
+  .navbar-nav {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
-  [data-bs-theme="dark"] .navbar-toggler-icon{
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='white' stroke-linecap='round' stroke-width='2' viewBox='0 0 24 24'><path d='M4 7h16'/><path d='M4 12h16'/><path d='M4 17h16'/></svg>");
+  .nav-item {
+    list-style: none;
   }
-  .bi-icon{
-    width:16px;
-    height:16px;
-    display:inline-block;
-    filter: var(--pm-icon-filter);
+  .nav-link {
+    color: inherit;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 999px;
+    transition: all 0.15s ease;
   }
-  .btn.primary .bi-icon{ filter: none; }
-  .pm-theme-toggle{ padding: 8px 12px; border-radius: 999px; }
-  .pm-theme-toggle svg{ width:16px; height:16px; }
-
-  .langWrap{ position:relative; display:inline-flex; width: 200px; max-width: 100%; }
-  .visually-hidden{ position:absolute!important; width:1px;height:1px; padding:0;margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-  .langBtn{
-    appearance:none; -webkit-appearance:none;
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    width:100%;
-    padding:10px 14px;
-    border-radius:12px;
-    border:1px solid rgba(0,0,0,0.12);
-    background: rgba(0,0,0,0.04);
-    color:#0f1117;
-    cursor:pointer;
-    outline:none;
+  .nav-link:hover {
+    background: rgba(255, 107, 91, 0.1);
+    color: #ff6b5b;
   }
-  .langBtn:hover{ border-color: rgba(0,0,0,0.22); }
-  .langBtn:focus{ border-color: rgba(20,120,92,.6); box-shadow: 0 0 0 3px rgba(20,120,92,.18); }
-  [data-bs-theme="dark"] .langBtn{
-    border-color: rgba(255,255,255,.18);
-    background: rgba(255,255,255,0.08);
-    color:#fff;
+  .nav-link.active {
+    background: linear-gradient(135deg, rgba(255,107,91,0.2), rgba(255,178,75,0.15));
+    border: 1px solid rgba(255, 107, 91, 0.3);
+    color: #ff6b5b;
   }
-  [data-bs-theme="dark"] .langBtn:hover{ border-color: rgba(255,255,255,.28); }
-  .langBtnLeft{ display:flex; align-items:center; gap:10px; min-width:0; }
-  .langBtnText{ font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .langCaret{ width:16px; height:16px; background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='black' opacity='0.6' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat center/16px 16px; flex:0 0 16px; }
-  [data-bs-theme="dark"] .langCaret{ background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' opacity='0.75' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>"); }
-  .langPop{ position:fixed; z-index:30000; width: min(92vw, 360px); border-radius:18px; border:1px solid rgba(0,0,0,.12);
-    background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,248,248,.95)); backdrop-filter: blur(16px);
-    box-shadow: 0 18px 60px rgba(10,12,18,.2); overflow:hidden; pointer-events:auto; }
-  [data-bs-theme="dark"] .langPop{
-    border-color: rgba(255,255,255,.18);
-    background: linear-gradient(180deg, rgba(8,16,23,.96), rgba(10,18,26,.94));
-    box-shadow: 0 18px 60px rgba(0,0,0,.55);
-  }
-  .langPop[hidden]{ display:none !important; pointer-events:none !important; }
-  .langPopHeader{ padding:12px; border-bottom:1px solid rgba(0,0,0,.08); display:grid; gap:10px; }
-  .langTitle{ font-size:13px; opacity:.7; font-weight:700; letter-spacing:.2px; color:#0f1117; }
-  .langSearch{ width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(0,0,0,.12); background: rgba(0,0,0,.03); color:#0f1117; outline:none; }
-  .langSearch:focus{ border-color: rgba(20,120,92,.65); box-shadow: 0 0 0 3px rgba(20,120,92,.16); }
-  [data-bs-theme="dark"] .langPopHeader{ border-bottom-color: rgba(255,255,255,.10); }
-  [data-bs-theme="dark"] .langTitle{ color:#fff; opacity:.85; }
-  [data-bs-theme="dark"] .langSearch{ border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.08); color:#fff; }
-  .langList{ max-height: 340px; overflow:auto; padding:6px; }
-  .langItem{ width:100%; display:grid; grid-template-columns: 1fr auto; align-items:center; gap:10px; padding:10px 10px; border-radius:14px; border:1px solid transparent; background:transparent; color:#0f1117; cursor:pointer; text-align:left; }
-  html[dir="rtl"] .langItem{ text-align:right; }
-  .langItem:hover{ background: rgba(20,120,92,.08); border-color: rgba(20,120,92,.18); }
-  .langItem[aria-selected="true"]{ background: rgba(20,120,92,.14); border-color: rgba(20,120,92,.30); }
-  .langLabelCell{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:650; }
-  .langMetaCell{ opacity:.7; font-size:12px; display:flex; align-items:center; gap:8px; }
-  .langCheck{ opacity:.9; }
-  .langNoRes{ padding:12px; color: rgba(15,17,23,.6); font-size:13px; }
-  [data-bs-theme="dark"] .langItem{ color:#fff; }
-  [data-bs-theme="dark"] .langNoRes{ color: rgba(255,255,255,.72); }
   @media (max-width: 991.98px){
-    .pm-header{ border-radius: 16px; padding: 10px 12px; }
-    .pm-header{ flex-wrap:wrap; }
-    .pm-nav{ flex-direction:column; align-items:stretch; gap:10px; padding: 12px 0 6px; }
+    .navbar-toggler{ display: inline-flex; align-items:center; justify-content:center; }
+    .navbar-collapse{ display: none; width: 100%; flex-direction: column; margin-top: 12px; }
+    .navbar-collapse.show{ display: flex !important; }
+    .pm-header{ border-radius: 16px; padding: 10px 14px; flex-wrap: wrap; }
+    .pm-nav{ flex-direction:column; align-items:stretch; gap:8px; padding: 10px 0; width:100%; }
     .pm-nav .nav-link, .pm-theme-toggle, .langWrap, .langBtn{ width:100%; justify-content:center; }
-    .pm-header .navbar-collapse{ margin-top: 8px; }
-    .pm-header .navbar-nav{ gap:10px; }
-    .pm-header .d-flex.align-items-center{ width:100%; justify-content:space-between; }
-    .pm-brand{ flex:1 1 auto; }
-    .pm-brand .pm-name{ display:none; }
   }
 </style>
 
-<nav class="pm-header navbar navbar-expand-lg">
+<nav class="pm-header navbar">
   <a class="pm-brand" href="index.php">
     <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>" width="44" height="44" />
     <div>
       <div class="pm-name"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></div>
     </div>
   </a>
-  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#pmNav" aria-controls="pmNav" aria-expanded="false" aria-label="Toggle navigation">
+  <button class="navbar-toggler" type="button" id="pmNavToggle" aria-controls="pmNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <div class="collapse navbar-collapse" id="pmNav">
+  <div class="navbar-collapse" id="pmNav">
     <ul class="navbar-nav pm-nav gap-2 flex-column flex-lg-row flex-lg-wrap justify-content-center mx-lg-auto">
       <li class="nav-item">
         <a class="nav-link d-flex align-items-center gap-2 text-nowrap fw-semibold bg-body-tertiary border rounded-pill px-3 py-2 shadow-sm<?= $isPlay ? ' active' : '' ?>" href="play.php">

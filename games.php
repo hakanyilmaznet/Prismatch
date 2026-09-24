@@ -1,4 +1,4 @@
-<?php
+ï»¿<?php
 require_once __DIR__ . '/bootstrap.php';
 if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
   error_reporting(E_ALL);
@@ -106,11 +106,11 @@ foreach ($rows as $g) {
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= h(TT('games_title','My Sessions')) ?> — <?= h(TT('app_name','Prismatch')) ?></title>
+  <title><?= h(TT('games_title','My Sessions')) ?> ï¿½ <?= h(TT('app_name','Prismatch')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -214,3 +214,4 @@ foreach ($rows as $g) {
   <?php if (is_file(__DIR__ . '/footer.php')) include __DIR__ . '/footer.php'; ?>
 </body>
 </html>
+

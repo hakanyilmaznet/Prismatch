@@ -1,4 +1,4 @@
-<?php
+ï»¿<?php
 require_once __DIR__ . '/bootstrap.php';
 if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
   error_reporting(E_ALL);
@@ -69,11 +69,11 @@ $viewerCountry = cf_country();
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= h(t('daily_leaderboard_title')) ?> — <?= h(t('app_name')) ?></title>
+  <title><?= h(t('daily_leaderboard_title')) ?> ï¿½ <?= h(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -215,3 +215,4 @@ $viewerCountry = cf_country();
   </script>
 </body>
 </html>
+

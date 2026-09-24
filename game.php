@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
@@ -86,7 +86,7 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
       document.documentElement.setAttribute('data-bs-theme', theme);
     })();
   </script>
-  <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -249,3 +249,4 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
   </script>
 </body>
 </html>
+

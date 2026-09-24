@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/bootstrap.php';
 if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
   error_reporting(E_ALL);
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="noindex,nofollow" />
-  <link href="css/bootstrap.min.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
   <link href="css/theme.css" rel="stylesheet" />
   <title>DB Temizleme - Prismatch</title>
 </head>
@@ -169,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </script>
 </body>
 </html>
+
 
 
 
