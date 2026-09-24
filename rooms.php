@@ -215,7 +215,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       </div>
       <div class="d-flex align-items-center gap-2">
         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-          50 Rounds Max · Instant Elimination
+          <?= htmlspecialchars(tt('rooms_badge_info', '50 Rounds Max · Instant Elimination')) ?>
         </span>
       </div>
     </div>
@@ -230,7 +230,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           <label class="form-label small fw-semibold text-secondary" for="roomNameInput">
             <?= htmlspecialchars(tt('rooms_name_label', 'Room Name')) ?>
           </label>
-          <input id="roomNameInput" class="form-control form-control-lg rounded-3" type="text" maxlength="80" placeholder="e.g. Arena Champions #1" />
+          <input id="roomNameInput" class="form-control form-control-lg rounded-3" type="text" maxlength="80" placeholder="<?= htmlspecialchars(tt('rooms_name_placeholder', 'e.g. Arena Champions #1')) ?>" />
           <div id="createMsg" class="small mt-2"></div>
         </div>
         <div class="col-md-5 col-lg-4 d-flex gap-2">
@@ -243,7 +243,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       <!-- Share Box (Revealed after creation) -->
       <div id="shareWrap" class="mt-4 pt-3 border-top" hidden>
         <div class="alert alert-success d-flex flex-column gap-2 rounded-3 mb-0">
-          <div class="fw-semibold">🎉 Room created successfully! Share this link with players:</div>
+          <div class="fw-semibold">🎉 <?= htmlspecialchars(tt('rooms_created_success', 'Room created successfully! Share this link with players:')) ?></div>
           <div class="input-group">
             <input id="shareLink" class="form-control" type="text" readonly />
             <button id="copyLinkBtn" class="btn btn-dark" type="button"><?= htmlspecialchars(tt('rooms_copy', 'Copy Link')) ?></button>
@@ -358,7 +358,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       }
 
       createBtn.disabled = true;
-      createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Creating...';
+      createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> ' + "Oluşturuluyor...";
 
       try {
         const res = await fetch('api/rooms_create.php', {
@@ -392,7 +392,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       if (!shareLink || !shareLink.value) return;
       try {
         await navigator.clipboard.writeText(shareLink.value);
-        copyLinkBtn.textContent = 'Copied!';
+        copyLinkBtn.textContent = <?= json_encode(tt('rooms_share_copied', 'Copied!')) ?>;
         setTimeout(() => { copyLinkBtn.textContent = <?= json_encode(tt('rooms_copy', 'Copy Link')) ?>; }, 2000);
       } catch (e) {
         shareLink.select();

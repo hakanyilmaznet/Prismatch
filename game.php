@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
@@ -179,7 +179,7 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
 
     <div class="cardx">
       <div class="table-responsive">
-        <table>
+        <table class="table">
           <thead>
             <tr>
               <th><?= h(t_safe('th_level','Level')) ?></th>

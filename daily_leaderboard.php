@@ -73,7 +73,7 @@ $viewerCountry = cf_country();
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= h(t('daily_leaderboard_title')) ?> � <?= h(t('app_name')) ?></title>
+  <title><?= h(t('daily_leaderboard_title')) ?> - <?= h(t('app_name')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -130,12 +130,12 @@ $viewerCountry = cf_country();
         <form class="filters" method="get">
           <input class="form-control" type="date" name="d" value="<?= h($challengeDate) ?>" />
           <select class="form-select" name="country">
-            <option value=""><?= h(t('filter_country_all') !== 'filter_country_all' ? t('filter_country_all') : 'All countries') ?></option>
+            <option value=""><?= h(t('filter_country_all')) ?></option>
             <?php foreach (array_keys($countries) as $c): ?>
               <option value="<?= h($c) ?>" <?= $countryFilter === $c ? 'selected' : '' ?>><?= h($c) ?></option>
             <?php endforeach; ?>
           </select>
-          <button class="btn btn-primary" type="submit"><?= h(t('btn_apply') !== 'btn_apply' ? t('btn_apply') : 'Apply') ?></button>
+          <button class="btn btn-primary" type="submit"><?= h(t('btn_apply')) ?></button>
         </form>
       </div>
     </div>
@@ -145,7 +145,7 @@ $viewerCountry = cf_country();
         <div class="muted"><?= h(t('msg_no_scores_yet')) ?></div>
       <?php else: ?>
         <div class="table-responsive">
-          <table>
+          <table class="table">
             <thead>
               <tr>
                 <th>#</th>

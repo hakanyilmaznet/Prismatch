@@ -110,7 +110,7 @@ foreach ($rows as $g) {
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= h(TT('games_title','My Sessions')) ?> � <?= h(TT('app_name','Prismatch')) ?></title>
+  <title><?= h(TT('games_title','My Sessions')) ?> - <?= h(TT('app_name','Prismatch')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -169,7 +169,7 @@ foreach ($rows as $g) {
         <div class="muted"><?= h(TT('no_results','No results')) ?></div>
       <?php else: ?>
         <div class="table-responsive">
-          <table>
+          <table class="table">
             <thead>
               <tr>
                 <th>#</th>

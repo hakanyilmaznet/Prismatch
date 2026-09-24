@@ -314,6 +314,30 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       color: #fff;
       transform: translateY(-2px);
     }
+
+    @media (max-width: 600px) {
+      .arena-stage {
+        padding: 20px 12px;
+        min-height: 380px;
+        border-radius: 18px;
+      }
+      .choice-grid {
+        gap: 8px;
+      }
+      .choice-cell {
+        border-radius: 12px;
+        border-width: 2px;
+      }
+      .arena-hud {
+        gap: 8px;
+      }
+      .hud-chip {
+        padding: 8px 12px;
+      }
+      .hud-val {
+        font-size: 15px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -336,7 +360,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       </div>
       <div class="hud-chip">
         <span class="hud-label"><?= htmlspecialchars(tt('room_status', 'Status')) ?></span>
-        <span id="hudStatus" class="hud-val text-warning">Connecting...</span>
+        <span id="hudStatus" class="hud-val text-warning"><?= htmlspecialchars(tt('status_connecting', 'Connecting...')) ?></span>
       </div>
     </div>
 
@@ -358,7 +382,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     <!-- Player Roster & Presence -->
     <div class="players-bar">
-      <div class="small fw-bold text-uppercase text-secondary me-2">Players:</div>
+      <div class="small fw-bold text-uppercase text-secondary me-2"><?= htmlspecialchars(tt('room_players', 'Players')) ?>:</div>
       <div id="playerList" class="d-flex flex-wrap gap-2 align-items-center flex-1">
         <!-- Live pills dynamically populated -->
       </div>

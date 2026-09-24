@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/bootstrap.php';
 if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
   error_reporting(E_ALL);
@@ -7,9 +7,6 @@ if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
 }
 
 require_once __DIR__ . '/i18n.php';
-
-
-// Session is already started in bootstrap.php
 
 function is_safe_next_path(string $path): bool {
   if ($path === '') return false;
@@ -35,16 +32,16 @@ if ($provider === 'google') {
   $state = bin2hex(random_bytes(16));
   $_SESSION['oauth_state'] = $state;
 
-$params = [
-  'client_id' => GOOGLE_CLIENT_ID,
-  'redirect_uri' => GOOGLE_REDIRECT_URI,
-  'response_type' => 'code',
-  'scope' => 'openid email',
-  'include_granted_scopes' => 'true',
-  'access_type' => 'online',
-  'prompt' => 'select_account',
-  'state' => $state,
-];
+  $params = [
+    'client_id' => GOOGLE_CLIENT_ID,
+    'redirect_uri' => GOOGLE_REDIRECT_URI,
+    'response_type' => 'code',
+    'scope' => 'openid email',
+    'include_granted_scopes' => 'true',
+    'access_type' => 'online',
+    'prompt' => 'select_account',
+    'state' => $state,
+  ];
 
   $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params);
   header('Location: ' . $authUrl);
@@ -54,6 +51,7 @@ $params = [
 $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 $nextUrl = $_SESSION['login_next'] ?? '';
+$seoTitle = t('home_cta_login') . ' - ' . t('app_name');
 ?>
 <!doctype html>
 <html lang="<?= htmlspecialchars($lang) ?>" dir="<?= htmlspecialchars($dir) ?>">
@@ -65,108 +63,182 @@ $nextUrl = $_SESSION['login_next'] ?? '';
       const key = 'pm-theme';
       const stored = localStorage.getItem(key);
       const prefers = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      const theme = stored || prefers;
-      document.documentElement.setAttribute('data-bs-theme', theme);
+      document.documentElement.setAttribute('data-bs-theme', stored || prefers);
     })();
   </script>
   <link href="css/style.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= htmlspecialchars(t('home_cta_login')) ?> - <?= htmlspecialchars(t('app_name')) ?></title>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <title><?= htmlspecialchars($seoTitle) ?></title>
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <style>
-    :root{ color-scheme: light dark; }
-    body{
-      margin:0;
-      font-family: "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
-      background: var(--bs-body-bg);
-      color: var(--bs-body-color);
-      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
-      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px);
+    body {
+      padding-top: calc(var(--pm-header-offset, 0px) + 20px);
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 24px);
     }
-    .wrap{ max-width: 720px; margin:0 auto; padding: 18px; display:grid; gap:18px; }
-    .cardx{ background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius: 16px; padding:16px; }
-    [data-bs-theme="light"] .cardx{ background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.08); }
-    .muted{ opacity:.7; font-size: 13px; }
-    .login-actions{ display:flex; gap:10px; flex-wrap:wrap; }
-  
-    
-    /* fun-bg */
-    :root{ --grid: rgba(255,255,255,0.08); }
-    [data-bs-theme="light"]{ --grid: rgba(31,27,43,0.1); }
-    body::before,
-    body::after{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:-1;
+    .auth-container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
-    body::before{
-      background:
-        radial-gradient(640px 640px at 12% 12%, rgba(255,107,91,0.16), transparent 60%),
-        radial-gradient(600px 600px at 88% 18%, rgba(124,137,255,0.14), transparent 60%),
-        radial-gradient(520px 520px at 50% 85%, rgba(73,242,178,0.12), transparent 60%);
-      opacity:0.6;
-    }
-    body::after{
-      background: radial-gradient(var(--grid) 1px, transparent 1px);
-      background-size: 28px 28px;
-      opacity:0.32;
-    }
-    h1, h2, h3{
+    .auth-card {
+      background: var(--pm-bg-card);
+      border: 1px solid var(--pm-border);
+      border-radius: var(--pm-radius-xl);
+      padding: 32px 28px;
+      box-shadow: var(--pm-shadow-lg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      text-align: center;
       position: relative;
-      display: inline-block;
-      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
-      letter-spacing:.2px;
+      overflow: hidden;
     }
-    h1::after, h2::after, h3::after{
-      content:"";
-      position:absolute;
-      left: 0;
-      bottom: -6px;
+    @media (max-width: 480px) {
+      .auth-card {
+        padding: 24px 18px;
+        border-radius: var(--pm-radius-lg);
+      }
+    }
+    .auth-badge {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      margin: 0 auto 16px auto;
+      background: linear-gradient(135deg, rgba(255,107,91,0.2), rgba(255,211,107,0.25));
+      border: 1px solid var(--pm-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px var(--pm-primary-glow);
+    }
+    .auth-badge img {
+      width: 36px;
+      height: 36px;
+    }
+    .auth-title {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      font-family: var(--pm-font-display);
+    }
+    .auth-subtitle {
+      color: var(--pm-text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .auth-btn-google {
       width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, rgba(255,211,107,0.7), rgba(255,107,91,0.35));
-      z-index:-1;
+      min-height: 48px;
+      background: var(--pm-bg-elevated);
+      border: 1px solid var(--pm-border);
+      color: var(--pm-text);
+      font-weight: 700;
+      font-size: 15px;
+      border-radius: var(--pm-radius-pill);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: var(--pm-transition);
+      box-shadow: var(--pm-shadow-sm);
+    }
+    .auth-btn-google:hover {
+      border-color: var(--pm-border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--pm-shadow-md);
+    }
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 24px 0;
+      color: var(--pm-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--pm-border);
+    }
+    .auth-form {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .auth-btn-submit {
+      width: 100%;
+      min-height: 48px;
+      font-size: 15px;
     }
   </style>
 </head>
 <body>
   <?php include __DIR__ . '/header.php'; ?>
 
-  <main class="wrap">
-    <div class="cardx">
-      <h1><?= htmlspecialchars(t('home_cta_login')) ?></h1>
-      <p class="muted"><?= htmlspecialchars(t('login_intro') !== 'login_intro' ? t('login_intro') : 'Sign in to save your results and continue on any device.') ?></p>
-      <div class="login-actions">
-        <a class="btn btn-primary" href="login.php?provider=google<?= $nextUrl ? '&next=' . rawurlencode($nextUrl) : '' ?>">
-          <?= htmlspecialchars(t('login_google') !== 'login_google' ? t('login_google') : 'Continue with Google') ?>
-        </a>
-        <a class="btn btn-outline-secondary" href="index.php">
-          <?= htmlspecialchars(t('btn_back_home') !== 'btn_back_home' ? t('btn_back_home') : 'Back to home') ?>
+  <main class="auth-container">
+    <div class="auth-card">
+      <div class="auth-badge">
+        <img src="logo.svg" alt="<?= htmlspecialchars(t('app_name')) ?>" />
+      </div>
+      <h1 class="auth-title"><?= htmlspecialchars(t('home_cta_login')) ?></h1>
+      <p class="auth-subtitle"><?= htmlspecialchars(t('login_intro')) ?></p>
+
+      <a class="auth-btn-google" href="login.php?provider=google<?= $nextUrl ? '&next=' . rawurlencode($nextUrl) : '' ?>">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+        </svg>
+        <?= htmlspecialchars(t('login_google')) ?>
+      </a>
+
+      <div class="auth-divider">
+        <span><?= htmlspecialchars($lang === 'tr' ? 'veya' : 'or') ?></span>
+      </div>
+
+      <div class="auth-local-header" style="text-align: left; margin-bottom: 12px;">
+        <h2 style="font-size: 17px; margin-bottom: 4px; font-family: var(--pm-font-display);"><?= htmlspecialchars(t('login_local_title')) ?></h2>
+        <p style="color: var(--pm-text-muted); font-size: 13px; margin: 0;"><?= htmlspecialchars(t('login_local_desc')) ?></p>
+      </div>
+
+      <form id="localLoginForm" class="auth-form">
+        <div>
+          <label class="form-label" for="localUsername"><?= htmlspecialchars(t('username')) ?></label>
+          <input id="localUsername" class="form-control form-control-lg" type="text" minlength="2" maxlength="30" autocomplete="off" placeholder="<?= htmlspecialchars($lang === 'tr' ? 'Örn: RenkUstası' : 'e.g. ColorMaster') ?>" required />
+        </div>
+        <button class="btn btn-primary auth-btn-submit" type="submit">
+          <?= htmlspecialchars(t('btn_continue')) ?>
+        </button>
+        <div id="localMsg" class="muted" role="status" aria-live="polite" style="margin-top:6px; font-size: 13px;"></div>
+      </form>
+
+      <div style="margin-top: 20px;">
+        <a class="btn btn-sm btn-outline-secondary" href="index.php">
+          <img class="bi-icon" src="bootstrap-icons/arrow-left.svg" alt="" aria-hidden="true" />
+          <?= htmlspecialchars(t('btn_back_home')) ?>
         </a>
       </div>
     </div>
-
-    <div class="cardx">
-      <h2><?= htmlspecialchars(t('login_local_title') !== 'login_local_title' ? t('login_local_title') : 'Local login') ?></h2>
-      <p class="muted"><?= htmlspecialchars(t('login_local_desc') !== 'login_local_desc' ? t('login_local_desc') : 'Use a display name without creating an account.') ?></p>
-      <form id="localLoginForm">
-        <label class="form-label" for="localUsername"><?= htmlspecialchars(t('username') !== 'username' ? t('username') : 'Username') ?></label>
-        <input id="localUsername" class="form-control" type="text" minlength="2" maxlength="30" autocomplete="off" />
-        <div class="login-actions" style="margin-top:12px">
-          <button class="btn btn-primary" type="submit"><?= htmlspecialchars(t('btn_continue') !== 'btn_continue' ? t('btn_continue') : 'Continue') ?></button>
-        </div>
-        <div id="localMsg" class="muted" role="status" aria-live="polite" style="margin-top:8px"></div>
-      </form>
-    </div>
   </main>
+
+  <?php if (is_file(__DIR__ . '/footer.php')) include __DIR__ . '/footer.php'; ?>
 
   <script>
   const NEXT_URL = <?= json_encode($nextUrl) ?>;
+  const MSG_REQUIRED = <?= json_encode(t('login_username_required')) ?>;
+  const MSG_FAILED = <?= json_encode(t('login_failed')) ?>;
+
   const form = document.getElementById('localLoginForm');
   const input = document.getElementById('localUsername');
   const msg = document.getElementById('localMsg');
@@ -184,7 +256,7 @@ $nextUrl = $_SESSION['login_next'] ?? '';
     setMsg('');
     const username = (input?.value || '').trim();
     if (!username) {
-      setMsg('Username is required.', 'error');
+      setMsg(MSG_REQUIRED, 'error');
       return;
     }
     try {
@@ -201,12 +273,11 @@ $nextUrl = $_SESSION['login_next'] ?? '';
         window.location.href = NEXT_URL || 'index.php';
         return;
       }
-      setMsg((data && data.error) ? data.error : 'Login failed.', 'error');
+      setMsg((data && data.error) ? data.error : MSG_FAILED, 'error');
     } catch (err) {
-      setMsg('Login failed.', 'error');
+      setMsg(MSG_FAILED, 'error');
     }
   });
   </script>
 </body>
 </html>
-

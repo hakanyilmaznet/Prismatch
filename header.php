@@ -139,7 +139,7 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
     </div>
   </a>
   <button class="navbar-toggler" type="button" id="pmNavToggle" aria-controls="pmNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
+    <img class="bi-icon" src="bootstrap-icons/list.svg" alt="" width="24" height="24" style="display:block" />
   </button>
   <div class="navbar-collapse" id="pmNav">
     <ul class="navbar-nav pm-nav gap-2 flex-column flex-lg-row flex-lg-wrap justify-content-center mx-lg-auto">

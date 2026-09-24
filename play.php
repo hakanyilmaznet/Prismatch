@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/bootstrap.php';
 if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
   error_reporting(E_ALL);
@@ -26,6 +26,14 @@ $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
 $userId = $_SESSION['user_id'] ?? null;
 $userEmail = $_SESSION['user_email'] ?? null;
+
+// Require user login before playing
+if (!$userId || !$userEmail) {
+  $next = 'play.php' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
+  header('Location: login.php?next=' . rawurlencode($next));
+  exit;
+}
+
 $userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
 $isDailyMode = isset($_GET['daily']) && $_GET['daily'] !== '0';
 $dailyDateUtc = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d');
@@ -568,6 +576,11 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
 
     @media (max-width: 520px){
       .stats{ grid-template-columns: 1fr; }
+      .stage{ padding: 36px 12px 14px; border-radius: 18px; }
+      .grid{ gap: 8px; }
+      .cell{ border-radius: 12px; }
+      .hud .chip{ padding: 8px 12px; }
+      .action-row{ grid-template-columns: 1fr; }
     }
 
     @media (prefers-reduced-motion: reduce){
