@@ -374,13 +374,17 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" />
               <?= htmlspecialchars(tt('home_cta_play', 'Hemen oyna')) ?>
             </a>
+            <a class="btn" href="rooms.php">
+              <img class="bi-icon" src="bootstrap-icons/people-fill.svg" alt="" aria-hidden="true" />
+              <?= htmlspecialchars(tt('rooms_title', 'Çok Oyunculu')) ?>
+            </a>
             <a class="btn" href="play.php?daily=1">
               <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" />
-              <?= htmlspecialchars(tt('home_cta_daily', 'Günlük Meydan Okuma')) ?>
+              <?= htmlspecialchars(tt('home_cta_daily', 'Günlük')) ?>
             </a>
             <a class="btn" href="daily_leaderboard.php">
               <img class="bi-icon" src="bootstrap-icons/trophy-fill.svg" alt="" aria-hidden="true" />
-              <?= htmlspecialchars(tt('daily_leaderboard_title', 'Leaderboard')) ?>
+              <?= htmlspecialchars(tt('daily_leaderboard_title', 'Sıralama')) ?>
             </a>
           </div>
         <div class="quick">

@@ -92,11 +92,26 @@ if (!$isLocal && $host && stripos($host, 'www.') !== 0) {
   }
 }
 
+// --- Autoloader for SOLID architecture ---
+require_once __DIR__ . '/src/autoload.php';
+
 // --- Session ---
-session_name(SESSION_NAME);
-// PHP 5.6 compatible cookie params (no samesite support here)
-session_set_cookie_params(0, '/', '', COOKIE_SECURE, true);
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+  session_name(SESSION_NAME);
+  if (PHP_VERSION_ID >= 70300) {
+    session_set_cookie_params([
+      'lifetime' => 0,
+      'path' => '/',
+      'domain' => '',
+      'secure' => COOKIE_SECURE,
+      'httponly' => true,
+      'samesite' => 'Lax'
+    ]);
+  } else {
+    session_set_cookie_params(0, '/', '', COOKIE_SECURE, true);
+  }
+  session_start();
+}
 
 // --- i18n ---
 require_once __DIR__ . '/i18n.php';

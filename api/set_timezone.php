@@ -1,40 +1,40 @@
 <?php
-require_once __DIR__ . '/../config.php';
+declare(strict_types=1);
 
-session_name(SESSION_NAME);
-session_start();
+require_once __DIR__ . '/../bootstrap.php';
+
+header('Content-Type: application/json; charset=utf-8');
 
 $raw = file_get_contents('php://input');
-$data = json_decode($raw, true);
+$data = json_decode($raw ?: '', true);
 
 if (!is_array($data) || empty($data['timezone'])) {
-  http_response_code(400);
-  exit;
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'invalid_input']);
+    exit;
 }
 
-$tz = $data['timezone'];
+$tz = (string)$data['timezone'];
 
-// Güvenlik: whitelist + valid timezone
+// Whitelist valid timezone
 if (!in_array($tz, timezone_identifiers_list(), true)) {
-  http_response_code(400);
-  exit;
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'invalid_timezone']);
+    exit;
 }
 
-// Session + cookie
 $_SESSION['browser_timezone'] = $tz;
-setcookie(
-  'tz',
-  $tz,
-  [
-    'expires' => time() + 60 * 60 * 24 * 30,
-    'path' => '/',
-    'secure' => COOKIE_SECURE,
-    'httponly' => false,
-    'samesite' => 'Lax'
-  ]
-);
+
+if (PHP_VERSION_ID >= 70300) {
+    setcookie('tz', $tz, [
+        'expires' => time() + 60 * 60 * 24 * 30,
+        'path' => '/',
+        'secure' => COOKIE_SECURE,
+        'httponly' => false,
+        'samesite' => 'Lax'
+    ]);
+} else {
+    setcookie('tz', $tz, time() + 60 * 60 * 24 * 30, '/', '', COOKIE_SECURE, false);
+}
 
 echo json_encode(['ok' => true]);
-
-
-

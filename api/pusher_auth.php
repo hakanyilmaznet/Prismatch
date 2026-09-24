@@ -1,34 +1,25 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../pusher.php';
 
-session_name(SESSION_NAME);
-session_set_cookie_params([
-  'httponly' => true,
-  'secure' => COOKIE_SECURE,
-  'samesite' => 'Lax',
-]);
-if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 $email = $_SESSION['user_email'] ?? null;
 $userId = $_SESSION['user_id'] ?? null;
 if (!$email || !$userId) {
-  http_response_code(403);
-  echo json_encode(['error' => 'login_required']);
-  exit;
+    http_response_code(403);
+    echo json_encode(['error' => 'login_required']);
+    exit;
 }
 
-$socketId = $_POST['socket_id'] ?? '';
-$channel = $_POST['channel_name'] ?? '';
+$socketId = (string)($_POST['socket_id'] ?? '');
+$channel = (string)($_POST['channel_name'] ?? '');
 if ($socketId === '' || $channel === '') {
-  http_response_code(400);
-  echo json_encode(['error' => 'bad_request']);
-  exit;
+    http_response_code(400);
+    echo json_encode(['error' => 'bad_request']);
+    exit;
 }
 
-echo pusher_auth_response($socketId, $channel, $userId, ['email' => $email]);
-
-
-
+echo pusher_auth_response($socketId, $channel, (string)$userId, ['email' => $email]);

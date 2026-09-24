@@ -1,101 +1,36 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../pusher.php';
 
-session_name(SESSION_NAME);
-session_set_cookie_params([
-  'httponly' => true,
-  'secure' => COOKIE_SECURE,
-  'samesite' => 'Lax',
-]);
-if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+use Prismatch\Services\RoomGameService;
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 $email = $_SESSION['user_email'] ?? null;
 $userId = $_SESSION['user_id'] ?? null;
 if (!$email || !$userId) {
-  http_response_code(403);
-  echo json_encode(['error' => 'login_required']);
-  exit;
+    http_response_code(403);
+    echo json_encode(['ok' => false, 'error' => 'login_required']);
+    exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true);
+$input = json_decode((string)file_get_contents('php://input'), true);
 $guid = trim((string)($input['guid'] ?? ($_POST['guid'] ?? '')));
 if ($guid === '') {
-  http_response_code(400);
-  echo json_encode(['error' => 'bad_request']);
-  exit;
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'bad_request']);
+    exit;
 }
 
-$room = get_room_by_guid($guid);
-if (!$room) {
-  http_response_code(404);
-  echo json_encode(['error' => 'not_found']);
-  exit;
+$service = new RoomGameService();
+$result = $service->startOrNextRound($guid, (string)$userId, true);
+
+if (!($result['ok'] ?? false)) {
+    http_response_code($result['code'] ?? 400);
+    echo json_encode($result);
+    exit;
 }
 
-if (($room['owner_id'] ?? null) !== $userId) {
-  http_response_code(403);
-  echo json_encode(['error' => 'not_owner']);
-  exit;
-}
-
-$roomId = (string)$room['id'];
-$current = (int)$room['current_round'];
-$total = (int)$room['rounds_total'];
-
-if ($room['status'] === 'finished') {
-  echo json_encode(['ok' => true, 'finished' => true]);
-  exit;
-}
-
-$players = list_room_players($roomId);
-$activeCount = 0;
-foreach ($players as $p) {
-  if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
-}
-if ($activeCount === 0 && $current > 0) {
-  set_room_finished($roomId);
-  pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
-    'guid' => $guid,
-    'round' => $current,
-    'players' => $players,
-  ]);
-  pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
-  echo json_encode(['ok' => true, 'finished' => true]);
-  exit;
-}
-
-$next = $current + 1;
-
-if ($next > $total) {
-  set_room_finished($roomId);
-  pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
-  echo json_encode(['ok' => true, 'finished' => true]);
-  exit;
-}
-
-if ($current === 0) {
-  set_room_started($roomId);
-}
-
-$question = room_create_round($roomId, $next, $total);
-$timing = room_timing_for_round($next);
-
-$payload = [
-  'guid' => $guid,
-  'round' => $next,
-  'rounds_total' => $total,
-  'question' => $question,
-  'countdown_ms' => $timing['countdown_ms'],
-  'show_ms' => $timing['show_ms'],
-  'answer_ms' => $timing['answer_ms'],
-];
-
-pusher_trigger('presence-room-' . $guid, 'room:round', $payload);
-echo json_encode(['ok' => true, 'round' => $next]);
-
-
-
+echo json_encode($result);

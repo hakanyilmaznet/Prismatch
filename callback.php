@@ -1,22 +1,7 @@
 <?php
-require_once __DIR__ . '/config.php';
-if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
-  error_reporting(E_ALL);
-  @ini_set('display_errors', '1');
-  @ini_set('display_startup_errors', '1');
-}
-
+require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/i18n.php';
-
-
-session_name(SESSION_NAME);
-session_set_cookie_params([
-  'httponly' => true,
-  'secure' => COOKIE_SECURE,
-  'samesite' => 'Lax',
-]);
-session_start();
 
 function fail(string $msg, int $code = 400): void {
   http_response_code($code);
