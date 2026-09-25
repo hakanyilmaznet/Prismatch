@@ -161,6 +161,10 @@ class GameRepository implements GameRepositoryInterface {
             SELECT id, email, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country
             FROM games
             WHERE user_id = :uid
+              AND NOT (
+                (email LIKE '%@prismatch' OR email LIKE '%@local.player')
+                AND created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
+              )
             ORDER BY created_at DESC
             LIMIT :lim
         ");

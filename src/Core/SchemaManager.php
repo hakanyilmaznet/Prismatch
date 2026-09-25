@@ -198,6 +198,30 @@ class SchemaManager {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
 
+        // Migrate any legacy @local.player emails to @prismatch
+        try {
+            $pdo->exec("UPDATE IGNORE users SET email = REPLACE(email, '@local.player', '@prismatch') WHERE email LIKE '%@local.player'");
+            $pdo->exec("UPDATE IGNORE games SET email = REPLACE(email, '@local.player', '@prismatch') WHERE email LIKE '%@local.player'");
+            $pdo->exec("UPDATE IGNORE daily_scores SET user_email = REPLACE(user_email, '@local.player', '@prismatch') WHERE user_email LIKE '%@local.player'");
+            $pdo->exec("UPDATE IGNORE rooms SET owner_email = REPLACE(owner_email, '@local.player', '@prismatch') WHERE owner_email LIKE '%@local.player'");
+            $pdo->exec("UPDATE IGNORE room_players SET email = REPLACE(email, '@local.player', '@prismatch') WHERE email LIKE '%@local.player'");
+            $pdo->exec("UPDATE IGNORE room_events SET email = REPLACE(email, '@local.player', '@prismatch') WHERE email LIKE '%@local.player'");
+        } catch (\Throwable $e) {}
+
+        // Purge temporary guest users and records older than 1 day
+        try {
+            $pdo->exec("
+                DELETE FROM daily_scores 
+                WHERE (user_email LIKE '%@prismatch' OR user_email LIKE '%@local.player') 
+                  AND created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
+            ");
+            $pdo->exec("
+                DELETE FROM users 
+                WHERE (email LIKE '%@prismatch' OR email LIKE '%@local.player') 
+                  AND created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
+            ");
+        } catch (\Throwable $e) {}
+
         self::$initialized = true;
     }
 }

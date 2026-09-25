@@ -98,6 +98,9 @@ if ($linkUserId) {
 // Session: email as primary identity
 $_SESSION['user_email'] = (string)($user['email'] ?? $email);
 $_SESSION['user_id'] = (string)($user['id'] ?? '');
+$_SESSION['user_name'] = user_display_name_from_row($user);
+$_SESSION['login_provider'] = 'google';
+$_SESSION['is_guest'] = false;
 
 $next = $_SESSION['login_next'] ?? '';
 unset($_SESSION['login_next']);

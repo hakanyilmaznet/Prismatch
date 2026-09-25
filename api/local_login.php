@@ -33,7 +33,10 @@ try {
   $user = ensure_local_user($username);
   $_SESSION['user_email'] = (string)($user['email'] ?? $username);
   $_SESSION['user_id'] = (string)($user['id'] ?? '');
+  $_SESSION['user_name'] = $username;
   $_SESSION['local_user_id'] = $clientId !== '' ? $clientId : null;
+  $_SESSION['login_provider'] = 'local';
+  $_SESSION['is_guest'] = true;
 
   echo json_encode([
     'ok' => true,

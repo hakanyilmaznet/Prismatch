@@ -76,7 +76,11 @@ class RoomRepository implements RoomRepositoryInterface {
             SELECT DISTINCT r.*
             FROM rooms r
             LEFT JOIN room_players rp ON rp.room_id = r.id
-            WHERE r.owner_id = :owner_id OR rp.user_id = :player_id
+            WHERE (r.owner_id = :owner_id OR rp.user_id = :player_id)
+              AND NOT (
+                (r.owner_email LIKE '%@prismatch' OR r.owner_email LIKE '%@local.player')
+                AND r.created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
+              )
             ORDER BY r.created_at DESC
             LIMIT :lim
         ");

@@ -41,7 +41,13 @@ function display_player_name($row) {
   $username = trim((string)($row['username'] ?? ''));
   if ($username !== '') return $username;
   $email = (string)($row['email'] ?? '');
-  return $email !== '' ? mask_email($email) : '-';
+  if ($email === '') return '-';
+  $lower = strtolower($email);
+  if (str_ends_with($lower, '@prismatch') || str_ends_with($lower, '@local.player')) {
+    $p = explode('@', $email, 2);
+    return $p[0];
+  }
+  return mask_email($email);
 }
 
 function player_initial($row) {

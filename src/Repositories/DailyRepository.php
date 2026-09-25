@@ -225,11 +225,14 @@ class DailyRepository implements DailyRepositoryInterface {
         $selectFields = "{$idExpr}, {$emailExpr}, {$scoreExpr}, {$reachedExpr}, {$correctExpr}, {$durationExpr}, {$langExpr}, {$countryExpr}, {$createdExpr}";
         $orderCorrect = isset($cols['total_correct']) ? 'total_correct DESC,' : (isset($cols['correct_count']) ? 'correct_count DESC,' : '');
 
+        $rawEmailCol = isset($cols['email']) ? 'email' : (isset($cols['user_email']) ? 'user_email' : "''");
+        $tempFilter = "AND NOT (({$rawEmailCol} LIKE '%@prismatch' OR {$rawEmailCol} LIKE '%@local.player') AND created_at < DATE_SUB(NOW(), INTERVAL 1 DAY))";
+
         if ($country && isset($cols['country'])) {
             $stmt = $this->pdo->prepare("
                 SELECT {$selectFields}
                 FROM daily_scores
-                WHERE {$dateCol} = :d AND country = :c
+                WHERE {$dateCol} = :d AND country = :c {$tempFilter}
                 ORDER BY score DESC, reached_level DESC, {$orderCorrect} duration_ms ASC, created_at ASC
                 LIMIT {$limit}
             ");
@@ -238,7 +241,7 @@ class DailyRepository implements DailyRepositoryInterface {
             $stmt = $this->pdo->prepare("
                 SELECT {$selectFields}
                 FROM daily_scores
-                WHERE {$dateCol} = :d
+                WHERE {$dateCol} = :d {$tempFilter}
                 ORDER BY score DESC, reached_level DESC, {$orderCorrect} duration_ms ASC, created_at ASC
                 LIMIT {$limit}
             ");

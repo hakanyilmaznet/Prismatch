@@ -57,8 +57,18 @@ function ensure_user_by_email(string $email): array {
     return (new UserRepository())->ensureByEmail($email);
 }
 
+function is_temporary_email(string $email): bool {
+    $lower = strtolower(trim($email));
+    return str_ends_with($lower, '@prismatch') || str_ends_with($lower, '@local.player');
+}
+
 function ensure_local_user(string $username): array {
-    $email = str_contains($username, '@') ? $username : $username . '@local.player';
+    $cleanUser = trim($username);
+    if (str_contains($cleanUser, '@')) {
+        $parts = explode('@', $cleanUser);
+        $cleanUser = $parts[0];
+    }
+    $email = $cleanUser . '@prismatch';
     return (new UserRepository())->ensureByEmail($email);
 }
 
