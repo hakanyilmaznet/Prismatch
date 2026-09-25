@@ -138,7 +138,10 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       --radius: 24px;
     }
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    html, body {
+      min-height: 100%;
+      height: auto;
+    }
     body{
       margin:0;
       font-family: "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
@@ -147,22 +150,24 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       display:flex;
       flex-direction: column;
       align-items:center;
-      justify-content:center;
+      justify-content:flex-start;
       min-height: 100vh;
       box-sizing: border-box;
-      padding: 18px;
-      padding-top: calc(var(--pm-header-offset, 76px) + 20px) !important;
+      padding: 16px;
+      padding-top: calc(var(--pm-header-offset, 76px) + 16px) !important;
       padding-bottom: calc(var(--pm-footer-offset, 60px) + 24px + env(safe-area-inset-bottom));
+      overflow-x: hidden;
+      overflow-y: auto;
     }
     body::before,
     body::after{ display:none; }
 
     .app{
-      width: min(880px, 100%);
-      min-height: min(720px, 100%);
+      width: min(760px, 100%);
       display:flex;
       flex-direction:column;
-      gap: 14px;
+      gap: 12px;
+      margin: 0 auto;
     }
 
     .hud{
@@ -188,7 +193,6 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     .hud .value{ font-weight: 700; font-size: 14px; }
 
     .stage{
-      flex:1;
       background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
       border: 1px solid rgba(255,255,255,0.14);
       border-radius: var(--radius);
@@ -198,9 +202,12 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       flex-direction:column;
       align-items:center;
       justify-content:center;
-      padding: 54px 18px 18px;
+      padding: 24px 20px 22px;
       position:relative;
       overflow:hidden;
+      min-height: 380px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .stage::before{
       content:"";
@@ -266,14 +273,14 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     .question{
       display:flex;
       flex-direction:column;
-      gap: 6px;
+      gap: 4px;
       align-items:center;
       text-align:center;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .question .q{
-      font-size: 16px;
-      font-weight: 750;
+      font-size: 15px;
+      font-weight: 700;
     }
     .question .hint{
       color: var(--muted);
@@ -281,10 +288,13 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     }
 
     .grid{
-      width: min(560px, 100%);
+      width: min(440px, 100%, calc(100vh - 440px));
+      min-width: min(260px, 100%);
+      aspect-ratio: 1 / 1;
       display:grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
+      margin: 0 auto;
     }
 
     .cell{
@@ -550,23 +560,23 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     .bi-icon{ width:16px; height:16px; display:inline-block; }
 
     .stats{
-      width: min(640px, 100%);
+      width: 100%;
       display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
-      margin-top: 8px;
+      margin-top: 4px;
     }
     .stat{
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 16px;
-      padding: 12px 14px;
+      border-radius: 14px;
+      padding: 10px 14px;
       display:flex;
       flex-direction:column;
-      gap: 4px;
+      gap: 3px;
     }
-    .stat .k{ color: var(--muted); font-size: 12px; }
-    .stat .v{ font-weight: 800; font-size: 14px; }
+    .stat .k{ color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat .v{ font-weight: 800; font-size: 15px; }
 
     .action-row{
       width: min(680px, 100%);
@@ -577,12 +587,12 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     }
     .action-row .btn{ width:100%; }
 
-    @media (max-width: 520px){
-      .stats{ grid-template-columns: 1fr; }
-      .stage{ padding: 36px 12px 14px; border-radius: 18px; }
-      .grid{ gap: 8px; }
+    @media (max-width: 600px){
+      .stats{ grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .stage{ padding: 20px 12px 18px; border-radius: 18px; min-height: 320px; }
+      .grid{ gap: 8px; width: 100%; }
       .cell{ border-radius: 12px; }
-      .hud .chip{ padding: 8px 12px; }
+      .hud .chip{ padding: 8px 12px; flex: 1 1 140px; }
       .action-row{ grid-template-columns: 1fr; }
     }
 

@@ -136,7 +136,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     /* Main Arena Stage */
     .arena-stage {
       flex: 1;
-      min-height: 480px;
+      min-height: 420px;
       background: var(--arena-panel);
       border: 1px solid var(--arena-border);
       border-radius: var(--arena-radius);
@@ -145,7 +145,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 32px 20px;
+      padding: 24px 18px 20px;
       position: relative;
       overflow: hidden;
       box-shadow: 0 20px 60px rgba(0,0,0,0.15);
@@ -157,7 +157,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 18px;
+      gap: 14px;
       animation: fadeIn 0.3s ease;
     }
     @keyframes fadeIn {
@@ -166,7 +166,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     .stage-title {
       font-family: "Baloo 2", sans-serif;
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 800;
       line-height: 1.2;
       margin: 0;
@@ -203,11 +203,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     /* Question Grid */
     .choice-grid {
-      width: min(540px, 100%);
+      width: min(440px, 100%, calc(100vh - 440px));
+      min-width: min(260px, 100%);
+      aspect-ratio: 1 / 1;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 8px;
+      gap: 10px;
+      margin: 6px auto 0 auto;
     }
     .choice-cell {
       appearance: none;
