@@ -280,22 +280,67 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
       color: #10b981;
     }
 
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pmPulse 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+
+    @keyframes pmPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
     .pm-live-stats {
       font-size: 13px;
       font-weight: 700;
       color: var(--pm-text-muted, #94a3b8);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pm-mini-icon-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--pm-border, rgba(255, 255, 255, 0.12));
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      padding: 4px 7px;
+      border-radius: 8px;
+      color: var(--pm-text-muted, #94a3b8);
+      transition: background 0.15s ease, transform 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pm-mini-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(1.08);
+    }
+
+    .pm-mini-icon-btn.is-muted {
+      opacity: 0.55;
     }
 
     .pm-target-banner {
       background: rgba(0, 0, 0, 0.06);
       border: 1px dashed var(--pm-border, rgba(255, 255, 255, 0.14));
       border-radius: 16px;
-      padding: 14px;
+      padding: 14px 12px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      position: relative;
+      transition: border-color 0.25s ease, background 0.25s ease;
     }
 
     [data-bs-theme="dark"] .pm-target-banner {
@@ -305,9 +350,15 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
     .pm-target-tag {
       font-size: 11px;
       font-weight: 800;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
       color: var(--pm-text-muted, #94a3b8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 18px;
+      transition: color 0.2s ease;
     }
 
     .pm-target-box {
@@ -316,7 +367,67 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
       border-radius: 12px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
       border: 2px solid rgba(255, 255, 255, 0.4);
-      transition: transform 0.2s ease, background-color 0.3s ease;
+      transition: transform 0.2s ease, background-color 0.25s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pm-target-box.is-hidden {
+      background-color: var(--pm-bg-card, rgba(255, 255, 255, 0.05)) !important;
+      border: 2px dashed rgba(255, 255, 255, 0.35) !important;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .pm-target-mystery {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--pm-text-muted, #94a3b8);
+      animation: pmMysteryPulse 1.2s infinite ease-in-out;
+      user-select: none;
+      line-height: 1;
+    }
+
+    @keyframes pmMysteryPulse {
+      0%, 100% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.15); opacity: 1; color: #ff6b5b; }
+    }
+
+    .pm-target-box.is-revealed {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4), 0 8px 24px rgba(16, 185, 129, 0.3) !important;
+    }
+
+    .pm-target-revealed-icon {
+      font-size: 24px;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      animation: pmTilePop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      line-height: 1;
+    }
+
+    .pm-timer-bar-wrap {
+      width: min(240px, 85%);
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .pm-timer-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff6b5b, #ffd166);
+      border-radius: 999px;
+      transform-origin: left;
+      transition: width 0.08s linear;
+    }
+
+    .pm-timer-bar.recall {
+      background: linear-gradient(90deg, #10b981, #3b82f6);
     }
 
     .pm-mini-grid {
@@ -333,18 +444,72 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
       cursor: pointer;
       outline: none;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.2s ease;
       -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
     }
 
-    .pm-mini-tile:hover {
+    .pm-mini-tile:hover:not(:disabled):not(.is-covered) {
       transform: scale(1.06);
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
       border-color: rgba(255, 255, 255, 0.65);
     }
 
-    .pm-mini-tile:active {
+    .pm-mini-tile:active:not(:disabled):not(.is-covered) {
       transform: scale(0.96);
+    }
+
+    .pm-mini-tile.is-covered {
+      background: var(--pm-bg-card, rgba(255, 255, 255, 0.04)) !important;
+      border: 1px dashed rgba(255, 255, 255, 0.14) !important;
+      cursor: default;
+      pointer-events: none;
+      box-shadow: none !important;
+    }
+
+    .pm-mini-tile.is-covered::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pm-text-muted, #64748b);
+      opacity: 0.35;
+      animation: pmDotPulse 1.6s infinite ease-in-out;
+    }
+
+    @keyframes pmDotPulse {
+      0%, 100% { opacity: 0.25; transform: scale(0.8); }
+      50% { opacity: 0.7; transform: scale(1.3); }
+    }
+
+    .pm-mini-tile.is-revealing {
+      animation: pmTilePop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+
+    @keyframes pmTilePop {
+      0% { opacity: 0; transform: scale(0.7); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes pmShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .pm-mini-tile.shake {
+      animation: pmShake 0.35s ease;
+    }
+
+    .pm-mini-tile.is-correct {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.4), 0 8px 24px rgba(16, 185, 129, 0.5) !important;
+      transform: scale(1.06) !important;
     }
 
     .pm-mini-feedback {
@@ -657,14 +822,23 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
             <span><?= htmlspecialchars(tt('home_interactive_tag', 'Canlı Önizleme')) ?></span>
           </div>
           <div class="pm-live-stats">
-            <?= htmlspecialchars(tt('home_interactive_stage', 'Aşama')) ?> <span id="demoStage" style="color:#ff6b5b; font-weight:800;">1</span> · 
-            <span id="demoScore" style="color:#10b981; font-weight:800;">0</span> XP
+            <span><?= htmlspecialchars(tt('home_interactive_stage', 'Aşama')) ?> <span id="demoStage" style="color:#ff6b5b; font-weight:800;">1</span> · 
+            <span id="demoScore" style="color:#10b981; font-weight:800;">0</span> XP</span>
+            <button id="demoMuteBtn" class="pm-mini-icon-btn" type="button" aria-label="Toggle Sound" title="Sound">
+              <span id="demoMuteIcon">🔊</span>
+            </button>
+            <button id="demoRestartBtn" class="pm-mini-icon-btn" type="button" aria-label="Restart Demo" title="<?= htmlspecialchars(tt('btn_restart', 'Restart')) ?>">
+              <span>🔄</span>
+            </button>
           </div>
         </div>
 
         <div class="pm-target-banner">
-          <div class="pm-target-tag"><?= htmlspecialchars(tt('home_interactive_target_label', 'HEDEF RENK')) ?></div>
+          <div id="demoTargetTag" class="pm-target-tag"><?= htmlspecialchars(tt('remember_this', 'Bu rengi aklında tut.')) ?></div>
           <div id="demoTargetSwatch" class="pm-target-box" style="background-color: #ff6b5b;"></div>
+          <div class="pm-timer-bar-wrap" aria-hidden="true">
+            <div id="demoTimerBar" class="pm-timer-bar"></div>
+          </div>
         </div>
 
         <div id="demoGrid" class="pm-mini-grid" role="region" aria-label="Demo color grid">
@@ -872,114 +1046,400 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
   <script>
   (function(){
     const targetSwatch = document.getElementById('demoTargetSwatch');
+    const targetTag = document.getElementById('demoTargetTag');
+    const timerBar = document.getElementById('demoTimerBar');
     const grid = document.getElementById('demoGrid');
     const feedback = document.getElementById('demoFeedback');
     const scoreEl = document.getElementById('demoScore');
     const stageEl = document.getElementById('demoStage');
+    const muteBtn = document.getElementById('demoMuteBtn');
+    const muteIcon = document.getElementById('demoMuteIcon');
+    const restartBtn = document.getElementById('demoRestartBtn');
 
     if (!targetSwatch || !grid || !feedback) return;
 
     let score = 0;
     let stage = 1;
+    let currentTargetColor = '';
+    let currentTiles = [];
+    let phase = 'idle'; // 'memorize' | 'recall' | 'result'
+    let timerIds = [];
+    let recallStartTime = 0;
+    let wrongAttempts = 0;
 
+    const msgRememberTag = <?= json_encode(tt('remember_this', 'Bu rengi aklında tut.')) ?>;
+    const msgRememberHint = <?= json_encode(tt('home_step_1_body', 'Ekranda beliren rengi dikkatlice görsel hafızana kazı.')) ?>;
+    const msgWhichColorTag = <?= json_encode(tt('question_pick_target', 'Gösterilen renk hangisiydi? Hedefi seç.')) ?>;
+    const msgRecallHint = <?= json_encode(tt('toast_pick', '5 saniye içinde doğru renge dokun!')) ?>;
     const msgPerfect = <?= json_encode(tt('home_interactive_perfect', '✨ Harika Seçim! +100 Puan')) ?>;
     const msgTryAgain = <?= json_encode(tt('home_interactive_try_again', '❌ Yanlış ton! Tekrar dene')) ?>;
-    const msgHint = <?= json_encode(tt('home_interactive_hint', 'Aşağıdaki renklerden doğru olana tıkla!')) ?>;
+    const msgTimeUp = <?= json_encode(tt('reason_timeup', '⏰ Süre doldu! Doğru renk gösteriliyor...')) ?>;
+    const msgShowAnswer = <?= json_encode(tt('gameover_body', 'Doğru renk buydu! Yeni tur başlıyor...')) ?>;
+    const msgTargetLabel = <?= json_encode(tt('home_interactive_target_label', 'HEDEF RENK')) ?>;
+    const optionLabelPattern = <?= json_encode(tt('a11y_color_option', 'Color option {n}')) ?>;
 
+    // --- Web Audio Synthesis (No external assets, zero lag) ---
+    const SOUND_KEY = 'pm-sound-enabled';
+    let soundEnabled = true;
+    try {
+      if (localStorage.getItem(SOUND_KEY) === '0') soundEnabled = false;
+    } catch(e) {}
+
+    function updateMuteBtnUI() {
+      if (!muteIcon) return;
+      muteIcon.textContent = soundEnabled ? '🔊' : '🔇';
+      if (muteBtn) {
+        muteBtn.classList.toggle('is-muted', !soundEnabled);
+        muteBtn.setAttribute('aria-pressed', soundEnabled ? 'false' : 'true');
+      }
+    }
+    updateMuteBtnUI();
+
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        soundEnabled = !soundEnabled;
+        try { localStorage.setItem(SOUND_KEY, soundEnabled ? '1' : '0'); } catch(e) {}
+        updateMuteBtnUI();
+        if (soundEnabled) ensureAudio();
+      });
+    }
+
+    if (restartBtn) {
+      restartBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        ensureAudio();
+        score = 0;
+        stage = 1;
+        if (scoreEl) scoreEl.textContent = '0';
+        if (stageEl) stageEl.textContent = '1';
+        initRound();
+      });
+    }
+
+    let audioCtx = null;
+    function ensureAudio() {
+      if (!soundEnabled) return;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      try {
+        audioCtx = audioCtx || new Ctx();
+        if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      } catch(e) {}
+    }
+
+    function playTone(freq, duration = 0.12, type = 'sine', gain = 0.08, attack = 0.01, decay = 0.08) {
+      if (!soundEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        const now = audioCtx.currentTime;
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(gain, now + attack);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + attack + decay);
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch(e) {}
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      ensureAudio();
+      if (!audioCtx) return;
+      if (type === 'target') {
+        playTone(520, 0.09, 'sine', 0.05);
+      } else if (type === 'whoosh') {
+        playTone(380, 0.08, 'sine', 0.04);
+        setTimeout(() => playTone(540, 0.08, 'sine', 0.04), 40);
+      } else if (type === 'correct') {
+        playTone(660, 0.1, 'triangle', 0.09);
+        setTimeout(() => playTone(880, 0.14, 'triangle', 0.08), 80);
+      } else if (type === 'wrong') {
+        playTone(220, 0.16, 'sawtooth', 0.06);
+      }
+    }
+
+    // --- Helpers ---
     function hslToCss(h, s, l) {
       return `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
     }
 
+    function clearAllTimers() {
+      timerIds.forEach(id => {
+        clearTimeout(id);
+        clearInterval(id);
+      });
+      timerIds = [];
+    }
+
+    function addTimeout(fn, ms) {
+      const id = setTimeout(fn, ms);
+      timerIds.push(id);
+      return id;
+    }
+
+    function addInterval(fn, ms) {
+      const id = setInterval(fn, ms);
+      timerIds.push(id);
+      return id;
+    }
+
+    // --- Core Round Lifecycle ---
     function initRound() {
+      clearAllTimers();
+      phase = 'memorize';
+      wrongAttempts = 0;
+
+      // Progressive duration: from 2200ms down to 1000ms as stage increases
+      const targetShowMs = Math.max(1000, 2200 - (stage - 1) * 180);
+
+      // Base target color
       const baseH = Math.floor(Math.random() * 360);
-      const baseS = 70 + Math.floor(Math.random() * 20);
-      const baseL = 48 + Math.floor(Math.random() * 16);
-      const targetColor = hslToCss(baseH, baseS, baseL);
+      const baseS = 68 + Math.floor(Math.random() * 22);
+      const baseL = 46 + Math.floor(Math.random() * 18);
+      currentTargetColor = hslToCss(baseH, baseS, baseL);
 
-      targetSwatch.style.backgroundColor = targetColor;
-      targetSwatch.style.transform = 'scale(1.04)';
-      setTimeout(() => { targetSwatch.style.transform = 'scale(1)'; }, 180);
+      // Progressive difficulty: angular sectors tighten at higher stages
+      let baseAngles = [40, 80, 120, 160, 200, 240, 280, 320];
+      if (stage >= 4) {
+        baseAngles = [20, 40, 60, 80, -20, -40, -60, -80];
+      } else if (stage >= 2) {
+        baseAngles = [30, 60, 90, 120, 150, 180, 210, 240];
+      }
 
-      // Generate 8 guaranteed unique and distinctly spaced distractor colors
-      const tiles = [{
-        color: targetColor,
-        isCorrect: true
-      }];
-
-      // 8 distinct angle sectors around 360 degrees to ensure no two tiles collide
-      const baseAngles = [40, 80, 120, 160, 200, 240, 280, 320];
-      // Shuffle angle slots
       for (let i = baseAngles.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [baseAngles[i], baseAngles[j]] = [baseAngles[j], baseAngles[i]];
       }
 
-      const existingCss = new Set([targetColor]);
+      currentTiles = [{
+        color: currentTargetColor,
+        isCorrect: true
+      }];
+
+      const existingCss = new Set([currentTargetColor]);
+      const maxJitter = stage >= 4 ? 6 : (stage >= 2 ? 10 : 16);
 
       for (let i = 0; i < 8; i++) {
-        const jitter = Math.floor(Math.random() * 18) - 9; // -9 to +9 degrees
+        const jitter = Math.floor(Math.random() * (maxJitter * 2)) - maxJitter;
         const h = (baseH + baseAngles[i] + jitter + 360) % 360;
-        const s = Math.max(55, Math.min(88, baseS + (Math.floor(Math.random() * 20) - 10)));
-        const l = Math.max(42, Math.min(65, baseL + (Math.floor(Math.random() * 16) - 8)));
+        const s = Math.max(50, Math.min(90, baseS + (Math.floor(Math.random() * 16) - 8)));
+        const l = Math.max(40, Math.min(68, baseL + (Math.floor(Math.random() * 14) - 7)));
         const css = hslToCss(h, s, l);
-        
+
         if (!existingCss.has(css)) {
           existingCss.add(css);
-          tiles.push({ color: css, isCorrect: false });
+          currentTiles.push({ color: css, isCorrect: false });
         } else {
-          // Fallback if ever identical
-          const fallbackCss = hslToCss((h + 25) % 360, s, l);
+          const fallbackCss = hslToCss((h + 24) % 360, s, l);
           existingCss.add(fallbackCss);
-          tiles.push({ color: fallbackCss, isCorrect: false });
+          currentTiles.push({ color: fallbackCss, isCorrect: false });
         }
       }
 
-      // Shuffle all 9 tiles
-      for (let i = tiles.length - 1; i > 0; i--) {
+      // Shuffle tiles
+      for (let i = currentTiles.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+        [currentTiles[i], currentTiles[j]] = [currentTiles[j], currentTiles[i]];
       }
 
-      grid.innerHTML = '';
+      // 1. Setup Target Swatch (VISIBLE)
+      targetSwatch.className = 'pm-target-box';
+      targetSwatch.style.backgroundColor = currentTargetColor;
+      targetSwatch.innerHTML = '';
+      targetSwatch.style.transform = 'scale(1.06)';
+      addTimeout(() => { targetSwatch.style.transform = 'scale(1)'; }, 180);
 
-      tiles.forEach((t, i) => {
+      playSound('target');
+
+      // 2. Setup Labels
+      if (targetTag) {
+        targetTag.innerHTML = `👀 <span>${msgRememberTag}</span>`;
+      }
+      feedback.textContent = msgRememberHint;
+      feedback.style.color = 'var(--pm-text-muted, #94a3b8)';
+
+      // 3. Grid: Placeholders / Covered tiles during memorization
+      grid.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'pm-mini-tile';
-        const optionLabel = <?= json_encode(tt('a11y_color_option', 'Color option {n}')) ?>;
-        btn.setAttribute('aria-label', optionLabel.replace('{n}', i + 1));
-        btn.dataset.correct = t.isCorrect ? 'true' : 'false';
-        btn.style.backgroundColor = t.color;
+        btn.className = 'pm-mini-tile is-covered';
+        btn.disabled = true;
+        btn.setAttribute('aria-label', optionLabelPattern.replace('{n}', i + 1));
+        grid.appendChild(btn);
+      }
+
+      // 4. Timer bar for memorization phase
+      if (timerBar) {
+        timerBar.className = 'pm-timer-bar';
+        timerBar.style.width = '100%';
+        const startTs = performance.now();
+        const animInterval = addInterval(() => {
+          const elapsed = performance.now() - startTs;
+          const pct = Math.max(0, 100 - (elapsed / targetShowMs) * 100);
+          timerBar.style.width = pct.toFixed(1) + '%';
+          if (elapsed >= targetShowMs) {
+            clearInterval(animInterval);
+          }
+        }, 30);
+      }
+
+      // 5. Schedule transition to Recall phase when targetShowMs ends
+      addTimeout(startRecallPhase, targetShowMs);
+    }
+
+    function startRecallPhase() {
+      phase = 'recall';
+      recallStartTime = performance.now();
+      const answerWindowMs = 5000;
+
+      // 1. TARGET COLOR DISAPPEARS (Hidden with Mystery '?')
+      targetSwatch.className = 'pm-target-box is-hidden';
+      targetSwatch.style.backgroundColor = '';
+      targetSwatch.innerHTML = '<span class="pm-target-mystery" aria-hidden="true">?</span>';
+
+      playSound('whoosh');
+
+      // 2. Update Banner and Feedback
+      if (targetTag) {
+        targetTag.innerHTML = `🎯 <span>${msgWhichColorTag}</span>`;
+      }
+      feedback.textContent = msgRecallHint;
+      feedback.style.color = '#ff9966';
+
+      // 3. Reveal the 9 color tiles in the grid with pop animation
+      grid.innerHTML = '';
+      currentTiles.forEach((tile, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pm-mini-tile is-revealing';
+        btn.style.animationDelay = (idx * 25) + 'ms';
+        btn.style.backgroundColor = tile.color;
+        btn.dataset.correct = tile.isCorrect ? 'true' : 'false';
+        btn.setAttribute('aria-label', optionLabelPattern.replace('{n}', idx + 1));
 
         btn.addEventListener('click', function() {
-          if (btn.dataset.correct === 'true') {
-            score += 100;
-            stage += 1;
-            scoreEl.textContent = score;
-            stageEl.textContent = stage;
-            btn.style.borderColor = '#10b981';
-            btn.style.boxShadow = '0 0 0 4px rgba(16, 185, 129, 0.4), 0 8px 24px rgba(16, 185, 129, 0.5)';
-            feedback.textContent = msgPerfect;
-            feedback.style.color = '#10b981';
-            
-            setTimeout(() => {
-              feedback.textContent = msgHint;
-              feedback.style.color = 'var(--pm-text-muted, #94a3b8)';
-              initRound();
-            }, 550);
-          } else {
-            btn.style.transform = 'scale(0.92)';
-            btn.style.opacity = '0.35';
-            btn.disabled = true;
-            feedback.textContent = msgTryAgain;
-            feedback.style.color = '#ef4444';
-          }
+          handleTileClick(btn, tile);
         });
 
         grid.appendChild(btn);
       });
+
+      // 4. Answer countdown progress bar (5s)
+      if (timerBar) {
+        timerBar.className = 'pm-timer-bar recall';
+        timerBar.style.width = '100%';
+        const recallStartTs = performance.now();
+        const animInterval = addInterval(() => {
+          const elapsed = performance.now() - recallStartTs;
+          const pct = Math.max(0, 100 - (elapsed / answerWindowMs) * 100);
+          timerBar.style.width = pct.toFixed(1) + '%';
+          if (elapsed >= answerWindowMs) {
+            clearInterval(animInterval);
+          }
+        }, 40);
+      }
+
+      // 5. Time up expiration
+      addTimeout(onTimeUp, answerWindowMs);
     }
 
+    function handleTileClick(btn, tile) {
+      if (phase !== 'recall') return;
+      ensureAudio();
+
+      if (tile.isCorrect) {
+        // --- CORRECT MATCH ---
+        phase = 'result';
+        clearAllTimers();
+
+        btn.classList.add('is-correct');
+
+        // Reveal target in swatch with checkmark
+        targetSwatch.className = 'pm-target-box is-revealed';
+        targetSwatch.style.backgroundColor = currentTargetColor;
+        targetSwatch.innerHTML = '<span class="pm-target-revealed-icon">✓</span>';
+
+        playSound('correct');
+
+        // Speed bonus calculation
+        const elapsed = performance.now() - recallStartTime;
+        const speedBonus = Math.max(0, Math.round((5000 - elapsed) / 100));
+        const pts = 100 + speedBonus;
+        score += pts;
+        stage += 1;
+
+        if (scoreEl) scoreEl.textContent = score;
+        if (stageEl) stageEl.textContent = stage;
+
+        feedback.textContent = msgPerfect.replace('+100', `+${pts}`);
+        feedback.style.color = '#10b981';
+
+        // Disable all tiles
+        const allBtns = grid.querySelectorAll('button');
+        allBtns.forEach(b => b.disabled = true);
+
+        // Advance to next round smoothly
+        addTimeout(initRound, 850);
+
+      } else {
+        // --- WRONG SELECTION ---
+        btn.classList.add('shake');
+        btn.style.opacity = '0.35';
+        btn.disabled = true;
+
+        playSound('wrong');
+        wrongAttempts += 1;
+
+        feedback.textContent = msgTryAgain;
+        feedback.style.color = '#ef4444';
+
+        if (wrongAttempts >= 2) {
+          // If 2 mistakes: reveal target and reset round
+          phase = 'result';
+          clearAllTimers();
+
+          targetSwatch.className = 'pm-target-box';
+          targetSwatch.style.backgroundColor = currentTargetColor;
+          targetSwatch.innerHTML = '<span class="pm-target-revealed-icon" style="color:#f59e0b;">!</span>';
+
+          feedback.textContent = msgShowAnswer;
+          feedback.style.color = '#f59e0b';
+
+          const allBtns = grid.querySelectorAll('button');
+          allBtns.forEach(b => b.disabled = true);
+
+          addTimeout(initRound, 1400);
+        }
+      }
+    }
+
+    function onTimeUp() {
+      if (phase !== 'recall') return;
+      phase = 'result';
+      clearAllTimers();
+
+      playSound('wrong');
+
+      targetSwatch.className = 'pm-target-box';
+      targetSwatch.style.backgroundColor = currentTargetColor;
+      targetSwatch.innerHTML = '<span class="pm-target-revealed-icon" style="color:#ef4444;">⏰</span>';
+
+      feedback.textContent = msgTimeUp;
+      feedback.style.color = '#ef4444';
+
+      const allBtns = grid.querySelectorAll('button');
+      allBtns.forEach(b => b.disabled = true);
+
+      addTimeout(initRound, 1400);
+    }
+
+    // Start game
     initRound();
   })();
   </script>
