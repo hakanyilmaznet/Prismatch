@@ -76,11 +76,12 @@ class RoomRepository implements RoomRepositoryInterface {
             SELECT DISTINCT r.*
             FROM rooms r
             LEFT JOIN room_players rp ON rp.room_id = r.id
-            WHERE r.owner_id = :uid OR rp.user_id = :uid
+            WHERE r.owner_id = :owner_id OR rp.user_id = :player_id
             ORDER BY r.created_at DESC
             LIMIT :lim
         ");
-        $stmt->bindValue(':uid', $userId);
+        $stmt->bindValue(':owner_id', $userId);
+        $stmt->bindValue(':player_id', $userId);
         $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll() ?: [];
