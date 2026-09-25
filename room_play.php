@@ -317,6 +317,231 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       transform: translateY(-2px);
     }
 
+    /* Victory & Final Standings Showcase */
+    .victory-container {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.4s ease;
+    }
+    .victory-header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .victory-trophy {
+      font-size: 48px;
+      line-height: 1;
+      margin-bottom: 4px;
+      filter: drop-shadow(0 4px 18px rgba(255, 193, 7, 0.45));
+      animation: trophyFloat 1.8s ease-in-out infinite alternate;
+    }
+    @keyframes trophyFloat {
+      from { transform: translateY(0) scale(1); }
+      to { transform: translateY(-5px) scale(1.05); }
+    }
+    .victory-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .victory-subtitle {
+      font-size: 13px;
+      color: var(--arena-muted);
+      margin: 0;
+    }
+    .champion-card {
+      position: relative;
+      width: 100%;
+      border-radius: 18px;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.16), rgba(255, 107, 91, 0.1));
+      border: 2px solid rgba(255, 193, 7, 0.45);
+      box-shadow: 0 10px 30px rgba(255, 193, 7, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .champion-card--me {
+      background: linear-gradient(135deg, rgba(32, 183, 125, 0.16), rgba(255, 193, 7, 0.16));
+      border-color: rgba(32, 183, 125, 0.6);
+      box-shadow: 0 10px 32px rgba(32, 183, 125, 0.2);
+    }
+    .champion-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(255, 193, 7, 0.25);
+      border: 1px solid rgba(255, 193, 7, 0.55);
+      color: #ffd166;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .champion-you-tag {
+      background: #20b77d;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .champion-name {
+      font-family: "Baloo 2", sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      word-break: break-all;
+    }
+    .champion-score {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 5px;
+      color: #ffd166;
+      font-weight: 800;
+    }
+    .champion-score .score-num {
+      font-size: 22px;
+      line-height: 1;
+    }
+    .champion-score .score-label {
+      font-size: 13px;
+      color: var(--arena-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .victory-standings {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--arena-border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .standings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid var(--arena-border);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--arena-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .standings-table-wrap {
+      width: 100%;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .standings-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+      margin: 0;
+    }
+    .standings-table th {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--arena-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid var(--arena-border);
+    }
+    .standings-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+      color: var(--arena-text);
+    }
+    .standings-table tr:last-child td {
+      border-bottom: none;
+    }
+    .standings-table tr.row-winner {
+      background: rgba(255, 193, 7, 0.07);
+    }
+    .standings-table tr.row-me {
+      background: rgba(255, 107, 91, 0.1);
+      font-weight: 600;
+    }
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .rank-badge.rank-other {
+      font-size: 12px;
+      color: var(--arena-muted);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .player-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-you {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(255, 107, 91, 0.25);
+      border: 1px solid rgba(255, 107, 91, 0.5);
+      color: #ff8c42;
+      font-weight: 700;
+    }
+    .score-badge {
+      font-weight: 700;
+      color: #ffd166;
+    }
+    .score-pts {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--arena-muted);
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-pill.elim {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .status-pill.active {
+      background: rgba(32, 183, 125, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(32, 183, 125, 0.3);
+    }
+
     @media (max-width: 600px) {
       .arena-stage {
         padding: 20px 12px;
@@ -338,6 +563,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
       .hud-val {
         font-size: 15px;
+      }
+      .champion-card {
+        padding: 14px 16px;
+      }
+      .champion-name {
+        font-size: 22px;
+      }
+      .champion-score .score-num {
+        font-size: 19px;
       }
     }
   </style>
@@ -441,6 +675,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       player: <?= json_encode(tt('room_player', 'Player')) ?>,
       score: <?= json_encode(tt('room_score', 'Score')) ?>,
       status: <?= json_encode(tt('room_status', 'Status')) ?>,
+      roomLeaderboard: <?= json_encode(tt('room_leaderboard', 'Leaderboard')) ?>,
+      players: <?= json_encode(tt('room_players', 'Players')) ?>,
+      youWon: <?= json_encode(tt('room_you_won', 'Congratulations, You Won!')) ?>,
+      rank: <?= json_encode(tt('leaderboard_col_rank', 'Rank')) ?>,
     };
 
     const state = {
@@ -459,6 +697,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       questionStartTs: 0,
       activeTimer: null,
       countdownInterval: null,
+      players: [],
     };
 
     // UI Elements
@@ -503,6 +742,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     function renderPlayers(players) {
+      if (Array.isArray(players) && players.length > 0) {
+        state.players = players;
+      }
       if (!playerList) return;
       playerList.innerHTML = '';
       (players || []).forEach(p => {
@@ -686,7 +928,26 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       } catch (e) {}
     }
 
+    function sortPlayers(list) {
+      if (!Array.isArray(list)) return [];
+      return [...list].sort((a, b) => {
+        const scoreA = Number(a.score) || 0;
+        const scoreB = Number(b.score) || 0;
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        const corrA = Number(a.correct) || 0;
+        const corrB = Number(b.correct) || 0;
+        if (corrB !== corrA) return corrB - corrA;
+        const actA = a.status === 'active' ? 1 : 0;
+        const actB = b.status === 'active' ? 1 : 0;
+        return actB - actA;
+      });
+    }
+
     function renderLeaderboard(players) {
+      if (Array.isArray(players) && players.length > 0) {
+        state.players = players;
+      }
+      const sorted = sortPlayers(players || state.players || []);
       stageContent.innerHTML = `
         <div class="fs-1">🏆</div>
         <h2 class="stage-title">${STR.roundComplete.replace('{round}', state.round)}</h2>
@@ -702,12 +963,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               </tr>
             </thead>
             <tbody>
-              ${(players || []).map((p, idx) => `
-                <tr class="${p.email === ME_EMAIL ? 'table-active fw-bold' : ''}">
+              ${sorted.map((p, idx) => `
+                <tr class="${(p.email === ME_EMAIL || String(p.user_id) === String(ME_ID)) ? 'table-active fw-bold' : ''}">
                   <td>${idx === 0 ? '👑 1' : idx + 1}</td>
-                  <td>${p.email.split('@')[0]}</td>
-                  <td>${p.score}</td>
-                  <td><span class="badge ${p.status === 'eliminated' ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'} rounded-pill">${p.status}</span></td>
+                  <td>${p.email ? p.email.split('@')[0] : (p.nickname || 'Player')}</td>
+                  <td>${Number(p.score) || 0}</td>
+                  <td><span class="badge ${p.status === 'eliminated' ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'} rounded-pill">${p.status === 'eliminated' ? STR.eliminated : STR.active}</span></td>
                 </tr>
               `).join('')}
             </tbody>
@@ -716,19 +977,117 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       `;
     }
 
-    function renderFinalVictory(players) {
+    async function renderFinalVictory(players) {
       state.phase = 'finished';
       hudStatus.textContent = STR.finished;
       hudStatus.className = 'hud-val text-success';
-      const winner = players && players[0] ? players[0] : null;
+
+      let list = Array.isArray(players) && players.length > 0 ? players : state.players;
+
+      // Listenin boş kalmaması için gerekirse sunucudan son durumu çek
+      if (!list || list.length === 0) {
+        try {
+          const res = await fetch('api/rooms_join.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({guid: GUID})
+          });
+          const data = await res.json();
+          if (data && Array.isArray(data.players) && data.players.length > 0) {
+            list = data.players;
+          }
+        } catch(e) {}
+      }
+
+      if (list && list.length > 0) {
+        state.players = list;
+        renderPlayers(list);
+      }
+
+      const sorted = sortPlayers(list || []);
+      const winner = sorted.length > 0 ? sorted[0] : null;
+      const isWinnerMe = winner ? (winner.email === ME_EMAIL || String(winner.user_id) === String(ME_ID)) : false;
+      const winnerName = winner ? (winner.email ? winner.email.split('@')[0] : (winner.nickname || 'Player')) : STR.winnerEveryone;
+      const winnerScore = winner ? (Number(winner.score) || 0) : 0;
 
       stageContent.innerHTML = `
-        <div class="display-3 mb-2">🎉👑🎉</div>
-        <h1 class="stage-title">${STR.winner}</h1>
-        <div class="fs-4 fw-bold text-warning mb-2">${winner ? winner.email.split('@')[0] : STR.winnerEveryone}</div>
-        <p class="stage-subtitle">${STR.concludedDesc}</p>
-        <div class="d-flex gap-2 mt-3">
-          <a class="btn btn-action" href="rooms.php">← ${STR.backToRooms}</a>
+        <div class="victory-container">
+          <div class="victory-header">
+            <div class="victory-trophy">👑</div>
+            <h1 class="stage-title victory-title">${STR.winner}</h1>
+            <p class="stage-subtitle victory-subtitle">${STR.concludedDesc}</p>
+          </div>
+
+          <div class="champion-card ${isWinnerMe ? 'champion-card--me' : ''}">
+            <div class="champion-badge-pill">
+              <span>🏆 1. ${STR.rank}</span>
+              ${isWinnerMe ? `<span class="champion-you-tag">🎉 ${STR.youWon}</span>` : ''}
+            </div>
+            <div class="champion-name">
+              <span>${winnerName}</span>
+              ${isWinnerMe ? `<span class="badge bg-warning text-dark fs-6 ms-1">${STR.you}</span>` : ''}
+            </div>
+            <div class="champion-score">
+              <span class="score-num">${winnerScore.toLocaleString()}</span>
+              <span class="score-label">${STR.pts}</span>
+            </div>
+          </div>
+
+          <div class="victory-standings">
+            <div class="standings-header">
+              <span class="standings-title">📊 ${STR.roomLeaderboard}</span>
+              <span class="standings-count">${sorted.length} ${STR.players}</span>
+            </div>
+            <div class="standings-table-wrap">
+              <table class="standings-table">
+                <thead>
+                  <tr>
+                    <th class="col-rank">#</th>
+                    <th class="col-player">${STR.player}</th>
+                    <th class="col-score text-end">${STR.score}</th>
+                    <th class="col-status text-center">${STR.status}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${sorted.map((p, idx) => {
+                    const isMe = p.email === ME_EMAIL || String(p.user_id) === String(ME_ID);
+                    const isElim = p.status === 'eliminated';
+                    const pName = p.email ? p.email.split('@')[0] : (p.nickname || 'Player');
+                    const pScore = Number(p.score) || 0;
+                    let rankBadge = '';
+                    if (idx === 0) rankBadge = '<span class="rank-badge rank-1">🥇</span>';
+                    else if (idx === 1) rankBadge = '<span class="rank-badge rank-2">🥈</span>';
+                    else if (idx === 2) rankBadge = '<span class="rank-badge rank-3">🥉</span>';
+                    else rankBadge = `<span class="rank-badge rank-other">${idx + 1}</span>`;
+
+                    return `
+                      <tr class="${isMe ? 'row-me' : ''} ${idx === 0 ? 'row-winner' : ''}">
+                        <td class="col-rank">${rankBadge}</td>
+                        <td class="col-player">
+                          <div class="player-cell">
+                            <span class="player-name">${pName}</span>
+                            ${isMe ? `<span class="badge-you">${STR.you}</span>` : ''}
+                          </div>
+                        </td>
+                        <td class="col-score text-end">
+                          <span class="score-badge">${pScore.toLocaleString()} <span class="score-pts">${STR.pts}</span></span>
+                        </td>
+                        <td class="col-status text-center">
+                          ${isElim 
+                            ? `<span class="status-pill elim">💀 ${STR.eliminated}</span>`
+                            : `<span class="status-pill active">✅ ${STR.finished}</span>`}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-center mt-3">
+            <a class="btn btn-action" href="rooms.php">← ${STR.backToRooms}</a>
+          </div>
         </div>
       `;
     }
@@ -813,9 +1172,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     });
 
     // Periodic Keep-Alive Tick
-    setInterval(() => {
+    setInterval(async () => {
       if (state.phase !== 'finished') {
-        fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID)).catch(() => {});
+        try {
+          const res = await fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID));
+          const data = await res.json();
+          if (data && data.finished) {
+            renderFinalVictory(data.players || []);
+          }
+        } catch(e) {}
       }
     }, 1500);
 

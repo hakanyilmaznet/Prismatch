@@ -161,18 +161,25 @@ class RoomGameService {
                         'round' => $currentInDb,
                         'players' => $players,
                     ]);
-                    pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+                    pusher_trigger('presence-room-' . $guid, 'room:finished', [
+                        'guid' => $guid,
+                        'players' => $players,
+                    ]);
                 }
-                return ['ok' => true, 'finished' => true];
+                return ['ok' => true, 'finished' => true, 'players' => $players];
             }
 
             if ($nextRound > $total) {
                 $this->roomRepo->setStatus($roomId, 'finished', $currentInDb);
                 $this->pdo->commit();
+                $finalPlayers = $this->roomRepo->listPlayers($roomId);
                 if (function_exists('pusher_trigger')) {
-                    pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+                    pusher_trigger('presence-room-' . $guid, 'room:finished', [
+                        'guid' => $guid,
+                        'players' => $finalPlayers,
+                    ]);
                 }
-                return ['ok' => true, 'finished' => true];
+                return ['ok' => true, 'finished' => true, 'players' => $finalPlayers];
             }
 
             // Update room status to active if waiting
@@ -322,9 +329,12 @@ class RoomGameService {
                     'round' => $round,
                     'players' => $freshPlayers,
                 ]);
-                pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+                pusher_trigger('presence-room-' . $guid, 'room:finished', [
+                    'guid' => $guid,
+                    'players' => $freshPlayers,
+                ]);
             }
-            return ['ok' => true, 'correct' => $isCorrect, 'score_delta' => $scoreDelta, 'finished' => true];
+            return ['ok' => true, 'correct' => $isCorrect, 'score_delta' => $scoreDelta, 'finished' => true, 'players' => $freshPlayers];
         }
 
         // IMPROVED MECHANIC: Check if ALL active players have answered this round!
@@ -449,9 +459,12 @@ class RoomGameService {
             if ($activeCount === 0) {
                 $this->roomRepo->setStatus($roomId, 'finished', $current);
                 if (function_exists('pusher_trigger')) {
-                    pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+                    pusher_trigger('presence-room-' . $guid, 'room:finished', [
+                        'guid' => $guid,
+                        'players' => $freshPlayers,
+                    ]);
                 }
-                return ['ok' => true, 'finished' => true];
+                return ['ok' => true, 'finished' => true, 'players' => $freshPlayers];
             }
 
             return ['ok' => true, 'ended' => true];

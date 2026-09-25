@@ -58,7 +58,10 @@ pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
 
 if ($activeCount === 0) {
   set_room_finished($roomId, $round);
-  pusher_trigger('presence-room-' . $guid, 'room:finished', ['guid' => $guid]);
+  pusher_trigger('presence-room-' . $guid, 'room:finished', [
+    'guid' => $guid,
+    'players' => $players,
+  ]);
 }
 
 echo json_encode(['ok' => true]);
