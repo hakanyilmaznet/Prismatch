@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
@@ -164,7 +164,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     .google-text{ line-height:1; }
   </style>
 </head>
-<body>
+<body class="pm-has-fixed-header">
   <?php include __DIR__ . '/header.php'; ?>
   <main class="wrap">
     <?php $google = '{google}'; ?>

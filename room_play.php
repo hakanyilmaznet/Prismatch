@@ -340,7 +340,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
   </style>
 </head>
-<body>
+<body class="pm-has-fixed-header">
   <?php include __DIR__ . '/header.php'; ?>
 
   <div class="arena-container">

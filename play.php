@@ -145,11 +145,14 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
       background: var(--bg);
       color: var(--text);
       display:flex;
+      flex-direction: column;
       align-items:center;
       justify-content:center;
+      min-height: 100vh;
+      box-sizing: border-box;
       padding: 18px;
-      padding-top: calc(var(--pm-header-offset, 0px) + 18px);
-      padding-bottom: calc(var(--pm-footer-offset, 0px) + 18px + env(safe-area-inset-bottom));
+      padding-top: calc(var(--pm-header-offset, 76px) + 20px) !important;
+      padding-bottom: calc(var(--pm-footer-offset, 60px) + 24px + env(safe-area-inset-bottom));
     }
     body::before,
     body::after{ display:none; }
@@ -643,7 +646,8 @@ $stats = $userEmail ? get_user_stats($userEmail) : null;
     }
   </style>
 </head>
-<body>
+<body class="pm-has-fixed-header">
+  <?php include __DIR__ . '/header.php'; ?>
   <div class="app">
     <div class="hud">
       <div class="chip">

@@ -182,7 +182,7 @@ $seoTitle = t('home_cta_login') . ' - ' . t('app_name');
     }
   </style>
 </head>
-<body>
+<body class="pm-has-fixed-header">
   <?php include __DIR__ . '/header.php'; ?>
 
   <main class="auth-container">

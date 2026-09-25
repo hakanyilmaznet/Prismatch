@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/bootstrap.php';
 if (defined('DEBUG_MODE') && DEBUG_MODE === true) {
   error_reporting(E_ALL);
@@ -135,7 +135,7 @@ foreach ($rows as $g) {
     .metaRow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
   </style>
 </head>
-<body>
+<body class="pm-has-fixed-header">
   <?php include __DIR__ . '/header.php'; ?>
   <main class="wrap">
     <div class="cardx">

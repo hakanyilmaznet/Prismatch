@@ -125,7 +125,7 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
     }
   </style>
 </head>
-<body>
+<body class="pm-has-fixed-header">
   <?php include __DIR__ . '/header.php'; ?>
   <main class="wrap">
     <div class="cardx">

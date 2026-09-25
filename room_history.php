@@ -152,7 +152,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     }
   </style>
 </head>
-<body>
+<body class="pm-has-fixed-header">
   <?php include __DIR__ . '/header.php'; ?>
 
   <main class="wrap">
