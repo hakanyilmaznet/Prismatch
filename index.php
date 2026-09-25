@@ -887,43 +887,69 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
     const msgHint = <?= json_encode(tt('home_interactive_hint', 'Aşağıdaki renklerden doğru olana tıkla!')) ?>;
 
     function hslToCss(h, s, l) {
-      return `hsl(${h}, ${s}%, ${l}%)`;
+      return `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
     }
 
     function initRound() {
       const baseH = Math.floor(Math.random() * 360);
       const baseS = 70 + Math.floor(Math.random() * 20);
-      const baseL = 48 + Math.floor(Math.random() * 18);
+      const baseL = 48 + Math.floor(Math.random() * 16);
+      const targetColor = hslToCss(baseH, baseS, baseL);
 
-      targetSwatch.style.backgroundColor = hslToCss(baseH, baseS, baseL);
+      targetSwatch.style.backgroundColor = targetColor;
       targetSwatch.style.transform = 'scale(1.04)';
       setTimeout(() => { targetSwatch.style.transform = 'scale(1)'; }, 180);
 
-      const correctIdx = Math.floor(Math.random() * 9);
+      // Generate 8 guaranteed unique and distinctly spaced distractor colors
+      const tiles = [{
+        color: targetColor,
+        isCorrect: true
+      }];
+
+      // 8 distinct angle sectors around 360 degrees to ensure no two tiles collide
+      const baseAngles = [40, 80, 120, 160, 200, 240, 280, 320];
+      // Shuffle angle slots
+      for (let i = baseAngles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [baseAngles[i], baseAngles[j]] = [baseAngles[j], baseAngles[i]];
+      }
+
+      const existingCss = new Set([targetColor]);
+
+      for (let i = 0; i < 8; i++) {
+        const jitter = Math.floor(Math.random() * 18) - 9; // -9 to +9 degrees
+        const h = (baseH + baseAngles[i] + jitter + 360) % 360;
+        const s = Math.max(55, Math.min(88, baseS + (Math.floor(Math.random() * 20) - 10)));
+        const l = Math.max(42, Math.min(65, baseL + (Math.floor(Math.random() * 16) - 8)));
+        const css = hslToCss(h, s, l);
+        
+        if (!existingCss.has(css)) {
+          existingCss.add(css);
+          tiles.push({ color: css, isCorrect: false });
+        } else {
+          // Fallback if ever identical
+          const fallbackCss = hslToCss((h + 25) % 360, s, l);
+          existingCss.add(fallbackCss);
+          tiles.push({ color: fallbackCss, isCorrect: false });
+        }
+      }
+
+      // Shuffle all 9 tiles
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+      }
+
       grid.innerHTML = '';
 
-      for (let i = 0; i < 9; i++) {
+      tiles.forEach((t, i) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'pm-mini-tile';
         const optionLabel = <?= json_encode(tt('a11y_color_option', 'Color option {n}')) ?>;
         btn.setAttribute('aria-label', optionLabel.replace('{n}', i + 1));
-
-        let cellH, cellS, cellL;
-        if (i === correctIdx) {
-          cellH = baseH;
-          cellS = baseS;
-          cellL = baseL;
-          btn.dataset.correct = 'true';
-        } else {
-          const offsetH = (Math.random() > 0.5 ? 1 : -1) * (20 + Math.floor(Math.random() * 35));
-          cellH = (baseH + offsetH + 360) % 360;
-          cellS = Math.max(40, Math.min(90, baseS + (Math.random() * 20 - 10)));
-          cellL = Math.max(35, Math.min(75, baseL + (Math.random() * 20 - 10)));
-          btn.dataset.correct = 'false';
-        }
-
-        btn.style.backgroundColor = hslToCss(cellH, cellS, cellL);
+        btn.dataset.correct = t.isCorrect ? 'true' : 'false';
+        btn.style.backgroundColor = t.color;
 
         btn.addEventListener('click', function() {
           if (btn.dataset.correct === 'true') {
@@ -951,7 +977,7 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
         });
 
         grid.appendChild(btn);
-      }
+      });
     }
 
     initRound();
