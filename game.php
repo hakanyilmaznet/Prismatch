@@ -109,16 +109,22 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
       padding-bottom: calc(var(--pm-footer-offset, 0px) + 24px);
     }
     .grid2 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-    .k { color: var(--pm-text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .v { font-weight: 700; font-size: 15px; margin-top: 2px; }
-    .sw { display: inline-flex; align-items: center; gap: 8px; }
-    .dot { width: 18px; height: 18px; border-radius: 6px; border: 1px solid var(--pm-border); display: inline-block; }
+    .k { color: var(--pm-text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
+    .v { font-weight: 800; font-size: 15px; }
+    .sw { display: inline-flex; align-items: center; gap: 8px; font-family: var(--pm-font-mono, monospace); font-size: 13px; font-weight: 600; }
+    .dot { width: 16px; height: 16px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.18); display: inline-block; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+    .dot-grid { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.12); display: inline-block; flex-shrink: 0; }
+    .grid-swatches { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; overflow-x: auto; max-width: 100%; padding: 2px 0; }
     .pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: var(--pm-radius-pill); font-size: 12px; font-weight: 600; }
     .pill-daily { border: 1px solid rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.15); color: var(--pm-amber); }
     .pill-normal { border: 1px solid rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.15); color: var(--pm-emerald); }
-    .flagIcon { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid var(--pm-border); vertical-align: middle; }
+    .flagIcon { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; border: 1px solid var(--pm-border); vertical-align: middle; margin-right: 4px; }
+    .badge-result { font-weight: 700; font-size: 13px; }
+    .badge-result.correct { color: #ffffff; }
+    .badge-result.wrong { color: var(--pm-text-muted); font-weight: 600; }
     @media (max-width: 768px) {
       .grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-swatches { flex-wrap: wrap; }
     }
     @media (max-width: 480px) {
       .grid2 { grid-template-columns: 1fr; }
@@ -142,8 +148,32 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
       <?php
         $isDaily = is_daily_game($game);
         $durationMs = (int)($game['duration_ms'] ?? 0);
-        $durationLabel = mmss($durationMs);
         $score = (int)($game['score'] ?? 0);
+        $reachedLevel = (int)($game['reached_level'] ?? 0);
+        $totalCorrect = (int)($game['total_correct'] ?? 0);
+
+        // Auto-recover from rounds if summary counters were 0
+        if (!empty($rounds)) {
+          if ($reachedLevel === 0) {
+            foreach ($rounds as $r) {
+              $reachedLevel = max($reachedLevel, (int)($r['level'] ?? 0));
+            }
+          }
+          if ($totalCorrect === 0) {
+            foreach ($rounds as $r) {
+              if (!empty($r['is_correct'])) $totalCorrect++;
+            }
+          }
+          if ($durationMs === 0) {
+            $sumRoundMs = 0;
+            foreach ($rounds as $r) {
+              $sumRoundMs += (int)($r['response_ms'] ?? 0);
+            }
+            if ($sumRoundMs > 0) $durationMs = $sumRoundMs;
+          }
+        }
+
+        $durationLabel = mmss($durationMs);
         $created = $game['created_at'] ?? null;
         $finished = $game['finished_at'] ?? null;
         $country = (string)($game['country'] ?? '');
@@ -153,8 +183,8 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
         <div><div class="k"><?= h(t_safe('th_date','Date')) ?></div><div class="v"><?= h(fmt_dt($created, $lang)) ?></div></div>
         <div><div class="k"><?= h(t_safe('th_duration','Duration')) ?></div><div class="v"><?= h($durationLabel) ?></div></div>
         <div><div class="k"><?= h(t_safe('th_score','Score')) ?></div><div class="v"><?= h(fmt_num($score, $lang, 0)) ?></div></div>
-        <div><div class="k"><?= h(t_safe('th_level','Level')) ?></div><div class="v"><?= h(fmt_num((int)($game['reached_level'] ?? 0), $lang, 0)) ?></div></div>
-        <div><div class="k"><?= h(t_safe('th_correct','Correct')) ?></div><div class="v"><?= h(fmt_num((int)($game['total_correct'] ?? 0), $lang, 0)) ?></div></div>
+        <div><div class="k"><?= h(t_safe('th_level','Level')) ?></div><div class="v"><?= h(fmt_num($reachedLevel, $lang, 0)) ?></div></div>
+        <div><div class="k"><?= h(t_safe('th_correct','Correct')) ?></div><div class="v"><?= h(fmt_num($totalCorrect, $lang, 0)) ?></div></div>
         <div><div class="k"><?= h(t_safe('th_status','Status')) ?></div><div class="v">
           <span class="pill <?= $isDaily ? 'pill-daily' : 'pill-normal' ?>"><?= h($isDaily ? t_safe('daily_once','Daily') : t_safe('mode_normal','Normal')) ?></span>
         </div></div>
@@ -190,13 +220,19 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
             $ok = (int)$r['is_correct'] === 1;
           ?>
             <tr>
-              <td><?= h(fmt_num((int)$r['level'], $lang, 0)) ?></td>
-              <td><span class="sw"><span class="dot" style="background:<?= h($r['target_color']) ?>"></span><span><?= h($r['target_color']) ?></span></span></td>
+              <td class="fw-bold fs-6"><?= h(fmt_num((int)$r['level'], $lang, 0)) ?></td>
+              <td>
+                <?php if (!empty($r['target_color'])): ?>
+                  <span class="sw"><span class="dot" style="background:<?= h($r['target_color']) ?>"></span><span><?= h($r['target_color']) ?></span></span>
+                <?php else: ?>
+                  <span class="muted">-</span>
+                <?php endif; ?>
+              </td>
               <td>
                 <?php if ($gridArr): ?>
-                  <div style="display:flex; flex-wrap:wrap; gap:6px">
+                  <div class="grid-swatches">
                     <?php foreach ($gridArr as $c): ?>
-                      <span class="dot" title="<?= h($c) ?>" style="background:<?= h($c) ?>"></span>
+                      <span class="dot-grid" title="<?= h($c) ?>" style="background:<?= h($c) ?>"></span>
                     <?php endforeach; ?>
                   </div>
                 <?php else: ?>
@@ -211,7 +247,7 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
                 <?php endif; ?>
               </td>
               <td><?= h(fmt_num(((int)$r['response_ms'])/1000, $lang, 2)) ?><?= h(t_safe('unit_seconds_short','s')) ?></td>
-              <td><span class="pill"><?= h($ok ? t('pill_correct') : t('pill_wrong')) ?></span></td>
+              <td><span class="badge-result <?= $ok ? 'correct' : 'wrong' ?>"><?= h($ok ? t_safe('pill_correct', 'Doğru') : t_safe('pill_wrong', 'Yanlış')) ?></span></td>
             </tr>
           <?php endforeach; ?>
           </tbody>
@@ -239,4 +275,3 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
   </script>
 </body>
 </html>
-

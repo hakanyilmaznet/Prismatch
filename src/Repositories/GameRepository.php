@@ -20,15 +20,42 @@ class GameRepository implements GameRepositoryInterface {
         $userId = $user['id'];
 
         $gameId = Database::generateUuid();
-        $createdAt = isset($payload['created_at']) ? Database::isoToUtc((string)$payload['created_at']) : Database::nowUtc();
-        $finishedAt = isset($payload['finished_at']) ? Database::isoToUtc((string)$payload['finished_at']) : Database::nowUtc();
-        $durationMs = (int)($payload['duration_ms'] ?? 0);
-        $reachedLevel = (int)($payload['reached_level'] ?? 0);
-        $totalCorrect = (int)($payload['total_correct'] ?? 0);
+        $createdAt = isset($payload['created_at'])
+            ? Database::isoToUtc((string)$payload['created_at'])
+            : (isset($payload['startedAt']) ? Database::isoToUtc((string)$payload['startedAt']) : Database::nowUtc());
+        $finishedAt = isset($payload['finished_at'])
+            ? Database::isoToUtc((string)$payload['finished_at'])
+            : (isset($payload['endedAt']) ? Database::isoToUtc((string)$payload['endedAt']) : Database::nowUtc());
+        $durationMs = (int)($payload['duration_ms'] ?? $payload['durationMs'] ?? 0);
+        $reachedLevel = (int)($payload['reached_level'] ?? $payload['reachedLevel'] ?? 0);
+        $totalCorrect = (int)($payload['total_correct'] ?? $payload['correct'] ?? 0);
         $score = (int)($payload['score'] ?? 0);
         $won = !empty($payload['won']) ? 1 : 0;
         $language = isset($payload['language']) ? substr((string)$payload['language'], 0, 16) : null;
         $country = isset($payload['country']) ? strtoupper(substr((string)$payload['country'], 0, 8)) : null;
+
+        // Auto-infer from rounds if not explicitly provided at top-level
+        if ($reachedLevel === 0 && !empty($payload['rounds']) && is_array($payload['rounds'])) {
+            foreach ($payload['rounds'] as $r) {
+                $reachedLevel = max($reachedLevel, (int)($r['level'] ?? 0));
+            }
+        }
+        if ($totalCorrect === 0 && !empty($payload['rounds']) && is_array($payload['rounds'])) {
+            foreach ($payload['rounds'] as $r) {
+                if (!empty($r['is_correct']) || !empty($r['isCorrect'])) {
+                    $totalCorrect++;
+                }
+            }
+        }
+        if ($durationMs === 0 && !empty($payload['rounds']) && is_array($payload['rounds'])) {
+            $sumRoundMs = 0;
+            foreach ($payload['rounds'] as $r) {
+                $sumRoundMs += (int)($r['response_ms'] ?? $r['responseMs'] ?? 0);
+            }
+            if ($sumRoundMs > 0) {
+                $durationMs = $sumRoundMs;
+            }
+        }
 
         $this->pdo->beginTransaction();
         try {
@@ -69,20 +96,35 @@ class GameRepository implements GameRepositoryInterface {
                 ");
 
                 foreach ($payload['rounds'] as $r) {
-                    $gridJson = is_array($r['grid_colors'] ?? null)
-                        ? json_encode($r['grid_colors'], JSON_UNESCAPED_SLASHES)
-                        : (string)($r['grid_colors_json'] ?? '[]');
+                    $gridColors = $r['grid_colors'] ?? $r['gridColors'] ?? null;
+                    if (is_array($gridColors)) {
+                        $gridJson = json_encode(array_values($gridColors), JSON_UNESCAPED_SLASHES);
+                    } elseif (!empty($r['grid_colors_json'])) {
+                        $gridJson = (string)$r['grid_colors_json'];
+                    } else {
+                        $gridJson = '[]';
+                    }
+
+                    $targetColor = (string)($r['target_color'] ?? $r['targetColor'] ?? '');
+                    $pickedColor = isset($r['picked_color'])
+                        ? (string)$r['picked_color']
+                        : (isset($r['pickedColor']) && $r['pickedColor'] !== null ? (string)$r['pickedColor'] : null);
+                    $responseMs = (int)($r['response_ms'] ?? $r['responseMs'] ?? 0);
+                    $isCorrect = (!empty($r['is_correct']) || !empty($r['isCorrect'])) ? 1 : 0;
+                    $rCreatedAt = isset($r['created_at'])
+                        ? Database::isoToUtc((string)$r['created_at'])
+                        : (isset($r['createdAt']) ? Database::isoToUtc((string)$r['createdAt']) : Database::nowUtc());
 
                     $roundStmt->execute([
                         ':id' => Database::generateUuid(),
                         ':game_id' => $gameId,
                         ':level' => (int)($r['level'] ?? 0),
-                        ':target_color' => (string)($r['target_color'] ?? ''),
+                        ':target_color' => $targetColor,
                         ':grid_colors_json' => $gridJson,
-                        ':picked_color' => isset($r['picked_color']) ? (string)$r['picked_color'] : null,
-                        ':response_ms' => (int)($r['response_ms'] ?? 0),
-                        ':is_correct' => !empty($r['is_correct']) ? 1 : 0,
-                        ':created_at' => isset($r['created_at']) ? Database::isoToUtc((string)$r['created_at']) : Database::nowUtc(),
+                        ':picked_color' => $pickedColor,
+                        ':response_ms' => $responseMs,
+                        ':is_correct' => $isCorrect,
+                        ':created_at' => $rCreatedAt,
                     ]);
                 }
             }

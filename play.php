@@ -1355,11 +1355,16 @@ function buildGamePayload(reachedLevel, won){
 
   const payload = {
     reachedLevel,
+    reached_level: reachedLevel,
     correct: state.correct,
+    total_correct: state.correct,
     won,
     startedAt: new Date(startedAt).toISOString(),
+    created_at: new Date(startedAt).toISOString(),
     endedAt: new Date(endedAt).toISOString(),
+    finished_at: new Date(endedAt).toISOString(),
     durationMs: Math.max(0, endedAt - startedAt),
+    duration_ms: Math.max(0, endedAt - startedAt),
     rounds: state.rounds.slice(),
     gridCount: state.gridCount
   };
@@ -1564,10 +1569,15 @@ async function onPick(btn, buttons){
   state.rounds.push({
     level: state.level,
     targetColor: state.targetColor,
+    target_color: state.targetColor,
     gridColors: state.currentGridColors.slice(),
+    grid_colors: state.currentGridColors.slice(),
     pickedColor: picked,
+    picked_color: picked,
     responseMs,
-    isCorrect
+    response_ms: responseMs,
+    isCorrect,
+    is_correct: isCorrect ? 1 : 0
   });
 
   if (isCorrect){
@@ -1596,10 +1606,15 @@ async function onTimeUp(buttons){
   state.rounds.push({
     level: state.level,
     targetColor: state.targetColor,
+    target_color: state.targetColor,
     gridColors: state.currentGridColors.slice(),
+    grid_colors: state.currentGridColors.slice(),
     pickedColor: null,
+    picked_color: null,
     responseMs: state.answerMs,
-    isCorrect: false
+    response_ms: state.answerMs,
+    isCorrect: false,
+    is_correct: 0
   });
 
   setBadge(tjs('badge_wrong', 'Wrong match. Game over.'));
