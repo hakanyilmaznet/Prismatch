@@ -204,7 +204,7 @@ $seoTitle = t('home_cta_login') . ' - ' . t('app_name');
       </a>
 
       <div class="auth-divider">
-        <span><?= htmlspecialchars($lang === 'tr' ? 'veya' : 'or') ?></span>
+        <span><?= htmlspecialchars(t('or')) ?></span>
       </div>
 
       <div class="auth-local-header" style="text-align: left; margin-bottom: 12px;">
@@ -215,7 +215,7 @@ $seoTitle = t('home_cta_login') . ' - ' . t('app_name');
       <form id="localLoginForm" class="auth-form">
         <div>
           <label class="form-label" for="localUsername"><?= htmlspecialchars(t('username')) ?></label>
-          <input id="localUsername" class="form-control form-control-lg" type="text" minlength="2" maxlength="30" autocomplete="off" placeholder="<?= htmlspecialchars($lang === 'tr' ? 'Örn: RenkUstası' : 'e.g. ColorMaster') ?>" required />
+          <input id="localUsername" class="form-control form-control-lg" type="text" minlength="2" maxlength="30" autocomplete="off" placeholder="<?= htmlspecialchars(t('login_username_placeholder')) ?>" required />
         </div>
         <button class="btn btn-primary auth-btn-submit" type="submit">
           <?= htmlspecialchars(t('btn_continue')) ?>

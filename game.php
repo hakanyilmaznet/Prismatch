@@ -26,8 +26,9 @@ header('X-Robots-Tag: noindex, nofollow', true);
 $id = (string)($_GET['id'] ?? '');
 if ($id === '' || !preg_match('/^[a-f0-9-]{36}$/i', $id)) {
   http_response_code(400);
-  $msg = 'Invalid session id.';
-  echo "<!doctype html><html><head><meta charset=\"utf-8\" /><title>{$msg}</title></head><body style=\"font-family:system-ui;padding:20px\"><h1>{$msg}</h1><p><a href=\"games.php\">Back</a></p></body></html>";
+  $msg = htmlspecialchars(t_safe('msg_invalid_id', 'Invalid session id.'));
+  $back = htmlspecialchars(t_safe('btn_back_to_history', 'Back to history'));
+  echo "<!doctype html><html><head><meta charset=\"utf-8\" /><title>{$msg}</title></head><body style=\"font-family:system-ui;padding:20px\"><h1>{$msg}</h1><p><a href=\"games.php\">{$back}</a></p></body></html>";
   exit;
 }
 

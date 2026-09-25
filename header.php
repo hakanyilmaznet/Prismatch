@@ -169,7 +169,8 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
     min-height: 38px;
   }
 
-  .langWrap { position: relative; display: inline-flex; width: 170px; max-width: 100%; }
+  /* Redesigned Language Selector */
+  .langWrap { position: relative; display: inline-flex; width: 160px; max-width: 100%; }
   .visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
   .langBtn {
     appearance: none;
@@ -178,25 +179,278 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
     justify-content: space-between;
     gap: 8px;
     width: 100%;
-    padding: 7px 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(0,0,0,0.12);
-    background: rgba(0,0,0,0.04);
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.04);
     color: inherit;
     cursor: pointer;
     font-size: 13px;
     min-height: 38px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .langBtn:hover {
+    border-color: rgba(255, 107, 91, 0.45);
+    background: rgba(255, 107, 91, 0.06);
+    box-shadow: 0 4px 16px rgba(255, 107, 91, 0.12);
+    transform: translateY(-1px);
   }
   [data-bs-theme="dark"] .langBtn {
-    border-color: rgba(255,255,255,0.14);
-    background: rgba(255,255,255,0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
     color: #fff;
   }
+  [data-bs-theme="dark"] .langBtn:hover {
+    border-color: rgba(255, 107, 91, 0.5);
+    background: rgba(255, 107, 91, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+  .langBtn[aria-expanded="true"] {
+    border-color: #ff6b5b;
+    box-shadow: 0 0 0 3px rgba(255, 107, 91, 0.25);
+  }
   .langBtnLeft { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .langBtnText { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
-  .langCaret { width: 16px; height: 16px; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='black' opacity='0.6' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat center/16px 16px; flex: 0 0 16px; }
-  [data-bs-theme="dark"] .langCaret { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' opacity='0.75' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>"); }
-  .langPop { position: fixed; z-index: 30000; width: min(92vw, 360px); border-radius: 18px; border: 1px solid rgba(0,0,0,.12); }
+  .langBtnFlag {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+  }
+  .langBtnText {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    letter-spacing: -0.01em;
+  }
+  .langCaret {
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat center/16px 16px;
+    flex: 0 0 16px;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  [data-bs-theme="dark"] .langCaret {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
+  }
+  .langBtn[aria-expanded="true"] .langCaret {
+    transform: rotate(180deg);
+  }
+
+  /* Popover Floating Menu */
+  .langPop {
+    position: fixed;
+    z-index: 30000;
+    width: min(92vw, 340px);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18), 0 4px 16px rgba(15, 23, 42, 0.06);
+    padding: 12px;
+    box-sizing: border-box;
+    animation: langPopIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  [data-bs-theme="dark"] .langPop {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(14, 18, 30, 0.96);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7);
+  }
+  @keyframes langPopIn {
+    from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .langPopHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  [data-bs-theme="dark"] .langPopHeader {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+  .langTitleWrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 4px;
+  }
+  .langTitle {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--pm-text-muted, #94a3b8);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .langCountBadge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(255, 107, 91, 0.12);
+    color: #ff6b5b;
+  }
+  .langSearchWrap {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+  .langSearchIcon {
+    position: absolute;
+    left: 10px;
+    width: 15px;
+    height: 15px;
+    opacity: 0.5;
+    pointer-events: none;
+    filter: var(--pm-icon-filter);
+  }
+  .langSearch {
+    width: 100%;
+    box-sizing: border-box;
+    appearance: none;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 12px;
+    padding: 8px 12px 8px 32px;
+    font-size: 13px;
+    color: inherit;
+    outline: none;
+    transition: all 0.15s ease;
+  }
+  [data-bs-theme="dark"] .langSearch {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+  }
+  .langSearch:focus {
+    border-color: #ff6b5b;
+    box-shadow: 0 0 0 3px rgba(255, 107, 91, 0.2);
+    background: transparent;
+  }
+  .langList {
+    max-height: 290px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 2px 2px 2px;
+    margin: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 107, 91, 0.4) transparent;
+  }
+  .langList::-webkit-scrollbar {
+    width: 5px;
+  }
+  .langList::-webkit-scrollbar-thumb {
+    background: rgba(255, 107, 91, 0.4);
+    border-radius: 999px;
+  }
+  .langItem {
+    appearance: none;
+    border: 1px solid transparent;
+    background: transparent;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    font-size: 13.5px;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+  }
+  .langItem:hover, .langItem.isActive {
+    background: rgba(255, 107, 91, 0.1);
+    color: #ff6b5b;
+    border-color: rgba(255, 107, 91, 0.2);
+    transform: translateX(2px);
+  }
+  .langItem[aria-selected="true"] {
+    background: linear-gradient(135deg, rgba(255, 107, 91, 0.16), rgba(255, 178, 75, 0.12));
+    border-color: rgba(255, 107, 91, 0.35);
+    color: #ff6b5b;
+    font-weight: 700;
+  }
+  .langItemLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .langItemFlag {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+  }
+  [data-bs-theme="dark"] .langItemFlag {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  .langLabelCell {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .langMetaCell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .langCodeBadge {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--pm-text-muted, #94a3b8);
+  }
+  [data-bs-theme="dark"] .langCodeBadge {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .langCheck {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+  }
+  .langNoRes {
+    padding: 20px 10px;
+    text-align: center;
+    color: var(--pm-text-muted, #94a3b8);
+    font-size: 13px;
+    font-weight: 500;
+  }
 
   @media (max-width: 991.98px) {
     .pm-header {
@@ -319,25 +573,36 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
               $sel = $lang ?: 'en';
               foreach (supported_languages() as $code => $name) {
                 $selected = ($code === $sel) ? ' selected' : '';
-                echo "<option value='".htmlspecialchars($code, ENT_QUOTES)."'{$selected}>".htmlspecialchars($name, ENT_QUOTES)."</option>";
+                $flagUrl = function_exists('lang_flag_img') ? lang_flag_img($code) : '';
+                echo "<option value='".htmlspecialchars($code, ENT_QUOTES)."' data-flag='".htmlspecialchars($flagUrl, ENT_QUOTES)."'{$selected}>".htmlspecialchars($name, ENT_QUOTES)."</option>";
               }
             ?>
           </select>
 
           <button type="button" class="langBtn" id="langBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="langList">
             <span class="langBtnLeft">
-              <img class="bi-icon" src="bootstrap-icons/translate.svg" alt="" aria-hidden="true" />
-              <span class="langBtnText" id="langBtnText">-</span>
+              <?php $activeFlag = function_exists('lang_flag_img') ? lang_flag_img($sel) : ''; ?>
+              <img class="langBtnFlag" id="langBtnFlag" src="<?= htmlspecialchars($activeFlag) ?>" alt="" aria-hidden="true" />
+              <span class="langBtnText" id="langBtnText"><?= htmlspecialchars(supported_languages()[$sel] ?? $sel) ?></span>
             </span>
             <span class="langCaret" aria-hidden="true"></span>
           </button>
 
           <div class="langPop" id="langPop" role="dialog" aria-modal="false" hidden>
             <div class="langPopHeader">
-              <div class="langTitle" id="langTitle"><?= htmlspecialchars(tt('language', 'Language')) ?></div>
-              <input id="langSearch" class="langSearch" type="search" autocomplete="off"
-                     placeholder="<?= htmlspecialchars(tt('search_language', 'Search...')) ?>"
-                     aria-label="<?= htmlspecialchars(tt('search_language', 'Search language')) ?>" />
+              <div class="langTitleWrap">
+                <span class="langTitle">
+                  <img class="bi-icon" src="bootstrap-icons/translate.svg" alt="" aria-hidden="true" style="width:14px;height:14px;" />
+                  <span id="langTitle"><?= htmlspecialchars(tt('language', 'Language')) ?></span>
+                </span>
+                <span class="langCountBadge"><?= count(supported_languages()) ?></span>
+              </div>
+              <div class="langSearchWrap">
+                <img class="langSearchIcon" src="bootstrap-icons/search.svg" alt="" aria-hidden="true" />
+                <input id="langSearch" class="langSearch" type="search" autocomplete="off"
+                       placeholder="<?= htmlspecialchars(tt('search_language', 'Search language...')) ?>"
+                       aria-label="<?= htmlspecialchars(tt('search_language', 'Search language')) ?>" />
+              </div>
             </div>
             <div class="langList" id="langList" role="listbox" tabindex="-1" aria-labelledby="langTitle"></div>
           </div>
@@ -401,7 +666,8 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
 
     const items = Array.from(select.options).map(o => {
       const name = (o.textContent || '').trim().replace(/\s+/g,' ') || o.value;
-      return { code: o.value, name };
+      const flag = o.getAttribute('data-flag') || '';
+      return { code: o.value, name, flag };
     });
 
     let open = false;
@@ -437,8 +703,14 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
         b.setAttribute('aria-selected', selected ? 'true' : 'false');
 
         b.innerHTML = `
-          <span class="langLabelCell">${escapeHtml(it.name)}</span>
-          <span class="langMetaCell"><span>${escapeHtml(it.code)}</span>${selected ? '<span class="langCheck" aria-hidden="true">OK</span>' : ''}</span>
+          <span class="langItemLeft">
+            <img class="langItemFlag" src="${escapeHtml(it.flag)}" alt="" aria-hidden="true" />
+            <span class="langLabelCell">${escapeHtml(it.name)}</span>
+          </span>
+          <span class="langMetaCell">
+            <span class="langCodeBadge">${escapeHtml(it.code.toUpperCase())}</span>
+            ${selected ? '<span class="langCheck" aria-hidden="true">✓</span>' : ''}
+          </span>
         `;
 
         b.addEventListener('mouseenter', () => setActive(idx));
@@ -528,10 +800,14 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
       }
     }
 
+    const btnFlag = document.getElementById('langBtnFlag');
     function choose(code){
       select.value = code;
       const it = items.find(x => x.code === code);
-      btnTxt.textContent = it ? `${it.name}` : code;
+      if (it) {
+        btnTxt.textContent = it.name;
+        if (btnFlag && it.flag) btnFlag.src = it.flag;
+      }
 
       setOpen(false);
 
@@ -564,7 +840,8 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
       const it = items.find(x => x.code === current) || items[0];
       if (it) {
         select.value = it.code;
-        btnTxt.textContent = `${it.name}`;
+        btnTxt.textContent = it.name;
+        if (btnFlag && it.flag) btnFlag.src = it.flag;
       }
     })();
 

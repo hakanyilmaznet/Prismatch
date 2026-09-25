@@ -607,7 +607,7 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
           <span><?= htmlspecialchars(tt('home_hero_tag', 'Bilişsel Hız & Renk Hafıza Arenası')) ?></span>
         </div>
         <h1 class="pm-hero-title">
-          Renkleri Hatırla, <span class="prism-shimmer">Zamanla Yarış!</span>
+          <?= htmlspecialchars(tt('home_hero_title_part1', 'Remember the Colors,')) ?> <span class="prism-shimmer"><?= htmlspecialchars(tt('home_hero_title_part2', 'Race the Clock!')) ?></span>
         </h1>
         <p class="pm-hero-desc">
           <?= htmlspecialchars(tt('home_hero_subtitle', 'Görsel hafızanı ve reflekslerini test et. Gösterilen hedef rengi aklında tut, grid içinden doğru tonu yakala ve skor tablosunun zirvesine çık!')) ?>
@@ -690,7 +690,7 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
           <div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
               <div class="pm-mode-icon">⚡</div>
-              <span class="pm-mode-pill pm-pill-solo">POPÜLER</span>
+              <span class="pm-mode-pill pm-pill-solo"><?= htmlspecialchars(tt('badge_popular', 'POPULAR')) ?></span>
             </div>
             <h3 class="pm-mode-title"><?= htmlspecialchars(tt('home_mode_solo_title', 'Tek Oyunculu Hızlı Tur')) ?></h3>
             <p class="pm-mode-desc"><?= htmlspecialchars(tt('home_mode_solo_desc', '60 saniyelik mikro turlar. Aşamalar ilerledikçe renk tonları birbirine yaklaşır ve süren kısalır. Kendi rekorunu egale et.')) ?></p>
@@ -705,7 +705,7 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
           <div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
               <div class="pm-mode-icon">👥</div>
-              <span class="pm-mode-pill pm-pill-multi">CANLI YARIŞ</span>
+              <span class="pm-mode-pill pm-pill-multi"><?= htmlspecialchars(tt('badge_live_race', 'LIVE BATTLE')) ?></span>
             </div>
             <h3 class="pm-mode-title"><?= htmlspecialchars(tt('home_mode_multi_title', 'Canlı Çok Oyunculu Odalar')) ?></h3>
             <p class="pm-mode-desc"><?= htmlspecialchars(tt('home_mode_multi_desc', 'Arkadaşlarınla genel veya özel odalar kur. Aynı renk diziliminde gerçek zamanlı yarış, son ayakta kalan kazanır!')) ?></p>
@@ -720,7 +720,7 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
           <div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
               <div class="pm-mode-icon">🎯</div>
-              <span class="pm-mode-pill pm-pill-daily">GÜNDE 1 HAK</span>
+              <span class="pm-mode-pill pm-pill-daily"><?= htmlspecialchars(tt('badge_daily_once', '1 TRY / DAY')) ?></span>
             </div>
             <h3 class="pm-mode-title"><?= htmlspecialchars(tt('home_mode_daily_title', 'Günlük Meydan Okuma')) ?></h3>
             <p class="pm-mode-desc"><?= htmlspecialchars(tt('home_mode_daily_desc', 'Her gün tüm dünyadaki oyuncular için tek bir deneme hakkı. Aynı renk serisinde yarış ve küresel podyumda yerini al.')) ?></p>
@@ -765,12 +765,12 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
         <div>
           <h2 style="font-family:var(--pm-font-display); font-size:22px; font-weight:800; margin:0 0 4px 0;">
-            🏆 Günün Podyumu (Canlı Sıralama)
+            🏆 <?= htmlspecialchars(tt('home_podium_title', 'Daily Podium (Live Rankings)')) ?>
           </h2>
-          <div style="font-size:13.5px; color:var(--pm-text-muted);">Bugünün en yüksek skorunu yapan renk ustaları</div>
+          <div style="font-size:13.5px; color:var(--pm-text-muted);"><?= htmlspecialchars(tt('home_podium_subtitle', 'Today’s top color memory masters')) ?></div>
         </div>
         <a class="pm-btn-secondary" href="daily_leaderboard.php" style="padding:8px 18px; font-size:13.5px;">
-          Tüm Tabloyu Gör →
+          <?= htmlspecialchars(tt('home_podium_view_all', 'View Full Table')) ?> →
         </a>
       </div>
 
@@ -780,7 +780,7 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
             $medal = $idx === 0 ? '🥇' : ($idx === 1 ? '🥈' : '🥉');
             $country = strtoupper((string)($leader['country'] ?? ''));
             $flagUrl = function_exists('country_flag_icon_url') ? country_flag_icon_url($country) : '';
-            $pName = !empty($leader['email']) ? substr($leader['email'], 0, 3) . '***' : 'Oyuncu';
+            $pName = !empty($leader['email']) ? substr($leader['email'], 0, 3) . '***' : tt('th_player', 'Player');
           ?>
             <div class="pm-podium-item">
               <div style="display:flex; align-items:center; gap:10px;">
@@ -791,7 +791,7 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
                     <?php if ($flagUrl): ?>
                       <img src="<?= htmlspecialchars($flagUrl) ?>" alt="" style="width:16px; height:12px; vertical-align:middle; border-radius:2px;" />
                     <?php endif; ?>
-                    <?= htmlspecialchars($country ?: 'GLOBAL') ?> · Aşama <?= (int)($leader['reached_level'] ?? 0) ?>
+                    <?= htmlspecialchars($country ?: 'GLOBAL') ?> · <?= htmlspecialchars(tt('hud_stage', 'Stage')) ?> <?= (int)($leader['reached_level'] ?? 0) ?>
                   </div>
                 </div>
               </div>
@@ -803,8 +803,8 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
         </div>
       <?php else: ?>
         <div style="margin-top:16px; padding:18px; border-radius:14px; background:rgba(0,0,0,0.05); text-align:center; color:var(--pm-text-muted); font-size:14px;">
-          Bugün henüz günlük meydan okuma skoru kaydedilmedi. 
-          <a href="play.php?daily=1" style="color:#ff6b5b; font-weight:700; text-decoration:underline; margin-left:6px;">İlk skoru sen kaydet!</a>
+          <?= htmlspecialchars(tt('home_podium_empty', 'No daily challenge scores recorded yet today.')) ?>
+          <a href="play.php?daily=1" style="color:#ff6b5b; font-weight:700; text-decoration:underline; margin-left:6px;"><?= htmlspecialchars(tt('home_podium_empty_cta', 'Be the first to record a score!')) ?></a>
         </div>
       <?php endif; ?>
     </section>
@@ -906,7 +906,8 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'pm-mini-tile';
-        btn.setAttribute('aria-label', 'Renk seçeneği ' + (i + 1));
+        const optionLabel = <?= json_encode(tt('a11y_color_option', 'Color option {n}')) ?>;
+        btn.setAttribute('aria-label', optionLabel.replace('{n}', i + 1));
 
         let cellH, cellS, cellL;
         if (i === correctIdx) {

@@ -163,7 +163,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         </h1>
         <div class="small text-secondary">
           GUID: <code class="text-secondary"><?= htmlspecialchars($room['guid']) ?></code> · 
-          Status: <span class="badge bg-secondary-subtle text-secondary rounded-pill"><?= htmlspecialchars(room_status_label($room['status'] ?? '')) ?></span>
+          <?= htmlspecialchars(tt('room_status', 'Status')) ?>: <span class="badge bg-secondary-subtle text-secondary rounded-pill"><?= htmlspecialchars(room_status_label($room['status'] ?? '')) ?></span>
         </div>
       </div>
       <div>
@@ -221,7 +221,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         ?>
           <div class="round-card">
             <div class="d-flex align-items-center justify-content-between mb-2">
-              <span class="fw-bold fs-6">Round <?= $roundNum ?></span>
+              <span class="fw-bold fs-6"><?= htmlspecialchars(tt('hud_round', 'Round')) ?> <?= $roundNum ?></span>
               <?php if ($target): ?>
                 <div class="small d-flex align-items-center gap-2">
                   <span class="text-secondary"><?= htmlspecialchars(tt('room_target_label', 'Target Color')) ?>:</span>
@@ -235,12 +235,12 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               <?php foreach (($byRound[$roundNum] ?? []) as $ev): ?>
                 <?php if ($ev['type'] === 'eliminate' || $ev['type'] === 'timeout'): ?>
                   <div class="small text-danger d-flex align-items-center gap-1">
-                    <span>❌</span> <strong><?= htmlspecialchars($ev['display_name']) ?></strong> was eliminated <?= $ev['type'] === 'timeout' ? '(Time up)' : '' ?>
+                    <span>❌</span> <strong><?= htmlspecialchars($ev['display_name']) ?></strong> <?= htmlspecialchars(tt('room_event_eliminated', 'was eliminated')) ?> <?= $ev['type'] === 'timeout' ? '(' . htmlspecialchars(tt('badge_timeup', 'Time up')) . ')' : '' ?>
                   </div>
                 <?php elseif ($ev['type'] === 'answer'): ?>
                   <?php $score = (int)($ev['payload']['score_delta'] ?? 0); ?>
                   <div class="small text-success d-flex align-items-center gap-1">
-                    <span>✅</span> <strong><?= htmlspecialchars($ev['display_name']) ?></strong> correct (+<?= $score ?> pts)
+                    <span>✅</span> <strong><?= htmlspecialchars($ev['display_name']) ?></strong> <?= htmlspecialchars(tt('room_event_correct', 'correct')) ?> (+<?= $score ?> <?= htmlspecialchars(tt('unit_points', 'pts')) ?>)
                   </div>
                 <?php endif; ?>
               <?php endforeach; ?>

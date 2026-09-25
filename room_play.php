@@ -422,6 +422,25 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       pickColor: <?= json_encode(tt('question_pick_target', 'Which color was shown?')) ?>,
       nextRoundIn: <?= json_encode(tt('room_next_in', 'Next round starting soon...')) ?>,
       winner: <?= json_encode(tt('room_winner_announcement', 'Winner!')) ?>,
+      getReady: <?= json_encode(tt('status_get_ready', 'Get Ready!')) ?>,
+      watchScreen: <?= json_encode(tt('room_watch_screen', 'Watch the screen carefully...')) ?>,
+      memorize: <?= json_encode(tt('status_memorize', 'Memorize!')) ?>,
+      showingTarget: <?= json_encode(tt('badge_showing_target', 'Showing target color...')) ?>,
+      pickColorUpper: <?= json_encode(tt('badge_pick_color', 'PICK COLOR!')) ?>,
+      eliminatedSubtitle: <?= json_encode(tt('room_eliminated_subtitle', 'You are eliminated. Spectating alive players...')) ?>,
+      chooseFast: <?= json_encode(tt('room_choose_fast', 'Choose fast for maximum score!')) ?>,
+      roundComplete: <?= json_encode(tt('room_round_complete', 'Round {round} Complete')) ?>,
+      winnerEveryone: <?= json_encode(tt('room_winner_everyone', 'Everyone')) ?>,
+      concludedDesc: <?= json_encode(tt('room_concluded_desc', 'The match has concluded. Great performance by all players!')) ?>,
+      backToRooms: <?= json_encode(tt('rooms_back', 'Back to Rooms')) ?>,
+      errorJoining: <?= json_encode(tt('room_error_joining', 'Error Joining')) ?>,
+      connError: <?= json_encode(tt('room_conn_error', 'Connection Error')) ?>,
+      starting: <?= json_encode(tt('room_starting', 'Starting...')) ?>,
+      you: <?= json_encode(tt('you_parentheses', '(You)')) ?>,
+      pts: <?= json_encode(tt('unit_points', 'pts')) ?>,
+      player: <?= json_encode(tt('room_player', 'Player')) ?>,
+      score: <?= json_encode(tt('room_score', 'Score')) ?>,
+      status: <?= json_encode(tt('room_status', 'Status')) ?>,
     };
 
     const state = {
@@ -497,13 +516,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         tag.appendChild(dot);
 
         const nameSpan = document.createElement('span');
-        nameSpan.textContent = p.email.split('@')[0] + (isMe ? ' (You)' : '') + (isElim ? ' 💀' : '');
+        nameSpan.textContent = p.email.split('@')[0] + (isMe ? ' ' + STR.you : '') + (isElim ? ' 💀' : '');
         tag.appendChild(nameSpan);
 
         if (p.score > 0) {
           const scoreBadge = document.createElement('span');
           scoreBadge.className = 'badge bg-dark-subtle text-dark-emphasis ms-1';
-          scoreBadge.textContent = p.score + ' pts';
+          scoreBadge.textContent = p.score + ' ' + STR.pts;
           tag.appendChild(scoreBadge);
         }
 
@@ -514,7 +533,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     // Step 1: Countdown Phase
     function runCountdown() {
       state.phase = 'countdown';
-      hudStatus.textContent = 'Get Ready!';
+      hudStatus.textContent = STR.getReady;
       hudStatus.className = 'hud-val text-info';
       playTone(520, 0.08, 'square');
 
@@ -522,7 +541,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       stageContent.innerHTML = `
         <h2 class="stage-title">${STR.rememberColor}</h2>
         <div class="big-countdown" id="countdownNum">${remaining}</div>
-        <div class="stage-subtitle">Watch the screen carefully...</div>
+        <div class="stage-subtitle">${STR.watchScreen}</div>
       `;
 
       if (state.countdownInterval) clearInterval(state.countdownInterval);
@@ -542,13 +561,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     // Step 2: Target Color Show
     function runTargetShow() {
       state.phase = 'show';
-      hudStatus.textContent = 'Memorize!';
+      hudStatus.textContent = STR.memorize;
       hudStatus.className = 'hud-val text-warning';
 
       stageContent.innerHTML = `
         <h2 class="stage-title">${STR.rememberColor}</h2>
         <div class="target-box" style="background: ${state.targetColor}"></div>
-        <div class="stage-subtitle">Showing target color...</div>
+        <div class="stage-subtitle">${STR.showingTarget}</div>
       `;
 
       setTimeout(() => {
@@ -561,12 +580,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.phase = 'question';
       state.answered = false;
       state.questionStartTs = performance.now();
-      hudStatus.textContent = state.eliminated ? STR.spectating : 'PICK COLOR!';
+      hudStatus.textContent = state.eliminated ? STR.spectating : STR.pickColorUpper;
       hudStatus.className = 'hud-val ' + (state.eliminated ? 'text-secondary' : 'text-success');
 
       stageContent.innerHTML = `
         <h2 class="stage-title">${STR.pickColor}</h2>
-        <div class="stage-subtitle">${state.eliminated ? 'You are eliminated. Spectating alive players...' : 'Choose fast for maximum score!'}</div>
+        <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : STR.chooseFast}</div>
         <div class="choice-grid" id="choiceGrid"></div>
       `;
 
@@ -670,16 +689,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     function renderLeaderboard(players) {
       stageContent.innerHTML = `
         <div class="fs-1">🏆</div>
-        <h2 class="stage-title">Round ${state.round} Complete</h2>
+        <h2 class="stage-title">${STR.roundComplete.replace('{round}', state.round)}</h2>
         <p class="stage-subtitle">${STR.nextRoundIn}</p>
         <div class="table-responsive w-100 mt-2">
           <table class="table table-sm align-middle text-start">
             <thead>
               <tr class="text-secondary small">
                 <th>#</th>
-                <th>Player</th>
-                <th>Score</th>
-                <th>Status</th>
+                <th>${STR.player}</th>
+                <th>${STR.score}</th>
+                <th>${STR.status}</th>
               </tr>
             </thead>
             <tbody>
@@ -706,10 +725,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       stageContent.innerHTML = `
         <div class="display-3 mb-2">🎉👑🎉</div>
         <h1 class="stage-title">${STR.winner}</h1>
-        <div class="fs-4 fw-bold text-warning mb-2">${winner ? winner.email.split('@')[0] : 'Everyone'}</div>
-        <p class="stage-subtitle">The match has concluded. Great performance by all players!</p>
+        <div class="fs-4 fw-bold text-warning mb-2">${winner ? winner.email.split('@')[0] : STR.winnerEveryone}</div>
+        <p class="stage-subtitle">${STR.concludedDesc}</p>
         <div class="d-flex gap-2 mt-3">
-          <a class="btn btn-action" href="rooms.php">← Back to Rooms</a>
+          <a class="btn btn-action" href="rooms.php">← ${STR.backToRooms}</a>
         </div>
       `;
     }
@@ -724,7 +743,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         });
         const data = await res.json();
         if (!data.ok) {
-          hudStatus.textContent = 'Error Joining';
+          hudStatus.textContent = STR.errorJoining;
           return;
         }
 
@@ -738,7 +757,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         hudStatus.textContent = room.status === 'waiting' ? STR.waiting : STR.active;
         hudStatus.className = 'hud-val text-info';
       } catch (e) {
-        hudStatus.textContent = 'Connection Error';
+        hudStatus.textContent = STR.connError;
       }
     }
 
@@ -783,7 +802,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     // Host Start Button Trigger
     startMatchBtn?.addEventListener('click', async () => {
       startMatchBtn.disabled = true;
-      startMatchBtn.textContent = 'Starting...';
+      startMatchBtn.textContent = STR.starting;
       try {
         await fetch('api/rooms_next_round.php', {
           method: 'POST',

@@ -5,14 +5,12 @@ $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
 function _L_foot(string $k): string {
-  global $lang;
-  $d = [
-    'en' => ['privacy'=>'Privacy','terms'=>'Terms','copyright'=>'© {y} Prismatch'],
-    'tr' => ['privacy'=>'Gizlilik','terms'=>'Şartlar','copyright'=>'© {y} Prismatch'],
-  ];
-  $bundle = $d[$lang] ?? $d['en'];
-  $s = $bundle[$k] ?? ($d['en'][$k] ?? $k);
-  return str_replace('{y}', (string)date('Y'), $s);
+  $val = function_exists('t') ? t($k) : '';
+  if (!$val || $val === $k) {
+    $d = ['privacy'=>'Privacy','terms'=>'Terms','copyright'=>'© {y} Prismatch'];
+    $val = $d[$k] ?? $k;
+  }
+  return str_replace('{y}', (string)date('Y'), $val);
 }
 
 function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
@@ -256,9 +254,9 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
         </div>
         <div class="d-flex align-items-center gap-2">
           <div class="pm-debug-meta"><?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '') ?></div>
-          <button class="pm-debug-copy" type="button" id="pmDebugCopy">Kopyala</button>
-          <button class="pm-debug-min" type="button" id="pmDebugMin">Küçült</button>
-          <button class="pm-debug-close" type="button" id="pmDebugClose">Kapat</button>
+          <button class="pm-debug-copy" type="button" id="pmDebugCopy"><?= htmlspecialchars(t('btn_copy')) ?></button>
+          <button class="pm-debug-min" type="button" id="pmDebugMin"><?= htmlspecialchars(t('btn_minimize')) ?></button>
+          <button class="pm-debug-close" type="button" id="pmDebugClose"><?= htmlspecialchars(t('btn_close')) ?></button>
         </div>
       </div>
       <div class="pm-debug-body">
@@ -270,7 +268,7 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
         <?php endforeach; ?>
       </div>
     </div>
-    <button class="pm-debug-pill" type="button" id="pmDebugPill" aria-label="Debug panelini göster">
+    <button class="pm-debug-pill" type="button" id="pmDebugPill" aria-label="<?= htmlspecialchars(t('debug_show_panel')) ?>">
       Debug <span class="pm-debug-count">(<?= count($pmErrs) ?>)</span>
     </button>
     <div class="pm-debug-tooltip" id="pmDebugTooltip" role="tooltip" aria-hidden="true"></div>
@@ -285,6 +283,12 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
       const tooltip = document.getElementById('pmDebugTooltip');
       const key = 'pm-debug-hidden';
       const minKey = 'pm-debug-min';
+      const STR_COPY = <?= json_encode(t('btn_copy')) ?>;
+      const STR_COPIED = <?= json_encode(t('btn_copied')) ?>;
+      const STR_COPY_FAILED = <?= json_encode(t('btn_copy_failed')) ?>;
+      const STR_MIN = <?= json_encode(t('btn_minimize')) ?>;
+      const STR_EXPAND = <?= json_encode(t('btn_expand')) ?>;
+
       if (!panel || !closeBtn) return;
 
       const items = Array.from(panel.querySelectorAll('.pm-debug-item'));
@@ -306,7 +310,7 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
 
       if (localStorage.getItem(minKey) === '1') {
         panel.classList.add('pm-debug-minimized');
-        if (minBtn) minBtn.textContent = 'Aç';
+        if (minBtn) minBtn.textContent = STR_EXPAND;
       }
 
       // Tooltip summary (multi-line)
@@ -361,11 +365,11 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
               text += `\n${idx + 1}) ${msg}\n${loc}\n`;
             });
             await navigator.clipboard.writeText(text);
-            copyBtn.textContent = 'Kopyalandı';
-            setTimeout(() => { copyBtn.textContent = 'Kopyala'; }, 1200);
+            copyBtn.textContent = STR_COPIED;
+            setTimeout(() => { copyBtn.textContent = STR_COPY; }, 1200);
           }catch(_){
-            copyBtn.textContent = 'Kopyalanamadı';
-            setTimeout(() => { copyBtn.textContent = 'Kopyala'; }, 1200);
+            copyBtn.textContent = STR_COPY_FAILED;
+            setTimeout(() => { copyBtn.textContent = STR_COPY; }, 1200);
           }
         });
       }
@@ -373,7 +377,7 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
       if (minBtn){
         minBtn.addEventListener('click', () => {
           const isMin = panel.classList.toggle('pm-debug-minimized');
-          minBtn.textContent = isMin ? 'Aç' : 'Küçült';
+          minBtn.textContent = isMin ? STR_EXPAND : STR_MIN;
           try{ localStorage.setItem(minKey, isMin ? '1' : '0'); }catch(_){}
         });
       }

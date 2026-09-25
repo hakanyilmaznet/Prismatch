@@ -199,7 +199,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             ?>
               <tr>
                 <td class="fw-semibold text-break">
-                  <?= htmlspecialchars($r['name'] ?: 'Room #' . substr($guid, 0, 8)) ?>
+                  <?= htmlspecialchars($r['name'] ?: tt('room_prefix', 'Room #') . substr($guid, 0, 8)) ?>
                 </td>
                 <td><?= room_status_badge($status) ?></td>
                 <td><span class="fw-semibold"><?= (int)$r['current_round'] ?></span> / <?= (int)$r['rounds_total'] ?></td>
@@ -249,10 +249,12 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     };
 
     const STR = {
-      shareCopied: <?= json_encode(tt('rooms_share_copied', 'Link copied to clipboard!')) ?>,
+      shareCopied: <?= json_encode(tt('rooms_share_copied', 'Copied!')) ?>,
       shareFailed: <?= json_encode(tt('rooms_share_failed', 'Could not copy link.')) ?>,
       nameRequired: <?= json_encode(tt('rooms_name_required', 'Please enter a room name.')) ?>,
       errorGeneric: <?= json_encode(tt('error_generic', 'An error occurred. Please try again.')) ?>,
+      creating: <?= json_encode(tt('status_creating', 'Creating...')) ?>,
+      copyLink: <?= json_encode(tt('rooms_copy', 'Copy Link')) ?>,
     };
 
     createBtn?.addEventListener('click', async () => {
@@ -265,7 +267,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       }
 
       createBtn.disabled = true;
-      createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> ' + "Oluşturuluyor...";
+      createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> ' + STR.creating;
 
       try {
         const res = await fetch('api/rooms_create.php', {
@@ -299,13 +301,13 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       if (!shareLink || !shareLink.value) return;
       try {
         await navigator.clipboard.writeText(shareLink.value);
-        copyLinkBtn.textContent = <?= json_encode(tt('rooms_share_copied', 'Copied!')) ?>;
-        setTimeout(() => { copyLinkBtn.textContent = <?= json_encode(tt('rooms_copy', 'Copy Link')) ?>; }, 2000);
+        copyLinkBtn.textContent = STR.shareCopied;
+        setTimeout(() => { copyLinkBtn.textContent = STR.copyLink; }, 2000);
       } catch (e) {
         shareLink.select();
         document.execCommand('copy');
-        copyLinkBtn.textContent = 'Copied!';
-        setTimeout(() => { copyLinkBtn.textContent = <?= json_encode(tt('rooms_copy', 'Copy Link')) ?>; }, 2000);
+        copyLinkBtn.textContent = STR.shareCopied;
+        setTimeout(() => { copyLinkBtn.textContent = STR.copyLink; }, 2000);
       }
     });
   </script>
