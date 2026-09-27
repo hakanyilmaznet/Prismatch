@@ -14,7 +14,7 @@ class RoomRepository implements RoomRepositoryInterface {
         $this->pdo = $pdo ?? Database::getConnection();
     }
 
-    public function createRoom(string $ownerId, string $ownerEmail, int $roundsTotal = 50, ?string $name = null): array {
+    public function createRoom(string $ownerId, string $ownerEmail, int $roundsTotal = 50, ?string $name = null, bool $isPrivate = false): array {
         $roomId = Database::generateUuid();
         $guid = Database::generateUuid();
         $ownerEmail = strtolower(trim($ownerEmail));
@@ -26,10 +26,10 @@ class RoomRepository implements RoomRepositoryInterface {
         $stmt = $this->pdo->prepare("
             INSERT INTO rooms (
                 id, guid, name, owner_id, owner_email,
-                status, rounds_total, current_round, created_at
+                status, rounds_total, current_round, is_private, created_at
             ) VALUES (
                 :id, :guid, :name, :owner_id, :owner_email,
-                'waiting', :rounds_total, 0, :created_at
+                'waiting', :rounds_total, 0, :is_private, :created_at
             )
         ");
         $stmt->execute([
@@ -39,6 +39,7 @@ class RoomRepository implements RoomRepositoryInterface {
             ':owner_id' => $ownerId,
             ':owner_email' => $ownerEmail,
             ':rounds_total' => $roundsTotal,
+            ':is_private' => $isPrivate ? 1 : 0,
             ':created_at' => $now,
         ]);
 
@@ -53,6 +54,7 @@ class RoomRepository implements RoomRepositoryInterface {
             'status' => 'waiting',
             'rounds_total' => $roundsTotal,
             'current_round' => 0,
+            'is_private' => $isPrivate ? 1 : 0,
             'created_at' => $now,
         ];
     }
@@ -86,6 +88,27 @@ class RoomRepository implements RoomRepositoryInterface {
         ");
         $stmt->bindValue(':owner_id', $userId);
         $stmt->bindValue(':player_id', $userId);
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll() ?: [];
+    }
+
+    public function listPublicRooms(int $limit = 20): array {
+        $stmt = $this->pdo->prepare("
+            SELECT r.*,
+                   COUNT(DISTINCT rp.id) AS player_count
+            FROM rooms r
+            LEFT JOIN room_players rp ON rp.room_id = r.id
+            WHERE (r.is_private = 0 OR r.is_private IS NULL)
+              AND r.status IN ('waiting', 'active')
+              AND NOT (
+                (r.owner_email LIKE '%@prismatch' OR r.owner_email LIKE '%@local.player')
+                AND r.created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
+              )
+            GROUP BY r.id
+            ORDER BY (r.status = 'waiting') DESC, r.created_at DESC
+            LIMIT :lim
+        ");
         $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll() ?: [];

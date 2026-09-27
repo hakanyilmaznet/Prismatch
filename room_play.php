@@ -605,13 +605,31 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       <div class="stage-center" id="stageContent">
         <!-- Default: Waiting Room / Lobby -->
         <div class="fs-1">⏳</div>
-        <h1 class="stage-title"><?= htmlspecialchars($room['name'] ?: 'Match Room') ?></h1>
-        <p class="stage-subtitle"><?= htmlspecialchars(tt('room_waiting_desc', 'Waiting for players to gather. The room host can launch round 1 whenever ready!')) ?></p>
+        <h1 class="stage-title">
+          <span><?= htmlspecialchars($room['name'] ?: tt('room_default_name', 'Match Room')) ?></span>
+          <?php if (!empty($room['is_private'])): ?>
+            <span class="badge bg-secondary-subtle text-secondary fs-6 align-middle border border-secondary-subtle ms-1">
+              🔒 <?= htmlspecialchars(tt('rooms_private_badge', 'Private')) ?>
+            </span>
+          <?php endif; ?>
+        </h1>
+        <p class="stage-subtitle">
+          <?= htmlspecialchars(
+            !empty($room['is_private'])
+              ? tt('room_waiting_desc_private', 'Private room: Only players with the link can join. Waiting for players to gather!')
+              : tt('room_waiting_desc', 'Waiting for players to gather. The room host can launch round 1 whenever ready!')
+          ) ?>
+        </p>
         
-        <div id="hostControls" class="d-none">
-          <button id="startMatchBtn" class="btn btn-action btn-lg">
-            🚀 <?= htmlspecialchars(tt('room_start_btn', 'Start Match')) ?>
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-2">
+          <button id="copyInviteLinkBtn" class="btn btn-outline-light" type="button">
+            🔗 <?= htmlspecialchars(tt('room_copy_invite', 'Copy Invite Link')) ?>
           </button>
+          <div id="hostControls" class="d-none">
+            <button id="startMatchBtn" class="btn btn-action btn-lg">
+              🚀 <?= htmlspecialchars(tt('room_start_btn', 'Start Match')) ?>
+            </button>
+          </div>
         </div>
       </div>
     </main>
@@ -679,6 +697,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       players: <?= json_encode(tt('room_players', 'Players')) ?>,
       youWon: <?= json_encode(tt('room_you_won', 'Congratulations, You Won!')) ?>,
       rank: <?= json_encode(tt('leaderboard_col_rank', 'Rank')) ?>,
+      restartMatch: <?= json_encode(tt('room_restart_btn', 'Restart Match')) ?>,
+      backToLobby: <?= json_encode(tt('room_back_to_lobby', 'Back to Lobby')) ?>,
+      restarting: <?= json_encode(tt('room_restarting', 'Restarting...')) ?>,
+      roomRestarted: <?= json_encode(tt('room_restarted', 'The match was restarted by the host!')) ?>,
+      waitingDesc: <?= json_encode(tt('room_waiting_desc', 'Waiting for players to gather. The room host can launch round 1 whenever ready!')) ?>,
+      waitingDescPrivate: <?= json_encode(tt('room_waiting_desc_private', 'Private room: Only players with the link can join. Waiting for players to gather!')) ?>,
+      startMatch: <?= json_encode(tt('room_start_btn', 'Start Match')) ?>,
+      copyInvite: <?= json_encode(tt('room_copy_invite', 'Copy Invite Link')) ?>,
+      inviteCopied: <?= json_encode(tt('room_invite_copied', 'Invite link copied to clipboard! Share it with your friends.')) ?>,
+      privateBadge: <?= json_encode(tt('rooms_private_badge', 'Private')) ?>,
+      errorGeneric: <?= json_encode(tt('error_generic', 'An error occurred. Please try again.')) ?>,
     };
 
     const state = {
@@ -833,12 +862,23 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       const gridEl = document.getElementById('choiceGrid');
       const cells = [];
+      const count = (state.gridColors && state.gridColors.length) || 9;
+      const cols = Math.round(Math.sqrt(count)) || 3;
+      gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      if (cols >= 4) {
+        gridEl.style.gap = cols >= 5 ? '6px' : '8px';
+      }
 
       state.gridColors.forEach(color => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'choice-cell';
         btn.style.background = color;
+        if (cols >= 5) {
+          btn.style.borderRadius = '10px';
+        } else if (cols >= 4) {
+          btn.style.borderRadius = '14px';
+        }
         btn.disabled = state.eliminated;
         btn.onclick = () => onChoicePick(color, btn, cells);
         gridEl.appendChild(btn);
@@ -966,7 +1006,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               ${sorted.map((p, idx) => `
                 <tr class="${(p.email === ME_EMAIL || String(p.user_id) === String(ME_ID)) ? 'table-active fw-bold' : ''}">
                   <td>${idx === 0 ? '👑 1' : idx + 1}</td>
-                  <td>${p.email ? p.email.split('@')[0] : (p.nickname || 'Player')}</td>
+                  <td>${p.email ? p.email.split('@')[0] : (p.nickname || STR.player)}</td>
                   <td>${Number(p.score) || 0}</td>
                   <td><span class="badge ${p.status === 'eliminated' ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'} rounded-pill">${p.status === 'eliminated' ? STR.eliminated : STR.active}</span></td>
                 </tr>
@@ -1007,7 +1047,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       const sorted = sortPlayers(list || []);
       const winner = sorted.length > 0 ? sorted[0] : null;
       const isWinnerMe = winner ? (winner.email === ME_EMAIL || String(winner.user_id) === String(ME_ID)) : false;
-      const winnerName = winner ? (winner.email ? winner.email.split('@')[0] : (winner.nickname || 'Player')) : STR.winnerEveryone;
+      const winnerName = winner ? (winner.email ? winner.email.split('@')[0] : (winner.nickname || STR.player)) : STR.winnerEveryone;
       const winnerScore = winner ? (Number(winner.score) || 0) : 0;
 
       stageContent.innerHTML = `
@@ -1052,7 +1092,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                   ${sorted.map((p, idx) => {
                     const isMe = p.email === ME_EMAIL || String(p.user_id) === String(ME_ID);
                     const isElim = p.status === 'eliminated';
-                    const pName = p.email ? p.email.split('@')[0] : (p.nickname || 'Player');
+                    const pName = p.email ? p.email.split('@')[0] : (p.nickname || STR.player);
                     const pScore = Number(p.score) || 0;
                     let rankBadge = '';
                     if (idx === 0) rankBadge = '<span class="rank-badge rank-1">🥇</span>';
@@ -1085,11 +1125,152 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             </div>
           </div>
 
-          <div class="d-flex justify-content-center mt-3">
-            <a class="btn btn-action" href="rooms.php">← ${STR.backToRooms}</a>
+          <div class="d-flex flex-wrap gap-2 justify-content-center mt-3" id="victoryActions">
+            ${state.isHost ? `
+              <button id="restartMatchBtn" class="btn btn-action" type="button">
+                🚀 ${STR.restartMatch}
+              </button>
+              <button id="backToLobbyBtn" class="btn btn-outline-light" type="button">
+                ⏳ ${STR.backToLobby}
+              </button>
+            ` : ''}
+            <a class="btn btn-outline-secondary" href="rooms.php">← ${STR.backToRooms}</a>
           </div>
         </div>
       `;
+
+      if (state.isHost) {
+        const restartMatchBtn = document.getElementById('restartMatchBtn');
+        const backToLobbyBtn = document.getElementById('backToLobbyBtn');
+
+        restartMatchBtn?.addEventListener('click', async () => {
+          restartMatchBtn.disabled = true;
+          restartMatchBtn.textContent = '⏳ ' + STR.restarting;
+          if (backToLobbyBtn) backToLobbyBtn.disabled = true;
+          try {
+            const res = await fetch('api/rooms_restart.php', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({guid: GUID, start_immediately: true})
+            });
+            const data = await res.json();
+            if (!data.ok) {
+              restartMatchBtn.disabled = false;
+              restartMatchBtn.textContent = '🚀 ' + STR.restartMatch;
+              if (backToLobbyBtn) backToLobbyBtn.disabled = false;
+              showToast(data.error || STR.errorGeneric, false);
+            }
+          } catch(e) {
+            restartMatchBtn.disabled = false;
+            restartMatchBtn.textContent = '🚀 ' + STR.restartMatch;
+            if (backToLobbyBtn) backToLobbyBtn.disabled = false;
+          }
+        });
+
+        backToLobbyBtn?.addEventListener('click', async () => {
+          backToLobbyBtn.disabled = true;
+          backToLobbyBtn.textContent = '⏳ ' + STR.restarting;
+          if (restartMatchBtn) restartMatchBtn.disabled = true;
+          try {
+            const res = await fetch('api/rooms_restart.php', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({guid: GUID, start_immediately: false})
+            });
+            const data = await res.json();
+            if (data.ok) {
+              resetToLobby(data.players || []);
+            } else {
+              backToLobbyBtn.disabled = false;
+              backToLobbyBtn.textContent = '⏳ ' + STR.backToLobby;
+              if (restartMatchBtn) restartMatchBtn.disabled = false;
+              showToast(data.error || STR.errorGeneric, false);
+            }
+          } catch(e) {
+            backToLobbyBtn.disabled = false;
+            backToLobbyBtn.textContent = '⏳ ' + STR.backToLobby;
+            if (restartMatchBtn) restartMatchBtn.disabled = false;
+          }
+        });
+      }
+    }
+
+    function resetToLobby(players) {
+      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      if (state.activeTimer) clearInterval(state.activeTimer);
+      state.round = 0;
+      state.score = 0;
+      state.phase = 'lobby';
+      state.eliminated = false;
+      state.answered = false;
+      state.targetColor = null;
+      state.gridColors = [];
+
+      hudRound.textContent = '-';
+      hudScore.textContent = '0';
+      hudTimer.textContent = '-';
+      hudStatus.textContent = STR.waiting;
+      hudStatus.className = 'hud-val text-info';
+
+      const isPriv = <?= json_encode(!empty($room['is_private'])) ?>;
+      stageContent.innerHTML = `
+        <div class="stage-center">
+          <div class="fs-1">⏳</div>
+          <h1 class="stage-title">
+            <span><?= htmlspecialchars($room['name'] ?: tt('room_default_name', 'Match Room')) ?></span>
+            ${isPriv ? `<span class="badge bg-secondary-subtle text-secondary fs-6 align-middle border border-secondary-subtle ms-1">🔒 ${STR.privateBadge}</span>` : ''}
+          </h1>
+          <p class="stage-subtitle">${isPriv ? STR.waitingDescPrivate : STR.waitingDesc}</p>
+          <div class="d-flex flex-wrap gap-2 justify-content-center mt-2">
+            <button id="copyInviteLinkBtn" class="btn btn-outline-light" type="button">
+              🔗 ${STR.copyInvite}
+            </button>
+            <div id="hostControls" class="${state.isHost ? '' : 'd-none'}">
+              <button id="startMatchBtn" class="btn btn-action btn-lg">
+                🚀 ${STR.startMatch}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      wireCopyInviteBtn();
+      const startBtn = document.getElementById('startMatchBtn');
+      startBtn?.addEventListener('click', handleStartMatch);
+
+      if (Array.isArray(players) && players.length > 0) {
+        renderPlayers(players);
+      } else {
+        state.players = (state.players || []).map(p => ({
+          ...p,
+          status: 'active',
+          score: 0,
+          correct: 0
+        }));
+        renderPlayers(state.players);
+      }
+
+      showToast(STR.roomRestarted, true);
+    }
+
+    async function handleStartMatch() {
+      const btn = document.getElementById('startMatchBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = STR.starting;
+      }
+      try {
+        await fetch('api/rooms_next_round.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({guid: GUID})
+        });
+      } catch (e) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '🚀 ' + STR.startMatch;
+        }
+      }
     }
 
     // Join room & bind realtime
@@ -1108,13 +1289,20 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         const room = data.room;
         state.isHost = (room.owner_id && ME_ID) ? (String(room.owner_id) === String(ME_ID)) : (String(room.owner_email || '').toLowerCase() === String(ME_EMAIL || '').toLowerCase());
-        if (state.isHost && room.status === 'waiting') {
-          hostControls?.classList.remove('d-none');
-        }
-
         renderPlayers(data.players || []);
-        hudStatus.textContent = room.status === 'waiting' ? STR.waiting : STR.active;
-        hudStatus.className = 'hud-val text-info';
+
+        if (room.status === 'finished') {
+          renderFinalVictory(data.players || []);
+        } else if (room.status === 'waiting') {
+          if (state.isHost) {
+            hostControls?.classList.remove('d-none');
+          }
+          hudStatus.textContent = STR.waiting;
+          hudStatus.className = 'hud-val text-info';
+        } else {
+          hudStatus.textContent = STR.active;
+          hudStatus.className = 'hud-val text-info';
+        }
       } catch (e) {
         hudStatus.textContent = STR.connError;
       }
@@ -1146,7 +1334,20 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         state.showMs = data.show_ms || 3000;
         state.answerMs = data.answer_ms || 5000;
         state.countdownMs = data.countdown_ms || 3000;
+        if (data.round === 1) {
+          state.score = 0;
+          state.eliminated = false;
+          state.answered = false;
+          hudScore.textContent = '0';
+        }
+        if (data.players) {
+          renderPlayers(data.players);
+        }
         runCountdown();
+      });
+
+      channel.bind('room:reset', (data) => {
+        resetToLobby(data.players || []);
       });
 
       channel.bind('room:leaderboard', (data) => {
@@ -1159,31 +1360,41 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     // Host Start Button Trigger
-    startMatchBtn?.addEventListener('click', async () => {
-      startMatchBtn.disabled = true;
-      startMatchBtn.textContent = STR.starting;
-      try {
-        await fetch('api/rooms_next_round.php', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({guid: GUID})
-        });
-      } catch (e) {}
-    });
+    startMatchBtn?.addEventListener('click', handleStartMatch);
 
     // Periodic Keep-Alive Tick
     setInterval(async () => {
-      if (state.phase !== 'finished') {
-        try {
-          const res = await fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID));
-          const data = await res.json();
-          if (data && data.finished) {
-            renderFinalVictory(data.players || []);
-          }
-        } catch(e) {}
-      }
+      try {
+        const res = await fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID));
+        const data = await res.json();
+        if (data && data.finished && state.phase !== 'finished') {
+          renderFinalVictory(data.players || []);
+        } else if (data && data.status === 'waiting' && state.phase === 'finished') {
+          resetToLobby(data.players || []);
+        } else if (data && data.round && data.round > 0 && state.phase === 'finished') {
+          state.phase = 'lobby';
+        }
+      } catch(e) {}
     }, 1500);
 
+    function wireCopyInviteBtn() {
+      const copyBtn = document.getElementById('copyInviteLinkBtn');
+      copyBtn?.addEventListener('click', async () => {
+        const url = window.location.href;
+        try {
+          await navigator.clipboard.writeText(url);
+          copyBtn.textContent = '✅ ' + STR.shareCopied;
+          showToast(STR.inviteCopied, true);
+          setTimeout(() => {
+            copyBtn.textContent = '🔗 ' + STR.copyInvite;
+          }, 2000);
+        } catch(e) {
+          showToast(STR.inviteCopied, true);
+        }
+      });
+    }
+
+    wireCopyInviteBtn();
     initRoom();
   </script>
 </body>

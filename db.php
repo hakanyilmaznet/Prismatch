@@ -236,8 +236,8 @@ function get_daily_leaderboard(?string $dayUtc = null, int $limit = 100): array 
 
 // --- Multiplayer Rooms ---
 
-function create_room(string $ownerId, string $ownerEmail, int $roundsTotal = 50, ?string $name = null): array {
-    return (new RoomRepository())->createRoom($ownerId, $ownerEmail, $roundsTotal, $name);
+function create_room(string $ownerId, string $ownerEmail, int $roundsTotal = 50, ?string $name = null, bool $isPrivate = false): array {
+    return (new RoomRepository())->createRoom($ownerId, $ownerEmail, $roundsTotal, $name, $isPrivate);
 }
 
 function get_room_by_guid(string $guid): ?array {
@@ -250,6 +250,10 @@ function get_room_by_id(string $id): ?array {
 
 function list_user_rooms(string $userId, int $limit = 50): array {
     return (new RoomRepository())->listUserRooms($userId, $limit);
+}
+
+function list_public_rooms(int $limit = 20): array {
+    return (new RoomRepository())->listPublicRooms($limit);
 }
 
 function add_room_player(string $roomId, string $userId, string $email): bool {

@@ -38,21 +38,32 @@ class RoomGameService {
         ];
     }
 
+    private const COLOR_PALETTE = [
+        "#000000","#FFFFFF","#FF0000","#00FF00","#0000FF","#FFFF00","#00FFFF","#FF00FF",
+        "#800000","#008000","#000080","#808000","#008080","#800080","#C0C0C0","#808080",
+        "#9999FF","#993366","#FFFFCC","#CCFFFF","#660066","#FF8080","#0066CC","#CCCCFF",
+        "#00CCFF","#CCFFCC","#FFFF99","#99CCFF","#FF99CC","#CC99FF","#FFCC99",
+        "#3366FF","#33CCCC","#99CC00","#FFCC00","#FF9900","#FF6600","#666699","#969696",
+        "#003366","#339966","#003300","#333300","#993300","#333399","#333333",
+        "#1ABC9C","#2ECC71","#3498DB","#9B59B6","#E67E22","#E74C3C","#F1C40F","#95A5A6",
+        "#16A085","#27AE60","#2980B9","#8E44AD","#D35400","#C0392B","#F39C12","#7F8C8D",
+        "#2C3E50","#ECF0F1","#BDC3C7","#34495E",
+        "#FFADAD","#FFD6A5","#FDFFB6","#CAFFBF","#9BF6FF","#A0C4FF","#BDB2FF","#FFC6FF",
+        "#E0E0E0","#F5F5F5","#FAFAFA","#D1D5DB","#9CA3AF","#6B7280","#4B5563","#374151",
+        "#0F172A","#1E293B","#334155","#475569","#1E1B4B","#312E81","#3730A3","#4338CA",
+        "#064E3B","#065F46","#047857","#059669","#7C2D12","#9A3412","#B45309","#D97706",
+        "#57E32C","#10B981","#3B82F6","#6366F1","#8B5CF6","#D946EF","#F43F5E"
+    ];
+
     public function getGridCountForRound(int $roundIndex, int $roundsTotal = 50): int {
         $lvl = max(1, $roundIndex);
-        if ($lvl <= 10) return 4;
-        if ($lvl <= 20) return 6;
-        if ($lvl <= 30) return 9;
-        if ($lvl <= 40) return 12;
-        return 16;
+        if ($lvl <= 20) return 9;
+        if ($lvl <= 40) return 16;
+        return 25;
     }
 
     public function generateQuestion(int $roundIndex, int $roundsTotal = 50): array {
-        $palette = [
-            "#000000","#FFFFFF","#FF0000","#00FF00","#0000FF","#FFFF00","#00FFFF","#FF00FF",
-            "#FFA500","#800080","#00FF7F","#1E90FF","#DC143C","#FFD700","#8A2BE2","#00CED1",
-            "#FF1493","#7FFF00","#FF8C00","#20B2AA","#ADFF2F","#FF69B4","#40E0D0","#B22222","#6A5ACD"
-        ];
+        $palette = array_values(array_unique(self::COLOR_PALETTE));
         $count = $this->getGridCountForRound($roundIndex, $roundsTotal);
         shuffle($palette);
         $grid = array_slice($palette, 0, $count);
@@ -94,6 +105,7 @@ class RoomGameService {
                 'current_round' => (int)$room['current_round'],
                 'owner_email' => $room['owner_email'],
                 'owner_id' => $room['owner_id'] ?? null,
+                'is_private' => !empty($room['is_private']),
             ],
             'players' => $players,
         ];
@@ -118,6 +130,86 @@ class RoomGameService {
         }
 
         return $this->advanceToRound($room, $current + 1);
+    }
+
+    public function restartRoom(string $guid, string $userId, bool $startImmediately = false): array {
+        $room = $this->roomRepo->getRoomByGuid($guid);
+        if (!$room) {
+            return ['ok' => false, 'error' => 'not_found', 'code' => 404];
+        }
+
+        if (($room['owner_id'] ?? null) !== $userId) {
+            return ['ok' => false, 'error' => 'not_owner', 'code' => 403];
+        }
+
+        $roomId = (string)$room['id'];
+        $now = Database::nowUtc();
+
+        $this->pdo->beginTransaction();
+        try {
+            // Reset room status and round counter
+            $stmtRoom = $this->pdo->prepare("
+                UPDATE rooms
+                SET status = 'waiting',
+                    current_round = 0,
+                    finished_round = NULL,
+                    started_at = NULL,
+                    finished_at = NULL
+                WHERE id = :rid
+            ");
+            $stmtRoom->execute([':rid' => $roomId]);
+
+            // Reset all players in the room to active, 0 score, 0 correct, clear elimination
+            $stmtPlayers = $this->pdo->prepare("
+                UPDATE room_players
+                SET status = 'active',
+                    eliminated_round = NULL,
+                    score = 0,
+                    correct = 0,
+                    last_active = :now
+                WHERE room_id = :rid
+            ");
+            $stmtPlayers->execute([':now' => $now, ':rid' => $roomId]);
+
+            // Clean up previous rounds and events for clean state
+            $stmtDelRounds = $this->pdo->prepare("DELETE FROM room_rounds WHERE room_id = :rid");
+            $stmtDelRounds->execute([':rid' => $roomId]);
+
+            $stmtDelEvents = $this->pdo->prepare("DELETE FROM room_events WHERE room_id = :rid");
+            $stmtDelEvents->execute([':rid' => $roomId]);
+
+            $this->pdo->commit();
+        } catch (\Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            return ['ok' => false, 'error' => 'db_error', 'code' => 500, 'detail' => $e->getMessage()];
+        }
+
+        $freshPlayers = $this->roomRepo->listPlayers($roomId);
+
+        if ($startImmediately) {
+            $freshRoom = $this->roomRepo->getRoomById($roomId);
+            if ($freshRoom) {
+                return $this->advanceToRound($freshRoom, 1);
+            }
+        }
+
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:reset', [
+                'guid' => $guid,
+                'status' => 'waiting',
+                'round' => 0,
+                'players' => $freshPlayers,
+            ]);
+        }
+
+        return [
+            'ok' => true,
+            'status' => 'waiting',
+            'round' => 0,
+            'players' => $freshPlayers,
+        ];
     }
 
     public function advanceToRound(array $room, int $nextRound): array {

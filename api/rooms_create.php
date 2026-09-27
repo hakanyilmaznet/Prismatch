@@ -23,9 +23,11 @@ if (trim($name) === '') {
     exit;
 }
 
+$isPrivate = !empty($input['is_private']) || !empty($_POST['is_private']);
+
 try {
-    $room = create_room((string)$userId, (string)$email, $rounds, $name);
-    echo json_encode(['ok' => true, 'guid' => $room['guid']]);
+    $room = create_room((string)$userId, (string)$email, $rounds, $name, $isPrivate);
+    echo json_encode(['ok' => true, 'guid' => $room['guid'], 'is_private' => !empty($room['is_private'])]);
 } catch (\Throwable $e) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'create_failed']);

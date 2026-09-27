@@ -31,8 +31,11 @@ function room_status_badge(string $status): string {
     }
 }
 
-function format_room_dt(?string $utcIso): string {
+function format_room_dt(?string $utcIso, ?string $lang = null): string {
     if (!$utcIso) return '-';
+    if (function_exists('format_dt_local')) {
+        return (string)format_dt_local($utcIso, $lang);
+    }
     try {
         $dt = new DateTimeImmutable($utcIso, new DateTimeZone('UTC'));
         return $dt->format('d/m/Y H:i');
@@ -53,6 +56,7 @@ if (!$userEmail || !$userId) {
 }
 
 $rooms = list_user_rooms((string)$userId, 100);
+$publicRooms = list_public_rooms(30);
 $seoTitle = tt('rooms_title', 'Multiplayer Rooms');
 $seoDescription = tt('rooms_desc', 'Create or join multiplayer rooms to compete live in real time.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
@@ -138,7 +142,6 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             <?= htmlspecialchars(tt('rooms_name_label', 'Room Name')) ?>
           </label>
           <input id="roomNameInput" class="form-control form-control-lg rounded-3" type="text" maxlength="80" placeholder="<?= htmlspecialchars(tt('rooms_name_placeholder', 'e.g. Arena Champions #1')) ?>" />
-          <div id="createMsg" class="small mt-2"></div>
         </div>
         <div class="col-md-5 col-lg-4 d-flex gap-2">
           <button id="createRoomBtn" class="btn btn-create btn-lg w-100" type="button">
@@ -147,10 +150,23 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         </div>
       </div>
 
+      <div class="mt-3 p-3 rounded-3 border bg-body-tertiary d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="form-check form-switch d-inline-flex align-items-center gap-2 m-0">
+          <input class="form-check-input" type="checkbox" role="switch" id="roomIsPrivate" style="cursor: pointer; width: 2.4em; height: 1.25em;">
+          <label class="form-check-label fw-bold user-select-none" for="roomIsPrivate" style="cursor: pointer;">
+            🔒 <?= htmlspecialchars(tt('rooms_private_label', 'Private Room (Only players with the link can join)')) ?>
+          </label>
+        </div>
+        <span class="text-secondary small">
+          <?= htmlspecialchars(tt('rooms_private_hint', 'Public rooms appear in the lobby for everyone. Private rooms are hidden and accessible only via direct link.')) ?>
+        </span>
+      </div>
+      <div id="createMsg" class="small mt-2"></div>
+
       <!-- Share Box (Revealed after creation) -->
       <div id="shareWrap" class="mt-4 pt-3 border-top" hidden>
         <div class="alert alert-success d-flex flex-column gap-2 rounded-3 mb-0">
-          <div class="fw-semibold">🎉 <?= htmlspecialchars(tt('rooms_created_success', 'Room created successfully! Share this link with players:')) ?></div>
+          <div class="fw-semibold" id="shareSuccessTitle">🎉 <?= htmlspecialchars(tt('rooms_created_success', 'Room created successfully! Share this link with players:')) ?></div>
           <div class="input-group">
             <input id="shareLink" class="form-control" type="text" readonly />
             <button id="copyLinkBtn" class="btn btn-dark" type="button"><?= htmlspecialchars(tt('rooms_copy', 'Copy Link')) ?></button>
@@ -160,6 +176,61 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         </div>
       </div>
     </div>
+
+    <!-- Active Public Rooms Card -->
+    <?php if (!empty($publicRooms)): ?>
+    <div class="card-modern">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+          <h2 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
+            <span>🌐</span> <?= htmlspecialchars(tt('rooms_active_public', 'Active Public Rooms')) ?>
+          </h2>
+          <div class="small text-secondary mt-1"><?= htmlspecialchars(tt('rooms_active_desc', 'Join an open match and compete with others live!')) ?></div>
+        </div>
+        <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1">
+          <span class="pulse-dot"></span> <?= count($publicRooms) ?> <?= htmlspecialchars(tt('rooms_available', 'active')) ?>
+        </span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-modern align-middle">
+          <thead>
+            <tr>
+              <th><?= htmlspecialchars(tt('room_name', 'Room Name')) ?></th>
+              <th><?= htmlspecialchars(tt('room_status', 'Status')) ?></th>
+              <th><?= htmlspecialchars(tt('room_players', 'Players')) ?></th>
+              <th><?= htmlspecialchars(tt('room_rounds', 'Rounds')) ?></th>
+              <th><?= htmlspecialchars(tt('room_host', 'Host')) ?></th>
+              <th class="text-end"><?= htmlspecialchars(tt('room_action', 'Action')) ?></th>
+            </tr>
+          </thead>
+          <tbody>
+          <?php foreach ($publicRooms as $pr):
+            $pGuid = (string)($pr['guid'] ?? '');
+            $pStatus = (string)($pr['status'] ?? 'waiting');
+            $pPlayers = (int)($pr['player_count'] ?? 1);
+            $pHost = explode('@', (string)($pr['owner_email'] ?? ''))[0] ?: tt('room_host', 'Host');
+          ?>
+            <tr>
+              <td class="fw-semibold text-break">
+                <?= htmlspecialchars($pr['name'] ?: tt('room_prefix', 'Room #') . substr($pGuid, 0, 8)) ?>
+              </td>
+              <td><?= room_status_badge($pStatus) ?></td>
+              <td><span class="badge bg-dark-subtle text-dark-emphasis rounded-pill"><?= $pPlayers ?> 👥</span></td>
+              <td><span class="fw-semibold"><?= (int)$pr['current_round'] ?></span> / <?= (int)$pr['rounds_total'] ?></td>
+              <td class="small text-secondary"><?= htmlspecialchars($pHost) ?></td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-primary" href="room_play.php?guid=<?= urlencode($pGuid) ?>">
+                  <?= htmlspecialchars(tt('rooms_join_btn', 'Join')) ?> →
+                </a>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Room History Card -->
     <div class="card-modern">
@@ -184,6 +255,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             <thead>
               <tr>
                 <th><?= htmlspecialchars(tt('room_name', 'Room Name')) ?></th>
+                <th><?= htmlspecialchars(tt('rooms_type', 'Type')) ?></th>
                 <th><?= htmlspecialchars(tt('room_status', 'Status')) ?></th>
                 <th><?= htmlspecialchars(tt('room_rounds', 'Rounds')) ?></th>
                 <th><?= htmlspecialchars(tt('room_winner', 'Winner')) ?></th>
@@ -196,10 +268,22 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               $winner = room_winner_name((string)($r['id'] ?? ''));
               $guid = (string)($r['guid'] ?? '');
               $status = (string)($r['status'] ?? 'waiting');
+              $isPriv = !empty($r['is_private']);
             ?>
               <tr>
                 <td class="fw-semibold text-break">
                   <?= htmlspecialchars($r['name'] ?: tt('room_prefix', 'Room #') . substr($guid, 0, 8)) ?>
+                </td>
+                <td>
+                  <?php if ($isPriv): ?>
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-pill">
+                      🔒 <?= htmlspecialchars(tt('rooms_private_badge', 'Private')) ?>
+                    </span>
+                  <?php else: ?>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 rounded-pill">
+                      🌐 <?= htmlspecialchars(tt('rooms_public_badge', 'Public')) ?>
+                    </span>
+                  <?php endif; ?>
                 </td>
                 <td><?= room_status_badge($status) ?></td>
                 <td><span class="fw-semibold"><?= (int)$r['current_round'] ?></span> / <?= (int)$r['rounds_total'] ?></td>
@@ -210,7 +294,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                     <span class="text-secondary">-</span>
                   <?php endif; ?>
                 </td>
-                <td class="small text-secondary"><?= htmlspecialchars(format_room_dt($r['created_at'])) ?></td>
+                <td class="small text-secondary"><?= htmlspecialchars(format_room_dt($r['created_at'], $lang)) ?></td>
                 <td class="text-end">
                   <div class="btn-group btn-group-sm">
                     <a class="btn btn-primary" href="room_play.php?guid=<?= urlencode($guid) ?>">
@@ -255,6 +339,8 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       errorGeneric: <?= json_encode(tt('error_generic', 'An error occurred. Please try again.')) ?>,
       creating: <?= json_encode(tt('status_creating', 'Creating...')) ?>,
       copyLink: <?= json_encode(tt('rooms_copy', 'Copy Link')) ?>,
+      createdSuccess: <?= json_encode(tt('rooms_created_success', 'Room created successfully! Share this link with players:')) ?>,
+      createdPrivateSuccess: <?= json_encode(tt('rooms_created_private_success', 'Private room created! Only players with this link can enter:')) ?>,
     };
 
     createBtn?.addEventListener('click', async () => {
@@ -266,6 +352,8 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         return;
       }
 
+      const isPrivate = !!document.getElementById('roomIsPrivate')?.checked;
+
       createBtn.disabled = true;
       createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> ' + STR.creating;
 
@@ -273,7 +361,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         const res = await fetch('api/rooms_create.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({rounds_total: 50, name})
+          body: JSON.stringify({rounds_total: 50, name, is_private: isPrivate ? 1 : 0})
         });
         const data = await res.json();
         if (data.ok && data.guid) {
@@ -282,6 +370,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             shareWrap.hidden = false;
             shareLink.value = url;
             if (openRoomBtn) openRoomBtn.href = url;
+            const successTitle = document.getElementById('shareSuccessTitle');
+            if (successTitle) {
+              successTitle.textContent = isPrivate ? ('🔒 ' + STR.createdPrivateSuccess) : ('🎉 ' + STR.createdSuccess);
+            }
             shareWrap.scrollIntoView({behavior: 'smooth'});
           } else {
             window.location.href = url;
