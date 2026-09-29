@@ -629,6 +629,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <button id="startMatchBtn" class="btn btn-action btn-lg">
               🚀 <?= htmlspecialchars(tt('room_start_btn', 'Start Match')) ?>
             </button>
+            <div id="minPlayersNotice" class="small text-warning mt-2 fw-semibold text-center"></div>
           </div>
         </div>
       </div>
@@ -708,6 +709,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       inviteCopied: <?= json_encode(tt('room_invite_copied', 'Invite link copied to clipboard! Share it with your friends.')) ?>,
       privateBadge: <?= json_encode(tt('rooms_private_badge', 'Private')) ?>,
       errorGeneric: <?= json_encode(tt('error_generic', 'An error occurred. Please try again.')) ?>,
+      minPlayersRequired: <?= json_encode(tt('room_min_players', 'Room games can only be started when at least 2 players have joined.')) ?>,
+      waitingMinPlayers: <?= json_encode(tt('room_waiting_min_players', 'Waiting for at least 2 players to start...')) ?>,
+      winBonus: <?= json_encode(tt('room_win_bonus', 'Win Bonus')) ?>,
     };
 
     const state = {
@@ -799,6 +803,32 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         playerList.appendChild(tag);
       });
+
+      if (state.phase === 'lobby' && state.isHost) {
+        updateStartButtonState();
+      }
+    }
+
+    function updateStartButtonState() {
+      const btn = document.getElementById('startMatchBtn');
+      const notice = document.getElementById('minPlayersNotice');
+      if (!btn) return;
+      const count = (state.players || []).length;
+      if (count < 2) {
+        btn.disabled = true;
+        btn.classList.add('opacity-75');
+        if (notice) {
+          notice.className = 'small text-warning mt-2 fw-semibold text-center';
+          notice.textContent = `👥 ${STR.waitingMinPlayers} (${count}/2)`;
+        }
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+        if (notice) {
+          notice.className = 'small text-success mt-2 fw-semibold text-center';
+          notice.textContent = `✅ ${STR.ready} (${count} ${STR.players})`;
+        }
+      }
     }
 
     // Step 1: Countdown Phase
@@ -942,6 +972,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           state.score += data.score_delta;
           hudScore.textContent = String(state.score);
         }
+        if (data.ok && data.finished && state.phase !== 'finished') {
+          renderFinalVictory(data.players || []);
+        }
       } catch (e) {}
     }
 
@@ -954,7 +987,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       showToast(STR.timeUp, false);
 
       try {
-        await fetch('api/rooms_answer.php', {
+        const res = await fetch('api/rooms_answer.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -965,25 +998,31 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             timeout: true
           })
         });
+        const data = await res.json();
+        if (data && data.ok && data.finished && state.phase !== 'finished') {
+          renderFinalVictory(data.players || []);
+        }
       } catch (e) {}
     }
 
     function sortPlayers(list) {
       if (!Array.isArray(list)) return [];
       return [...list].sort((a, b) => {
+        const actA = a.status === 'active' ? 1 : 0;
+        const actB = b.status === 'active' ? 1 : 0;
+        if (actB !== actA) return actB - actA;
         const scoreA = Number(a.score) || 0;
         const scoreB = Number(b.score) || 0;
         if (scoreB !== scoreA) return scoreB - scoreA;
         const corrA = Number(a.correct) || 0;
         const corrB = Number(b.correct) || 0;
         if (corrB !== corrA) return corrB - corrA;
-        const actA = a.status === 'active' ? 1 : 0;
-        const actB = b.status === 'active' ? 1 : 0;
-        return actB - actA;
+        return 0;
       });
     }
 
     function renderLeaderboard(players) {
+      if (state.phase === 'finished') return;
       if (Array.isArray(players) && players.length > 0) {
         state.players = players;
       }
@@ -1019,6 +1058,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     async function renderFinalVictory(players) {
       state.phase = 'finished';
+      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      if (state.activeTimer) clearInterval(state.activeTimer);
+      hudTimer.textContent = '-';
       hudStatus.textContent = STR.finished;
       hudStatus.className = 'hud-val text-success';
 
@@ -1050,6 +1092,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       const winnerName = winner ? (winner.email ? winner.email.split('@')[0] : (winner.nickname || STR.player)) : STR.winnerEveryone;
       const winnerScore = winner ? (Number(winner.score) || 0) : 0;
 
+      // Update current player's HUD score to match final score
+      const meRow = (sorted || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
+      if (meRow) {
+        state.score = Number(meRow.score) || 0;
+        hudScore.textContent = String(state.score);
+      }
+
       stageContent.innerHTML = `
         <div class="victory-container">
           <div class="victory-header">
@@ -1070,6 +1119,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <div class="champion-score">
               <span class="score-num">${winnerScore.toLocaleString()}</span>
               <span class="score-label">${STR.pts}</span>
+            </div>
+            <div class="mt-1">
+              <span class="badge bg-warning text-dark fw-bold px-2 py-1 fs-7 shadow-sm">🎁 +5.000 ${STR.winBonus}</span>
             </div>
           </div>
 
@@ -1092,6 +1144,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                   ${sorted.map((p, idx) => {
                     const isMe = p.email === ME_EMAIL || String(p.user_id) === String(ME_ID);
                     const isElim = p.status === 'eliminated';
+                    const isWin = (idx === 0 && !isElim);
                     const pName = p.email ? p.email.split('@')[0] : (p.nickname || STR.player);
                     const pScore = Number(p.score) || 0;
                     let rankBadge = '';
@@ -1111,11 +1164,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                         </td>
                         <td class="col-score text-end">
                           <span class="score-badge">${pScore.toLocaleString()} <span class="score-pts">${STR.pts}</span></span>
+                          ${idx === 0 ? `<span class="badge bg-warning-subtle text-warning border border-warning-subtle ms-1" style="font-size:10px" title="+5.000 ${STR.winBonus}">+5.000 🎁</span>` : ''}
                         </td>
                         <td class="col-status text-center">
-                          ${isElim 
-                            ? `<span class="status-pill elim">💀 ${STR.eliminated}</span>`
-                            : `<span class="status-pill active">✅ ${STR.finished}</span>`}
+                          ${isWin
+                            ? `<span class="status-pill active">👑 ${STR.winner}</span>`
+                            : (isElim 
+                              ? `<span class="status-pill elim">💀 ${STR.eliminated}</span>`
+                              : `<span class="status-pill active">✅ ${STR.finished}</span>`)}
                         </td>
                       </tr>
                     `;
@@ -1144,6 +1200,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const backToLobbyBtn = document.getElementById('backToLobbyBtn');
 
         restartMatchBtn?.addEventListener('click', async () => {
+          if ((state.players || []).length < 2) {
+            showToast(STR.minPlayersRequired, false);
+            return;
+          }
           restartMatchBtn.disabled = true;
           restartMatchBtn.textContent = '⏳ ' + STR.restarting;
           if (backToLobbyBtn) backToLobbyBtn.disabled = true;
@@ -1158,7 +1218,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               restartMatchBtn.disabled = false;
               restartMatchBtn.textContent = '🚀 ' + STR.restartMatch;
               if (backToLobbyBtn) backToLobbyBtn.disabled = false;
-              showToast(data.error || STR.errorGeneric, false);
+              if (data.error === 'min_players_required') {
+                showToast(STR.minPlayersRequired, false);
+              } else {
+                showToast(data.error || STR.errorGeneric, false);
+              }
             }
           } catch(e) {
             restartMatchBtn.disabled = false;
@@ -1229,6 +1293,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               <button id="startMatchBtn" class="btn btn-action btn-lg">
                 🚀 ${STR.startMatch}
               </button>
+              <div id="minPlayersNotice" class="small text-warning mt-2 fw-semibold text-center"></div>
             </div>
           </div>
         </div>
@@ -1250,21 +1315,41 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         renderPlayers(state.players);
       }
 
+      if (state.isHost) {
+        updateStartButtonState();
+      }
+
       showToast(STR.roomRestarted, true);
     }
 
     async function handleStartMatch() {
+      if ((state.players || []).length < 2) {
+        showToast(STR.minPlayersRequired, false);
+        return;
+      }
       const btn = document.getElementById('startMatchBtn');
       if (btn) {
         btn.disabled = true;
-        btn.textContent = STR.starting;
+        btn.textContent = '⏳ ' + STR.starting;
       }
       try {
-        await fetch('api/rooms_next_round.php', {
+        const res = await fetch('api/rooms_next_round.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({guid: GUID})
         });
+        const data = await res.json();
+        if (!data.ok) {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🚀 ' + STR.startMatch;
+          }
+          if (data.error === 'min_players_required') {
+            showToast(STR.minPlayersRequired, false);
+          } else {
+            showToast(data.error || STR.errorGeneric, false);
+          }
+        }
       } catch (e) {
         if (btn) {
           btn.disabled = false;
@@ -1296,6 +1381,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         } else if (room.status === 'waiting') {
           if (state.isHost) {
             hostControls?.classList.remove('d-none');
+            updateStartButtonState();
           }
           hudStatus.textContent = STR.waiting;
           hudStatus.className = 'hud-val text-info';
@@ -1327,6 +1413,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       });
 
       channel.bind('room:round', (data) => {
+        if (state.phase === 'finished') return;
         state.round = data.round;
         hudRound.textContent = `${data.round} / ${data.rounds_total || 50}`;
         state.targetColor = data.question?.target;
@@ -1351,6 +1438,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       });
 
       channel.bind('room:leaderboard', (data) => {
+        if (state.phase === 'finished') return;
         renderLeaderboard(data.players || []);
       });
 
@@ -1367,12 +1455,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       try {
         const res = await fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID));
         const data = await res.json();
-        if (data && data.finished && state.phase !== 'finished') {
+        if (data && (data.finished || data.status === 'finished') && state.phase !== 'finished') {
           renderFinalVictory(data.players || []);
         } else if (data && data.status === 'waiting' && state.phase === 'finished') {
           resetToLobby(data.players || []);
-        } else if (data && data.round && data.round > 0 && state.phase === 'finished') {
-          state.phase = 'lobby';
         }
       } catch(e) {}
     }, 1500);

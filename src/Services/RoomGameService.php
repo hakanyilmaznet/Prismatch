@@ -129,6 +129,14 @@ class RoomGameService {
             return ['ok' => true, 'finished' => true];
         }
 
+        // Multiplayer rooms require at least 2 players to start
+        if ($current === 0 || $room['status'] === 'waiting') {
+            $players = $this->roomRepo->listPlayers($roomId);
+            if (count($players) < 2) {
+                return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
+            }
+        }
+
         return $this->advanceToRound($room, $current + 1);
     }
 
@@ -191,6 +199,9 @@ class RoomGameService {
         if ($startImmediately) {
             $freshRoom = $this->roomRepo->getRoomById($roomId);
             if ($freshRoom) {
+                if (count($freshPlayers) < 2) {
+                    return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
+                }
                 return $this->advanceToRound($freshRoom, 1);
             }
         }
@@ -244,38 +255,18 @@ class RoomGameService {
                 if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
             }
 
-            if ($activeCount === 0 && $currentInDb > 0) {
-                $this->roomRepo->setStatus($roomId, 'finished', $currentInDb);
+            if (($activeCount <= 1 && count($players) >= 2 && $currentInDb > 0) || ($activeCount === 0 && $currentInDb > 0) || $nextRound > $total) {
                 $this->pdo->commit();
-                if (function_exists('pusher_trigger')) {
-                    pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
-                        'guid' => $guid,
-                        'round' => $currentInDb,
-                        'players' => $players,
-                    ]);
-                    pusher_trigger('presence-room-' . $guid, 'room:finished', [
-                        'guid' => $guid,
-                        'players' => $players,
-                    ]);
-                }
-                return ['ok' => true, 'finished' => true, 'players' => $players];
+                $finishResult = $this->finishGame($roomId, $currentInDb, $guid);
+                return ['ok' => true, 'finished' => true, 'players' => $finishResult['players']];
             }
 
-            if ($nextRound > $total) {
-                $this->roomRepo->setStatus($roomId, 'finished', $currentInDb);
-                $this->pdo->commit();
-                $finalPlayers = $this->roomRepo->listPlayers($roomId);
-                if (function_exists('pusher_trigger')) {
-                    pusher_trigger('presence-room-' . $guid, 'room:finished', [
-                        'guid' => $guid,
-                        'players' => $finalPlayers,
-                    ]);
-                }
-                return ['ok' => true, 'finished' => true, 'players' => $finalPlayers];
-            }
-
-            // Update room status to active if waiting
+            // Update room status to active if waiting, requiring at least 2 players
             if ($currentInDb === 0) {
+                if (count($players) < 2) {
+                    $this->pdo->rollBack();
+                    return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
+                }
                 $this->roomRepo->setStatus($roomId, 'active');
             }
 
@@ -411,22 +402,16 @@ class RoomGameService {
             ]);
         }
 
-        // Check if all players are eliminated
-        if ($activeCount === 0) {
-            $this->endRound($roomId, $round);
-            $this->roomRepo->setStatus($roomId, 'finished', $round);
-            if (function_exists('pusher_trigger')) {
-                pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
-                    'guid' => $guid,
-                    'round' => $round,
-                    'players' => $freshPlayers,
-                ]);
-                pusher_trigger('presence-room-' . $guid, 'room:finished', [
-                    'guid' => $guid,
-                    'players' => $freshPlayers,
-                ]);
-            }
-            return ['ok' => true, 'correct' => $isCorrect, 'score_delta' => $scoreDelta, 'finished' => true, 'players' => $freshPlayers];
+        // Winner determined: when only 1 non-eliminated player remains (or all players eliminated)
+        if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0) {
+            $finishResult = $this->finishGame($roomId, $round, $guid);
+            return [
+                'ok' => true,
+                'correct' => $isCorrect,
+                'score_delta' => $scoreDelta,
+                'finished' => true,
+                'players' => $finishResult['players'],
+            ];
         }
 
         // IMPROVED MECHANIC: Check if ALL active players have answered this round!
@@ -466,6 +451,65 @@ class RoomGameService {
         $stmt->execute([':now' => Database::nowUtc(), ':rid' => $roomId, ':r' => $roundIndex]);
     }
 
+    public function finishGame(string $roomId, int $round, string $guid): array {
+        $this->endRound($roomId, $round);
+
+        // Fetch players sorted by: (status = 'active') DESC, score DESC, correct DESC, joined_at ASC
+        $players = $this->roomRepo->listPlayers($roomId);
+        $winner = !empty($players) ? $players[0] : null;
+
+        // Award 5000 win bonus points to the winner if not already awarded
+        if ($winner && !empty($winner['user_id'])) {
+            $winnerUserId = (string)$winner['user_id'];
+            $winnerEmail = (string)$winner['email'];
+
+            $checkBonus = $this->pdo->prepare("
+                SELECT COUNT(*) FROM room_events
+                WHERE room_id = :rid AND event_type = 'win_bonus'
+            ");
+            $checkBonus->execute([':rid' => $roomId]);
+            $alreadyAwarded = (int)$checkBonus->fetchColumn() > 0;
+
+            if (!$alreadyAwarded) {
+                $bonusPoints = 5000;
+                $this->roomRepo->addScore($roomId, $winnerUserId, $bonusPoints, 0);
+                $this->roomRepo->logEvent($roomId, $round, $winnerUserId, $winnerEmail, 'win_bonus', [
+                    'bonus' => $bonusPoints,
+                    'winner_id' => $winnerUserId,
+                    'winner_email' => $winnerEmail,
+                ]);
+
+                try {
+                    $updUser = $this->pdo->prepare("UPDATE users SET total_wins = total_wins + 1 WHERE id = :uid");
+                    $updUser->execute([':uid' => $winnerUserId]);
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        $this->roomRepo->setStatus($roomId, 'finished', $round);
+        $finalPlayers = $this->roomRepo->listPlayers($roomId);
+
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:finished', [
+                'guid' => $guid,
+                'round' => $round,
+                'players' => $finalPlayers,
+                'winner' => $winner ? [
+                    'user_id' => $winner['user_id'],
+                    'email' => $winner['email'],
+                    'bonus' => 5000,
+                ] : null,
+            ]);
+        }
+
+        return [
+            'ok' => true,
+            'finished' => true,
+            'round' => $round,
+            'players' => $finalPlayers,
+        ];
+    }
+
     public function tick(string $guid): array {
         $room = $this->roomRepo->getRoomByGuid($guid);
         if (!$room) {
@@ -474,7 +518,8 @@ class RoomGameService {
 
         $roomId = (string)$room['id'];
         if ($room['status'] === 'finished' || (int)$room['rounds_total'] <= 0) {
-            return ['ok' => true, 'status' => 'finished'];
+            $players = $this->roomRepo->listPlayers($roomId);
+            return ['ok' => true, 'status' => 'finished', 'finished' => true, 'players' => $players];
         }
 
         $current = (int)$room['current_round'];
@@ -540,23 +585,18 @@ class RoomGameService {
                 if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
             }
 
+            // Winner determined: when only 1 non-eliminated player remains (or all players eliminated)
+            if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0) {
+                $finishResult = $this->finishGame($roomId, $current, $guid);
+                return ['ok' => true, 'finished' => true, 'players' => $finishResult['players']];
+            }
+
             if (function_exists('pusher_trigger')) {
                 pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
                     'guid' => $guid,
                     'round' => $current,
                     'players' => $freshPlayers,
                 ]);
-            }
-
-            if ($activeCount === 0) {
-                $this->roomRepo->setStatus($roomId, 'finished', $current);
-                if (function_exists('pusher_trigger')) {
-                    pusher_trigger('presence-room-' . $guid, 'room:finished', [
-                        'guid' => $guid,
-                        'players' => $freshPlayers,
-                    ]);
-                }
-                return ['ok' => true, 'finished' => true, 'players' => $freshPlayers];
             }
 
             return ['ok' => true, 'ended' => true];

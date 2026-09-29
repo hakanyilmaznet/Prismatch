@@ -50,16 +50,12 @@ foreach ($players as $p) {
   if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
 }
 
-pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
-  'guid' => $guid,
-  'round' => $round,
-  'players' => $players,
-]);
-
-if ($activeCount === 0) {
-  set_room_finished($roomId, $round);
-  pusher_trigger('presence-room-' . $guid, 'room:finished', [
+if (($activeCount <= 1 && count($players) >= 2) || $activeCount === 0) {
+  (new \Prismatch\Services\RoomGameService())->finishGame($roomId, $round, $guid);
+} else {
+  pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
     'guid' => $guid,
+    'round' => $round,
     'players' => $players,
   ]);
 }
