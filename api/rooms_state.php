@@ -35,6 +35,7 @@ echo json_encode([
         'name' => $room['name'],
         'status' => $room['status'],
         'rounds_total' => (int)$room['rounds_total'],
+        'game_mode' => (string)($room['game_mode'] ?? 'elimination'),
         'current_round' => (int)$room['current_round'],
         'owner_email' => $room['owner_email'],
         'owner_id' => $room['owner_id'] ?? null,

@@ -126,7 +126,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       </div>
       <div class="d-flex align-items-center gap-2">
         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-          <?= htmlspecialchars(tt('rooms_badge_info', '50 Rounds Max · Instant Elimination')) ?>
+          <?= htmlspecialchars(tt('rooms_badge_info', '25 Rounds · Dynamic Grid')) ?>
         </span>
       </div>
     </div>
@@ -147,6 +147,41 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           <button id="createRoomBtn" class="btn btn-create btn-lg w-100" type="button">
             <?= htmlspecialchars(tt('rooms_create_btn', 'Create Room')) ?>
           </button>
+        </div>
+      </div>
+
+      <!-- Game Mode Selection -->
+      <div class="mt-3 p-3 rounded-3 border bg-body-tertiary">
+        <label class="form-label small fw-bold text-secondary mb-2 d-flex align-items-center gap-1">
+          <span>🎯</span> <?= htmlspecialchars(tt('rooms_mode_label', 'Game Mode')) ?>
+        </label>
+        <div class="row g-2">
+          <div class="col-sm-6">
+            <div class="card h-100 p-3 mode-select-card" id="modeCardPoints" style="cursor: pointer; border: 2px solid var(--bs-primary); border-radius: 12px; transition: all 0.2s ease;">
+              <div class="form-check m-0">
+                <input class="form-check-input" type="radio" name="roomGameMode" id="modePoints" value="points" checked style="cursor: pointer;">
+                <label class="form-check-label fw-bold user-select-none" for="modePoints" style="cursor: pointer;">
+                  ⚡ <?= htmlspecialchars(tt('rooms_mode_points_title', 'Puan Yarışı (Elenmesiz)')) ?>
+                </label>
+              </div>
+              <div class="small text-secondary mt-1 ps-4">
+                <?= htmlspecialchars(tt('rooms_mode_points_desc', 'Elenme yok! Doğru cevap puan kazandırır, yanlışta kazanılacak puan toplamdan düşülür. Pas geçen 0 puan alır.')) ?>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="card h-100 p-3 mode-select-card" id="modeCardElimination" style="cursor: pointer; border: 2px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.2s ease;">
+              <div class="form-check m-0">
+                <input class="form-check-input" type="radio" name="roomGameMode" id="modeElimination" value="elimination" style="cursor: pointer;">
+                <label class="form-check-label fw-bold user-select-none" for="modeElimination" style="cursor: pointer;">
+                  💀 <?= htmlspecialchars(tt('rooms_mode_elim_title', 'Eleme Modu (Hayatta Kalma)')) ?>
+                </label>
+              </div>
+              <div class="small text-secondary mt-1 ps-4">
+                <?= htmlspecialchars(tt('rooms_mode_elim_desc', 'Yanlış yapan veya süresi dolan elenir. Son hayatta kalan veya en yüksek puanlı kazanır.')) ?>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -214,6 +249,15 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             <tr>
               <td class="fw-semibold text-break">
                 <?= htmlspecialchars($pr['name'] ?: tt('room_prefix', 'Room #') . substr($pGuid, 0, 8)) ?>
+                <?php if (($pr['game_mode'] ?? 'elimination') === 'points'): ?>
+                  <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill ms-1" style="font-size: 0.72rem;">
+                    ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?>
+                  </span>
+                <?php else: ?>
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill ms-1" style="font-size: 0.72rem;">
+                    💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme')) ?>
+                  </span>
+                <?php endif; ?>
               </td>
               <td><?= room_status_badge($pStatus) ?></td>
               <td><span class="badge bg-dark-subtle text-dark-emphasis rounded-pill"><?= $pPlayers ?> 👥</span></td>
@@ -343,6 +387,33 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       createdPrivateSuccess: <?= json_encode(tt('rooms_created_private_success', 'Private room created! Only players with this link can enter:')) ?>,
     };
 
+    // Mode card selection behavior
+    const modeCardPoints = document.getElementById('modeCardPoints');
+    const modeCardElimination = document.getElementById('modeCardElimination');
+    const radioPoints = document.getElementById('modePoints');
+    const radioElimination = document.getElementById('modeElimination');
+
+    function syncModeCards() {
+      if (radioPoints && radioPoints.checked) {
+        modeCardPoints?.style.setProperty('border-color', 'var(--bs-primary)', 'important');
+        modeCardElimination?.style.setProperty('border-color', 'rgba(255,255,255,0.12)', 'important');
+      } else if (radioElimination && radioElimination.checked) {
+        modeCardElimination?.style.setProperty('border-color', 'var(--bs-danger)', 'important');
+        modeCardPoints?.style.setProperty('border-color', 'rgba(255,255,255,0.12)', 'important');
+      }
+    }
+
+    modeCardPoints?.addEventListener('click', () => {
+      if (radioPoints) radioPoints.checked = true;
+      syncModeCards();
+    });
+    modeCardElimination?.addEventListener('click', () => {
+      if (radioElimination) radioElimination.checked = true;
+      syncModeCards();
+    });
+    radioPoints?.addEventListener('change', syncModeCards);
+    radioElimination?.addEventListener('change', syncModeCards);
+
     createBtn?.addEventListener('click', async () => {
       setMsg(createMsg, '');
       const name = (roomNameInput.value || '').trim();
@@ -353,6 +424,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       }
 
       const isPrivate = !!document.getElementById('roomIsPrivate')?.checked;
+      const gameMode = document.querySelector('input[name="roomGameMode"]:checked')?.value || 'points';
 
       createBtn.disabled = true;
       createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> ' + STR.creating;
@@ -361,7 +433,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         const res = await fetch('api/rooms_create.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({rounds_total: 50, name, is_private: isPrivate ? 1 : 0})
+          body: JSON.stringify({rounds_total: 25, name, is_private: isPrivate ? 1 : 0, game_mode: gameMode})
         });
         const data = await res.json();
         if (data.ok && data.guid) {

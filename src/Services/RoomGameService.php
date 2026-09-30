@@ -57,14 +57,14 @@ class RoomGameService {
         "#57E32C","#10B981","#3B82F6","#6366F1","#8B5CF6","#D946EF","#F43F5E"
     ];
 
-    public function getGridCountForRound(int $roundIndex, int $roundsTotal = 50): int {
+    public function getGridCountForRound(int $roundIndex, int $roundsTotal = 25): int {
         $lvl = max(1, $roundIndex);
-        if ($lvl <= 20) return 9;
-        if ($lvl <= 40) return 16;
-        return 25;
+        if ($lvl <= 10) return 9;   // İlk 10 tur: 9 kare (3x3)
+        if ($lvl <= 20) return 16;  // Sonraki 10 tur: 16 kare (4x4)
+        return 25;                  // Sonraki 5 tur: 25 kare (5x5)
     }
 
-    public function generateQuestion(int $roundIndex, int $roundsTotal = 50): array {
+    public function generateQuestion(int $roundIndex, int $roundsTotal = 25): array {
         $palette = array_values(array_unique(self::COLOR_PALETTE));
         $count = $this->getGridCountForRound($roundIndex, $roundsTotal);
         shuffle($palette);
@@ -112,6 +112,7 @@ class RoomGameService {
                 'owner_email' => $room['owner_email'],
                 'owner_id' => $room['owner_id'] ?? null,
                 'is_private' => !empty($room['is_private']),
+                'game_mode' => $room['game_mode'] ?? 'elimination',
             ],
             'players' => $players,
         ];
@@ -227,6 +228,7 @@ class RoomGameService {
                 'guid' => $guid,
                 'status' => 'waiting',
                 'round' => 0,
+                'game_mode' => (string)($room['game_mode'] ?? 'elimination'),
                 'players' => $freshPlayers,
                 'restarting' => $startImmediately,
             ]);
@@ -252,6 +254,7 @@ class RoomGameService {
             'ok' => true,
             'status' => 'waiting',
             'round' => 0,
+            'game_mode' => (string)($room['game_mode'] ?? 'elimination'),
             'players' => $freshPlayers,
         ];
     }
@@ -267,7 +270,7 @@ class RoomGameService {
         // Atomic lock check: only advance if the round matches current
         $this->pdo->beginTransaction();
         try {
-            $lockStmt = $this->pdo->prepare("SELECT status, current_round, rounds_total FROM rooms WHERE id = :id FOR UPDATE");
+            $lockStmt = $this->pdo->prepare("SELECT status, current_round, rounds_total, game_mode FROM rooms WHERE id = :id FOR UPDATE");
             $lockStmt->execute([':id' => $roomId]);
             $locked = $lockStmt->fetch();
 
@@ -285,6 +288,9 @@ class RoomGameService {
                 return ['ok' => true, 'already_advanced' => true, 'round' => $currentInDb];
             }
 
+            $gameMode = (string)($locked['game_mode'] ?? ($room['game_mode'] ?? 'elimination'));
+            $isElimination = ($gameMode === 'elimination');
+
             // Check alive players
             $players = $this->roomRepo->listPlayers($roomId);
             $activeCount = 0;
@@ -292,9 +298,16 @@ class RoomGameService {
                 if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
             }
 
-            if (($activeCount <= 1 && count($players) >= 2 && $currentInDb > 0) || ($activeCount === 0 && $currentInDb > 0) || $nextRound > $total) {
+            $shouldFinish = ($nextRound > $total);
+            if ($isElimination && $currentInDb > 0) {
+                if (($activeCount <= 1 && count($players) >= 2) || $activeCount === 0) {
+                    $shouldFinish = true;
+                }
+            }
+
+            if ($shouldFinish) {
                 $this->pdo->commit();
-                Logger::room('advanceToRound:match_finished_condition', $guid, ['active_count' => $activeCount, 'next_round' => $nextRound]);
+                Logger::room('advanceToRound:match_finished_condition', $guid, ['active_count' => $activeCount, 'next_round' => $nextRound, 'game_mode' => $gameMode]);
                 $finishResult = $this->finishGame($roomId, $currentInDb, $guid);
                 return ['ok' => true, 'finished' => true, 'players' => $finishResult['players']];
             }
@@ -339,6 +352,7 @@ class RoomGameService {
                 'guid' => $guid,
                 'round' => $nextRound,
                 'rounds_total' => $total,
+                'game_mode' => $gameMode,
                 'question' => $question,
                 'countdown_ms' => $timing['countdown_ms'],
                 'show_ms' => $timing['show_ms'],
@@ -350,12 +364,13 @@ class RoomGameService {
                 pusher_trigger('presence-room-' . $guid, 'room:round', $payload);
             }
 
-            Logger::room('advanceToRound:success', $guid, ['round' => $nextRound, 'active_players' => $activeCount]);
+            Logger::room('advanceToRound:success', $guid, ['round' => $nextRound, 'active_players' => $activeCount, 'game_mode' => $gameMode]);
 
             return [
                 'ok' => true,
                 'round' => $nextRound,
                 'rounds_total' => $total,
+                'game_mode' => $gameMode,
                 'question' => $question,
                 'countdown_ms' => $timing['countdown_ms'],
                 'show_ms' => $timing['show_ms'],
@@ -434,6 +449,9 @@ class RoomGameService {
             return ['ok' => true, 'already_answered' => true];
         }
 
+        $gameMode = (string)($room['game_mode'] ?? 'elimination');
+        $isElimination = ($gameMode === 'elimination');
+
         $isCorrect = (!$isTimeout && $picked !== '' && $picked === $target);
         $scoreDelta = 0;
 
@@ -448,7 +466,7 @@ class RoomGameService {
                 'score_delta' => $scoreDelta,
             ]);
             Logger::room('processAnswer:correct', $guid, ['user_id' => $userId, 'score_delta' => $scoreDelta, 'round' => $round]);
-        } else {
+        } elseif ($isElimination) {
             $this->roomRepo->markEliminated($roomId, $userId, $round);
             $this->roomRepo->logEvent($roomId, $round, $userId, $email, $isTimeout ? 'timeout' : 'eliminate', [
                 'picked' => $picked !== '' ? $picked : null,
@@ -457,6 +475,33 @@ class RoomGameService {
                 'correct' => false,
             ]);
             Logger::room('processAnswer:eliminated', $guid, ['user_id' => $userId, 'timeout' => $isTimeout, 'round' => $round]);
+        } else {
+            // Points Mode (Elenmesiz mod):
+            // - Yanlış seçenekte: kazanması gereken puan toplam puanından düşülsün (-pointsPenalty)
+            // - Süre aşımında / pas: 0 puan (kesinti veya elenme yok)
+            if ($isTimeout || $picked === '') {
+                $scoreDelta = 0;
+                $this->roomRepo->logEvent($roomId, $round, $userId, $email, 'timeout', [
+                    'picked' => null,
+                    'target' => $target,
+                    'response_ms' => $responseMs,
+                    'correct' => false,
+                    'score_delta' => 0,
+                ]);
+                Logger::room('processAnswer:points_timeout', $guid, ['user_id' => $userId, 'round' => $round]);
+            } else {
+                $pointsPenalty = max(50, 1000 - (int)floor(max(0, $responseMs) / 10));
+                $scoreDelta = -$pointsPenalty;
+                $this->roomRepo->addScore($roomId, $userId, $scoreDelta, 0);
+                $this->roomRepo->logEvent($roomId, $round, $userId, $email, 'answer', [
+                    'picked' => $picked,
+                    'target' => $target,
+                    'response_ms' => $responseMs,
+                    'correct' => false,
+                    'score_delta' => $scoreDelta,
+                ]);
+                Logger::room('processAnswer:points_wrong', $guid, ['user_id' => $userId, 'score_delta' => $scoreDelta, 'round' => $round]);
+            }
         }
 
         $freshPlayers = $this->roomRepo->listPlayers($roomId);
@@ -497,19 +542,21 @@ class RoomGameService {
             'answered_count' => $answeredCount,
             'all_answered' => $allAnswered,
             'active_survivors' => $activeCount,
+            'game_mode' => $gameMode,
         ]);
+
+        $isGameOver = ($round >= (int)$room['rounds_total']);
+        if ($isElimination) {
+            $isGameOver = $isGameOver || (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0);
+        }
 
         if ($allAnswered) {
             // All participating players have made their choice! End round immediately!
             Logger::room('processAnswer:all_players_answered_ending_round', $guid, ['round' => $round]);
             $this->endRound($roomId, $round);
 
-            // Check if game has ended now that ALL participants have answered:
-            // - At most 1 active survivor remains (when at least 2 were in the match)
-            // - Or ALL players were eliminated (activeCount === 0)
-            // - Or maximum rounds reached
-            if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0 || $round >= (int)$room['rounds_total']) {
-                Logger::room('processAnswer:game_over', $guid, ['active_count' => $activeCount, 'round' => $round]);
+            if ($isGameOver) {
+                Logger::room('processAnswer:game_over', $guid, ['active_count' => $activeCount, 'round' => $round, 'game_mode' => $gameMode]);
                 $finishResult = $this->finishGame($roomId, $round, $guid);
                 return [
                     'ok' => true,
@@ -547,7 +594,7 @@ class RoomGameService {
                 'guid' => $guid,
                 'round' => $round,
                 'players' => $freshPlayers,
-                'eliminated' => $isCorrect ? null : $email,
+                'eliminated' => ($isElimination && !$isCorrect) ? $email : null,
                 'answered_count' => $answeredCount,
                 'total_participants' => $totalParticipants,
             ]);
@@ -666,20 +713,21 @@ class RoomGameService {
         }
 
         $current = (int)$room['current_round'];
+        $gameMode = (string)($room['game_mode'] ?? 'elimination');
         if ($room['status'] === 'waiting' && $current === 0) {
             $ownerId = (string)($room['owner_id'] ?? '');
             if ($ownerId !== '') {
                 $this->roomRepo->cleanupStalePlayers($roomId, $ownerId, 10);
             }
             $players = $this->roomRepo->listPlayers($roomId);
-            return ['ok' => true, 'status' => 'waiting', 'players' => $players];
+            return ['ok' => true, 'status' => 'waiting', 'game_mode' => $gameMode, 'players' => $players];
         }
 
         $st = $this->pdo->prepare("SELECT started_at, ended_at, question_json FROM room_rounds WHERE room_id = :rid AND round_index = :r LIMIT 1");
         $st->execute([':rid' => $roomId, ':r' => $current]);
         $round = $st->fetch();
         if (!$round) {
-            return ['ok' => true, 'status' => $room['status'], 'round' => $current];
+            return ['ok' => true, 'status' => $room['status'], 'round' => $current, 'game_mode' => $gameMode];
         }
 
         $timing = $this->getTimingForRound($current);
@@ -720,18 +768,23 @@ class RoomGameService {
 
             $question = json_decode((string)$round['question_json'], true);
             $target = $question['target'] ?? null;
+            $gameMode = (string)($room['game_mode'] ?? 'elimination');
+            $isElimination = ($gameMode === 'elimination');
 
             foreach ($unansweredPlayers as $up) {
                 $pUserId = (string)$up['user_id'];
                 $pEmail = (string)$up['email'];
-                $this->roomRepo->markEliminated($roomId, $pUserId, $current);
+                if ($isElimination) {
+                    $this->roomRepo->markEliminated($roomId, $pUserId, $current);
+                }
                 $this->roomRepo->logEvent($roomId, $current, $pUserId, $pEmail, 'timeout', [
                     'picked' => null,
                     'target' => $target,
                     'response_ms' => $answerMs,
                     'correct' => false,
+                    'score_delta' => 0,
                 ]);
-                Logger::room('tick:player_auto_timed_out', $guid, ['user_id' => $pUserId, 'email' => $pEmail, 'round' => $current]);
+                Logger::room('tick:player_auto_timed_out', $guid, ['user_id' => $pUserId, 'email' => $pEmail, 'round' => $current, 'game_mode' => $gameMode]);
             }
 
             $freshPlayers = $this->roomRepo->listPlayers($roomId);
@@ -740,23 +793,29 @@ class RoomGameService {
                 if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
             }
 
-            // Winner determined: when only 1 non-eliminated player remains (or all players eliminated)
-            if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0 || $current >= (int)$room['rounds_total']) {
-                Logger::room('tick:timeout_triggered_game_finish', $guid, ['round' => $current, 'active_count' => $activeCount]);
+            // Game over check:
+            $isGameOver = ($current >= (int)$room['rounds_total']);
+            if ($isElimination) {
+                $isGameOver = $isGameOver || (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0);
+            }
+
+            if ($isGameOver) {
+                Logger::room('tick:timeout_triggered_game_finish', $guid, ['round' => $current, 'active_count' => $activeCount, 'game_mode' => $gameMode]);
                 $finishResult = $this->finishGame($roomId, $current, $guid);
-                return ['ok' => true, 'finished' => true, 'players' => $finishResult['players']];
+                return ['ok' => true, 'finished' => true, 'game_mode' => $gameMode, 'players' => $finishResult['players']];
             }
 
             if (function_exists('pusher_trigger')) {
                 pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
                     'guid' => $guid,
                     'round' => $current,
+                    'game_mode' => $gameMode,
                     'players' => $freshPlayers,
                     'timeout_ended' => true,
                 ]);
             }
 
-            return ['ok' => true, 'status' => 'intermission', 'round' => $current, 'ended' => true, 'players' => $freshPlayers];
+            return ['ok' => true, 'status' => 'intermission', 'round' => $current, 'game_mode' => $gameMode, 'ended' => true, 'players' => $freshPlayers];
         }
 
         // Intermission check: automatically advance to next round when intermission is over
@@ -774,6 +833,7 @@ class RoomGameService {
                 'ok' => true,
                 'status' => 'intermission',
                 'round' => $current,
+                'game_mode' => $gameMode,
                 'ended_at' => $round['ended_at'],
                 'elapsed_intermission_ms' => $elapsedEnd,
                 'intermission_ms' => $intermissionMs,
@@ -788,6 +848,7 @@ class RoomGameService {
             'status' => 'active',
             'round' => $current,
             'rounds_total' => (int)$room['rounds_total'],
+            'game_mode' => $gameMode,
             'question' => $question,
             'countdown_ms' => $countdownMs,
             'show_ms' => $showMs,

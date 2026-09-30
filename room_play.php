@@ -711,6 +711,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <div class="fs-1">⏳</div>
         <h1 class="stage-title">
           <span><?= htmlspecialchars($room['name'] ?: tt('room_default_name', 'Match Room')) ?></span>
+          <?php if (($room['game_mode'] ?? 'elimination') === 'points'): ?>
+            <span class="badge bg-warning-subtle text-warning fs-6 align-middle border border-warning-subtle ms-1">
+              ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan Yarışı')) ?>
+            </span>
+          <?php else: ?>
+            <span class="badge bg-danger-subtle text-danger fs-6 align-middle border border-danger-subtle ms-1">
+              💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme Modu')) ?>
+            </span>
+          <?php endif; ?>
           <?php if (!empty($room['is_private'])): ?>
             <span class="badge bg-secondary-subtle text-secondary fs-6 align-middle border border-secondary-subtle ms-1">
               🔒 <?= htmlspecialchars(tt('rooms_private_badge', 'Private')) ?>
@@ -783,11 +792,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     const GUID = <?= json_encode($guid) ?>;
     const PUSHER_KEY = <?= json_encode(defined('PUSHER_KEY') ? PUSHER_KEY : '') ?>;
     const PUSHER_CLUSTER = <?= json_encode(defined('PUSHER_CLUSTER') ? PUSHER_CLUSTER : 'eu') ?>;
+    const ROOM_GAME_MODE = <?= json_encode($room['game_mode'] ?? 'elimination') ?>;
 
     const STR = {
       correct: <?= json_encode(tt('badge_correct', 'Correct!')) ?>,
       wrong: <?= json_encode(tt('badge_wrong', 'Wrong color!')) ?>,
+      wrongPenalty: <?= json_encode(tt('room_wrong_points', 'Wrong pick! Points deducted.')) ?>,
       timeUp: <?= json_encode(tt('badge_timeup', 'Time Up!')) ?>,
+      timeUpZeroPoints: <?= json_encode(tt('room_timeout_points', 'Time up! 0 points.')) ?>,
+      modePoints: <?= json_encode(tt('rooms_mode_points_short', 'Points Race')) ?>,
+      modeElimination: <?= json_encode(tt('rooms_mode_elim_short', 'Elimination')) ?>,
       eliminated: <?= json_encode(tt('room_eliminated', 'Eliminated')) ?>,
       spectating: <?= json_encode(tt('room_spectating', 'Spectator Mode')) ?>,
       ready: <?= json_encode(tt('status_ready', 'Ready')) ?>,
@@ -938,7 +952,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     const state = {
       round: 0,
-      roundsTotal: 50,
+      roundsTotal: <?= (int)($room['rounds_total'] ?? 25) ?>,
+      gameMode: ROOM_GAME_MODE,
       score: 0,
       phase: 'lobby', // 'lobby', 'countdown', 'show', 'question', 'intermission', 'finished'
       targetColor: null,
@@ -1036,9 +1051,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         nameSpan.textContent = (p.email ? p.email.split('@')[0] : (p.nickname || STR.player)) + (isMe ? ' ' + STR.you : '') + statusSuffix;
         tag.appendChild(nameSpan);
 
-        if (p.score > 0) {
+        if (Number(p.score) !== 0) {
           const scoreBadge = document.createElement('span');
-          scoreBadge.className = 'badge bg-dark-subtle text-dark-emphasis ms-1';
+          const isNeg = Number(p.score) < 0;
+          scoreBadge.className = 'badge ' + (isNeg ? 'bg-danger-subtle text-danger' : 'bg-dark-subtle text-dark-emphasis') + ' ms-1';
           scoreBadge.textContent = p.score + ' ' + STR.pts;
           tag.appendChild(scoreBadge);
         }
@@ -1217,8 +1233,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       } else {
         btn.classList.add('wrong');
         playTone(220, 0.2, 'sawtooth');
-        showToast(STR.wrong, false);
-        state.eliminated = true;
+        if (state.gameMode === 'elimination') {
+          showToast(STR.wrong, false);
+          state.eliminated = true;
+        } else {
+          showToast(STR.wrongPenalty || STR.wrong, false);
+          state.eliminated = false;
+        }
       }
 
       // Show immediate waiting notice so player knows selection registered
@@ -1248,9 +1269,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const data = await res.json();
         RoomLogger.info('Answer', 'Server response received', data);
 
-        if (data.ok && data.score_delta) {
+        if (data.ok && typeof data.score_delta !== 'undefined') {
           state.score += data.score_delta;
           hudScore.textContent = String(state.score);
+          if (data.score_delta < 0) {
+            showToast(`${data.score_delta} ${STR.score || 'pts'}`, false);
+          } else if (data.score_delta > 0) {
+            showToast(`+${data.score_delta} ${STR.score || 'pts'}`, true);
+          }
         }
 
         if (data.ok && data.finished && state.phase !== 'finished') {
@@ -1273,10 +1299,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     async function onTimeOut(cells) {
       if (state.answered || state.eliminated) return;
       state.answered = true;
-      state.eliminated = true;
       cells.forEach(c => c.disabled = true);
       playTone(200, 0.25, 'sawtooth');
-      showToast(STR.timeUp, false);
+
+      if (state.gameMode === 'elimination') {
+        state.eliminated = true;
+        showToast(STR.timeUp, false);
+      } else {
+        state.eliminated = false;
+        showToast(STR.timeUpZeroPoints || STR.timeUp, false);
+      }
+
       RoomLogger.warn('Answer', `Player timed out on round ${state.round}`);
 
       try {
@@ -1428,7 +1461,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       state.phase = 'countdown';
       state.round = data.round;
-      hudRound.textContent = `${data.round} / ${data.rounds_total || 50}`;
+      if (data.game_mode) state.gameMode = data.game_mode;
+      if (data.rounds_total) state.roundsTotal = Number(data.rounds_total);
+      hudRound.textContent = `${data.round} / ${state.roundsTotal || 25}`;
       state.targetColor = data.question?.target;
       state.gridColors = data.question?.grid || [];
       state.showMs = data.show_ms || 3000;
@@ -1446,7 +1481,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         renderPlayers(data.players);
         const meRow = data.players.find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
         if (meRow) {
-          state.eliminated = (meRow.status === 'eliminated');
+          state.eliminated = (state.gameMode === 'elimination' && meRow.status === 'eliminated');
           state.score = Number(meRow.score) || 0;
           hudScore.textContent = String(state.score);
         }
@@ -1569,7 +1604,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                         <td class="col-status text-center">
                           ${isWin
                             ? `<span class="status-pill active">👑 ${STR.winner}</span>`
-                            : (isElim 
+                            : (state.gameMode === 'elimination' && isElim 
                               ? `<span class="status-pill elim">💀 ${STR.eliminated}</span>`
                               : `<span class="status-pill active">✅ ${STR.finished}</span>`)}
                         </td>
@@ -1699,11 +1734,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       RoomLogger.info('GameState', 'Resetting room to lobby', { players_count: (players || []).length });
 
       const isPriv = <?= json_encode(!empty($room['is_private'])) ?>;
+      const isPointsMode = (state.gameMode === 'points');
       stageContent.innerHTML = `
         <div class="stage-center">
           <div class="fs-1">⏳</div>
           <h1 class="stage-title">
             <span><?= htmlspecialchars($room['name'] ?: tt('room_default_name', 'Match Room')) ?></span>
+            ${isPointsMode 
+              ? `<span class="badge bg-warning-subtle text-warning fs-6 align-middle border border-warning-subtle ms-1">⚡ ${STR.modePoints}</span>`
+              : `<span class="badge bg-danger-subtle text-danger fs-6 align-middle border border-danger-subtle ms-1">💀 ${STR.modeElimination}</span>`}
             ${isPriv ? `<span class="badge bg-secondary-subtle text-secondary fs-6 align-middle border border-secondary-subtle ms-1">🔒 ${STR.privateBadge}</span>` : ''}
           </h1>
           <p class="stage-subtitle">${isPriv ? STR.waitingDescPrivate : STR.waitingDesc}</p>
@@ -1804,6 +1843,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         }
 
         const room = data.room;
+        if (room.game_mode) state.gameMode = room.game_mode;
+        if (room.rounds_total) state.roundsTotal = Number(room.rounds_total);
         state.isHost = (room.owner_id && ME_ID) ? (String(room.owner_id) === String(ME_ID)) : (String(room.owner_email || '').toLowerCase() === String(ME_EMAIL || '').toLowerCase());
         renderPlayers(data.players || []);
 
@@ -1923,7 +1964,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         RoomLogger.info('Pusher', 'Event room:update received', data);
         renderPlayers(data.players || []);
         const meRow = (data.players || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
-        if (meRow && meRow.status === 'eliminated') {
+        if (meRow && meRow.status === 'eliminated' && state.gameMode === 'elimination') {
           state.eliminated = true;
         }
         if (state.answered && data.answered_count && data.total_participants) {
@@ -1941,17 +1982,20 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       channel.bind('room:reset', (data) => {
         RoomLogger.info('Pusher', 'Event room:reset received', data);
+        if (data.game_mode) state.gameMode = data.game_mode;
         resetToLobby(data.players || []);
       });
 
       channel.bind('room:leaderboard', (data) => {
         RoomLogger.info('Pusher', 'Event room:leaderboard received', data);
         if (state.phase === 'finished') return;
+        if (data.game_mode) state.gameMode = data.game_mode;
         renderLeaderboard(data.players || [], data.round);
       });
 
       channel.bind('room:finished', (data) => {
         RoomLogger.info('Pusher', 'Event room:finished received', data);
+        if (data.game_mode) state.gameMode = data.game_mode;
         renderFinalVictory(data.players || []);
       });
     }

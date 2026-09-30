@@ -125,6 +125,7 @@ class SchemaManager {
                 finished_round INT NULL,
                 max_players INT NOT NULL DEFAULT 25,
                 is_private TINYINT(1) NOT NULL DEFAULT 0,
+                game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination',
                 created_at DATETIME(3) NOT NULL,
                 started_at DATETIME(3) NULL,
                 finished_at DATETIME(3) NULL,
@@ -134,6 +135,7 @@ class SchemaManager {
                 KEY idx_rooms_owner_email (owner_email),
                 KEY idx_rooms_status (status),
                 KEY idx_rooms_is_private (is_private),
+                KEY idx_rooms_game_mode (game_mode),
                 CONSTRAINT fk_rooms_owner FOREIGN KEY (owner_id) REFERENCES users(id)
                     ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -200,10 +202,15 @@ class SchemaManager {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         ");
 
-        // Ensure is_private column exists in rooms table
+        // Ensure is_private and game_mode columns exist in rooms table
         try {
             $pdo->exec("ALTER TABLE rooms ADD COLUMN is_private TINYINT(1) NOT NULL DEFAULT 0");
             $pdo->exec("ALTER TABLE rooms ADD INDEX idx_rooms_is_private (is_private)");
+        } catch (\Throwable $e) {}
+
+        try {
+            $pdo->exec("ALTER TABLE rooms ADD COLUMN game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination'");
+            $pdo->exec("ALTER TABLE rooms ADD INDEX idx_rooms_game_mode (game_mode)");
         } catch (\Throwable $e) {}
 
         // Migrate any legacy @local.player emails to @prismatch

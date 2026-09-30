@@ -14,7 +14,7 @@ class RoomRepository implements RoomRepositoryInterface {
         $this->pdo = $pdo ?? Database::getConnection();
     }
 
-    public function createRoom(string $ownerId, string $ownerEmail, int $roundsTotal = 50, ?string $name = null, bool $isPrivate = false): array {
+    public function createRoom(string $ownerId, string $ownerEmail, int $roundsTotal = 25, ?string $name = null, bool $isPrivate = false, string $gameMode = 'elimination'): array {
         $roomId = Database::generateUuid();
         $guid = Database::generateUuid();
         $ownerEmail = strtolower(trim($ownerEmail));
@@ -23,13 +23,15 @@ class RoomRepository implements RoomRepositoryInterface {
         $cleanName = $name !== null ? trim($name) : null;
         if ($cleanName === '') $cleanName = null;
 
+        $cleanMode = in_array($gameMode, ['elimination', 'points'], true) ? $gameMode : 'elimination';
+
         $stmt = $this->pdo->prepare("
             INSERT INTO rooms (
                 id, guid, name, owner_id, owner_email,
-                status, rounds_total, current_round, is_private, created_at
+                status, rounds_total, current_round, is_private, game_mode, created_at
             ) VALUES (
                 :id, :guid, :name, :owner_id, :owner_email,
-                'waiting', :rounds_total, 0, :is_private, :created_at
+                'waiting', :rounds_total, 0, :is_private, :game_mode, :created_at
             )
         ");
         $stmt->execute([
@@ -40,6 +42,7 @@ class RoomRepository implements RoomRepositoryInterface {
             ':owner_email' => $ownerEmail,
             ':rounds_total' => $roundsTotal,
             ':is_private' => $isPrivate ? 1 : 0,
+            ':game_mode' => $cleanMode,
             ':created_at' => $now,
         ]);
 
@@ -55,6 +58,7 @@ class RoomRepository implements RoomRepositoryInterface {
             'rounds_total' => $roundsTotal,
             'current_round' => 0,
             'is_private' => $isPrivate ? 1 : 0,
+            'game_mode' => $cleanMode,
             'created_at' => $now,
         ];
     }

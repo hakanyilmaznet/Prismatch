@@ -15,7 +15,7 @@ if (!$email || !$userId) {
 }
 
 $input = json_decode((string)file_get_contents('php://input'), true);
-$rounds = 50;
+$rounds = 25;
 $name = (string)($input['name'] ?? ($_POST['name'] ?? ''));
 if (trim($name) === '') {
     http_response_code(400);
@@ -24,10 +24,20 @@ if (trim($name) === '') {
 }
 
 $isPrivate = !empty($input['is_private']) || !empty($_POST['is_private']);
+$gameMode = (string)($input['game_mode'] ?? ($_POST['game_mode'] ?? 'elimination'));
+if (!in_array($gameMode, ['elimination', 'points'], true)) {
+    $gameMode = 'elimination';
+}
 
 try {
-    $room = create_room((string)$userId, (string)$email, $rounds, $name, $isPrivate);
-    echo json_encode(['ok' => true, 'guid' => $room['guid'], 'is_private' => !empty($room['is_private'])]);
+    $room = create_room((string)$userId, (string)$email, $rounds, $name, $isPrivate, $gameMode);
+    echo json_encode([
+        'ok' => true,
+        'guid' => $room['guid'],
+        'is_private' => !empty($room['is_private']),
+        'game_mode' => $room['game_mode'],
+        'rounds_total' => $rounds,
+    ]);
 } catch (\Throwable $e) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'create_failed']);
