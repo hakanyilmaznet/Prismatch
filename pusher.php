@@ -26,23 +26,75 @@ function pusher_sign_query(string $body): string {
   return $queryString . '&auth_signature=' . $signature;
 }
 
-function pusher_trigger(string $channel, string $event, array $data): bool {
+function pusher_clean_data(array $data): array {
+  if (isset($data['players']) && is_array($data['players'])) {
+    $cleanPlayers = [];
+    foreach ($data['players'] as $p) {
+      if (!is_array($p)) continue;
+      $cleanPlayers[] = [
+        'user_id' => (string)($p['user_id'] ?? ''),
+        'email' => (string)($p['email'] ?? ''),
+        'status' => (string)($p['status'] ?? 'active'),
+        'score' => (int)($p['score'] ?? 0),
+        'correct' => (int)($p['correct'] ?? 0),
+        'is_online' => (int)($p['is_online'] ?? 1),
+      ];
+    }
+    $data['players'] = $cleanPlayers;
+  }
+  return $data;
+}
+
+function pusher_trigger(string $channel, string $event, array $data, ?string $socketId = null): bool {
+  if (!defined('PUSHER_KEY') || !defined('PUSHER_APP_ID') || !defined('PUSHER_SECRET') || !PUSHER_KEY || !PUSHER_APP_ID || !PUSHER_SECRET) {
+    return false;
+  }
+
   $startTime = microtime(true);
-  $payload = json_encode([
+  $cleanedData = pusher_clean_data($data);
+  $jsonData = json_encode($cleanedData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+  $eventPayload = [
     'name' => $event,
     'channel' => $channel,
-    'data' => json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-  ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    'data' => $jsonData,
+  ];
+
+  if ($socketId !== null && $socketId !== '') {
+    $eventPayload['socket_id'] = $socketId;
+  }
+
+  $payload = json_encode($eventPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+  // Safety check: Pusher Channels imposes a 10KB (10240 bytes) limit on event payloads
+  $bytes = strlen($payload);
+  if ($bytes > 9800 && class_exists('Prismatch\Core\Logger')) {
+    \Prismatch\Core\Logger::log('WARN', 'Pusher', "Large payload ({$bytes} bytes) on '{$event}' for '{$channel}'", [
+      'bytes' => $bytes,
+      'keys' => array_keys($cleanedData),
+    ]);
+  }
 
   $query = pusher_sign_query($payload);
   $url = pusher_base_url() . '?' . $query;
 
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_POST, true);
-  curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-  curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+  $ch = curl_init();
+  curl_setopt_array($ch, [
+    CURLOPT_URL => $url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => [
+      'Content-Type: application/json',
+      'Expect:', // Disable 100-continue delay
+    ],
+    CURLOPT_POSTFIELDS => $payload,
+    CURLOPT_CONNECTTIMEOUT_MS => 1500, // 1.5s connect timeout to prevent blocking HTTP workers
+    CURLOPT_TIMEOUT_MS => 3000,        // 3.0s total execution timeout (down from 8s)
+    CURLOPT_NOSIGNAL => 1,
+    CURLOPT_TCP_NODELAY => 1,          // Disable Nagle's algorithm for low latency
+    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4, // Fast IPv4 DNS resolution
+  ]);
+
   $resp = curl_exec($ch);
   $curlErr = curl_error($ch);
   $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -56,9 +108,10 @@ function pusher_trigger(string $channel, string $event, array $data): bool {
       'ok' => $ok,
       'http_code' => $code,
       'duration_ms' => $durationMs,
+      'payload_bytes' => $bytes,
       'error' => $curlErr ?: null,
       'resp' => $resp !== false ? substr((string)$resp, 0, 120) : null,
-      'data_keys' => array_keys($data),
+      'data_keys' => array_keys($cleanedData),
     ]);
   }
 

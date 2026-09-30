@@ -9,6 +9,7 @@ $lang = function_exists('get_lang') ? get_lang() : 'en';
 $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 $userEmail = $_SESSION['user_email'] ?? null;
 $userId = $_SESSION['user_id'] ?? null;
+$canViewLogs = strtolower(trim((string)$userEmail)) === 'yilmazmukerrem@gmail.com';
 $showLangPicker = true;
 
 function tt(string $key, string $fallback = ''): string {
@@ -753,7 +754,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     <span id="toastText"></span>
   </div>
 
-  <!-- In-Game Debug / Log Panel Toggle & Drawer -->
+  <?php if ($canViewLogs): ?>
+  <!-- In-Game Debug / Log Panel Toggle & Drawer (yilmazmukerrem@gmail.com only) -->
   <div id="debugLogToggleBtn" class="debug-log-toggle" title="Debug / Hata Ayıklama">
     🐞 <?= htmlspecialchars(tt('room_debug_logs', 'Logs')) ?>
   </div>
@@ -768,12 +770,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     </div>
     <div id="debugLogDrawerBody" class="debug-log-body"></div>
   </div>
+  <?php endif; ?>
 
   <?php include __DIR__ . '/footer.php'; ?>
 
   <!-- Pusher JS -->
   <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
   <script>
+    const CAN_VIEW_LOGS = <?= json_encode($canViewLogs) ?>;
     const ME_EMAIL = <?= json_encode($userEmail) ?>;
     const ME_ID = <?= json_encode((string)$userId) ?>;
     const GUID = <?= json_encode($guid) ?>;
@@ -892,6 +896,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     };
 
     function wireDebugLogs() {
+      if (!CAN_VIEW_LOGS) return;
       const toggleBtn = document.getElementById('debugLogToggleBtn');
       const drawer = document.getElementById('debugLogDrawer');
       const closeBtn = document.getElementById('debugCloseLogsBtn');
@@ -1293,8 +1298,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       });
     }
 
-    function renderLeaderboard(players) {
+    function renderLeaderboard(players, targetRound = null) {
       if (state.phase === 'finished') return;
+      const r = targetRound || state.round;
+      if (state.phase === 'intermission' && state.leaderboardRound === r) {
+        if (Array.isArray(players) && players.length > 0) {
+          state.players = players;
+          renderPlayers(players);
+        }
+        return;
+      }
+      state.leaderboardRound = r;
       state.phase = 'intermission';
       if (state.countdownInterval) clearInterval(state.countdownInterval);
       if (state.activeTimer) clearInterval(state.activeTimer);
@@ -1368,6 +1382,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       if (state.phase === 'finished' && data.round !== 1 && !data.is_restart) {
         RoomLogger.warn('GameState', 'applyRoundData skipped because game is finished and not restart', data);
+        return;
+      }
+
+      if (data.round < state.round && !data.is_restart && data.round !== 1) {
+        RoomLogger.warn('GameState', `applyRoundData skipped: stale round ${data.round} < ${state.round}`);
         return;
       }
 
@@ -1499,7 +1518,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                   ${sorted.map((p, idx) => {
                     const isMe = p.email === ME_EMAIL || String(p.user_id) === String(ME_ID);
                     const isElim = p.status === 'eliminated';
-                    const isWin = (idx === 0 && !isElim);
+                    const isWin = (idx === 0);
                     const pName = p.email ? p.email.split('@')[0] : (p.nickname || STR.player);
                     const pScore = Number(p.score) || 0;
                     let rankBadge = '';
@@ -1781,22 +1800,42 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
     }
 
-    // Pusher Setup
+    // Pusher Setup & Dual-Channel Sync Variables
+    let isPusherConnected = false;
+    let tickTimerId = null;
+
+    function scheduleNextTick(delayMs = null) {
+      if (tickTimerId) clearTimeout(tickTimerId);
+      const interval = delayMs !== null ? delayMs : (isPusherConnected ? 2400 : 1000);
+      tickTimerId = setTimeout(performTickSync, interval);
+    }
+
     if (PUSHER_KEY) {
       RoomLogger.info('Pusher', `Initializing Pusher key=${PUSHER_KEY} cluster=${PUSHER_CLUSTER}`);
       const pusher = new Pusher(PUSHER_KEY, {
         cluster: PUSHER_CLUSTER,
         authEndpoint: 'api/pusher_auth.php',
-        forceTLS: true
+        forceTLS: true,
+        enableStats: false,
+        activityTimeout: 30000,
+        pongTimeout: 6000
       });
 
       pusher.connection.bind('state_change', (states) => {
         RoomLogger.info('Pusher', `Connection state changed: ${states.previous} -> ${states.current}`);
         if (states.current === 'connected') {
+          isPusherConnected = true;
           hudStatus.textContent = state.phase === 'lobby' ? STR.waiting : (state.phase === 'finished' ? STR.finished : STR.active);
           hudStatus.className = 'hud-val ' + (state.phase === 'finished' ? 'text-success' : 'text-info');
-        } else if (states.current === 'unavailable' || states.current === 'failed') {
-          RoomLogger.warn('Pusher', 'Connection lost or unavailable; polling will handle sync');
+          // If reconnected after a drop, immediately trigger a resync to catch any missed events
+          if (states.previous && states.previous !== 'initialized') {
+            RoomLogger.info('Pusher', 'Reconnected to Pusher; scheduling immediate resync');
+            scheduleNextTick(0);
+          }
+        } else if (states.current === 'unavailable' || states.current === 'failed' || states.current === 'disconnected') {
+          isPusherConnected = false;
+          RoomLogger.warn('Pusher', 'Connection lost or unavailable; fast polling fallback enabled');
+          scheduleNextTick(1000);
         }
       });
 
@@ -1882,7 +1921,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       channel.bind('room:leaderboard', (data) => {
         RoomLogger.info('Pusher', 'Event room:leaderboard received', data);
         if (state.phase === 'finished') return;
-        renderLeaderboard(data.players || []);
+        renderLeaderboard(data.players || [], data.round);
       });
 
       channel.bind('room:finished', (data) => {
@@ -1916,8 +1955,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       el.addEventListener('click', () => { sendLeaveBeacon(); });
     });
 
-    // Periodic Keep-Alive and State Synchronization Tick (every 1200ms)
-    setInterval(async () => {
+    // Adaptive Keep-Alive and State Synchronization Tick (Dual-channel)
+    async function performTickSync() {
       try {
         const res = await fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID));
         const data = await res.json();
@@ -1943,12 +1982,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           applyRoundData(data);
         } else if (data.status === 'intermission' && state.phase === 'question') {
           RoomLogger.info('TickSync', 'Round intermission detected, rendering leaderboard', data);
-          renderLeaderboard(data.players || []);
+          renderLeaderboard(data.players || [], data.round);
         }
       } catch(e) {
         RoomLogger.debug('TickSync', 'Tick fetch error (harmless)', e);
+      } finally {
+        scheduleNextTick();
       }
-    }, 1200);
+    }
+
+    // Kick off initial sync ticker
+    scheduleNextTick(1200);
 
     function wireCopyInviteBtn() {
       const copyBtn = document.getElementById('copyInviteLinkBtn');
@@ -1967,7 +2011,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       });
     }
 
-    wireDebugLogs();
+    if (CAN_VIEW_LOGS) {
+      wireDebugLogs();
+    }
     wireCopyInviteBtn();
     initRoom();
   </script>

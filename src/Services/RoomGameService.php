@@ -464,32 +464,6 @@ class RoomGameService {
             if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
         }
 
-        // Realtime update: notify presence channel about this player's answer / elimination
-        if (function_exists('pusher_trigger')) {
-            pusher_trigger('presence-room-' . $guid, 'room:update', [
-                'guid' => $guid,
-                'round' => $round,
-                'players' => $freshPlayers,
-                'eliminated' => $isCorrect ? null : $email,
-            ]);
-        }
-
-        // Check if game has ended: only 1 non-eliminated player remains (or all players eliminated)
-        if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0 || $round >= (int)$room['rounds_total']) {
-            Logger::room('processAnswer:game_over', $guid, ['active_count' => $activeCount, 'round' => $round]);
-            $finishResult = $this->finishGame($roomId, $round, $guid);
-            return [
-                'ok' => true,
-                'correct' => $isCorrect,
-                'score_delta' => $scoreDelta,
-                'finished' => true,
-                'players' => $finishResult['players'],
-            ];
-        }
-
-        // =========================================================================
-        // REQUIREMENT 3: Tüm oyuncular seçim yaptıktan sonra turu hemen bitir!
-        // =========================================================================
         // Participating players in this round are players who were NOT eliminated before this round
         // (i.e. eliminated_round IS NULL or eliminated_round >= $round).
         $partStmt = $this->pdo->prepare("
@@ -529,6 +503,24 @@ class RoomGameService {
             Logger::room('processAnswer:all_players_answered_ending_round', $guid, ['round' => $round]);
             $this->endRound($roomId, $round);
 
+            // Check if game has ended now that ALL participants have answered:
+            // - At most 1 active survivor remains (when at least 2 were in the match)
+            // - Or ALL players were eliminated (activeCount === 0)
+            // - Or maximum rounds reached
+            if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0 || $round >= (int)$room['rounds_total']) {
+                Logger::room('processAnswer:game_over', $guid, ['active_count' => $activeCount, 'round' => $round]);
+                $finishResult = $this->finishGame($roomId, $round, $guid);
+                return [
+                    'ok' => true,
+                    'correct' => $isCorrect,
+                    'score_delta' => $scoreDelta,
+                    'finished' => true,
+                    'round_ended' => true,
+                    'all_answered' => true,
+                    'players' => $finishResult['players'],
+                ];
+            }
+
             if (function_exists('pusher_trigger')) {
                 pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
                     'guid' => $guid,
@@ -548,6 +540,18 @@ class RoomGameService {
             ];
         }
 
+        // Only broadcast intermediate progress if round is still in progress and waiting for others
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:update', [
+                'guid' => $guid,
+                'round' => $round,
+                'players' => $freshPlayers,
+                'eliminated' => $isCorrect ? null : $email,
+                'answered_count' => $answeredCount,
+                'total_participants' => $totalParticipants,
+            ]);
+        }
+
         return [
             'ok' => true,
             'correct' => $isCorrect,
@@ -556,6 +560,7 @@ class RoomGameService {
             'all_answered' => false,
             'answered_count' => $answeredCount,
             'total_participants' => $totalParticipants,
+            'players' => $freshPlayers,
         ];
     }
 
@@ -577,27 +582,32 @@ class RoomGameService {
         $players = $this->roomRepo->listPlayers($roomId);
         $winner = !empty($players) ? $players[0] : null;
 
-        // Award 5000 win bonus points to the winner if not already awarded
+        // Award 5000 win bonus points to the winner if eligible and not already awarded:
+        // A player is eligible for the win bonus if they are the active survivor OR they scored points (> 0).
+        // If everyone has 0 points and everyone was eliminated, no win bonus is awarded.
         if ($winner && !empty($winner['user_id'])) {
-            $winnerUserId = (string)$winner['user_id'];
-            $winnerEmail = (string)$winner['email'];
+            $isEligible = ($winner['status'] === 'active' || (int)($winner['score'] ?? 0) > 0);
+            if ($isEligible) {
+                $winnerUserId = (string)$winner['user_id'];
+                $winnerEmail = (string)$winner['email'];
 
-            $checkBonus = $this->pdo->prepare("
-                SELECT COUNT(*) FROM room_events
-                WHERE room_id = :rid AND event_type = 'win_bonus'
-            ");
-            $checkBonus->execute([':rid' => $roomId]);
-            $alreadyAwarded = (int)$checkBonus->fetchColumn() > 0;
+                $checkBonus = $this->pdo->prepare("
+                    SELECT COUNT(*) FROM room_events
+                    WHERE room_id = :rid AND event_type = 'win_bonus'
+                ");
+                $checkBonus->execute([':rid' => $roomId]);
+                $alreadyAwarded = (int)$checkBonus->fetchColumn() > 0;
 
-            if (!$alreadyAwarded) {
-                $bonusPoints = 5000;
-                $this->roomRepo->addScore($roomId, $winnerUserId, $bonusPoints, 0);
-                $this->roomRepo->logEvent($roomId, $round, $winnerUserId, $winnerEmail, 'win_bonus', [
-                    'bonus' => $bonusPoints,
-                    'winner_id' => $winnerUserId,
-                    'winner_email' => $winnerEmail,
-                ]);
-                Logger::room('finishGame:win_bonus_awarded', $guid, ['winner_id' => $winnerUserId, 'winner_email' => $winnerEmail, 'bonus' => $bonusPoints]);
+                if (!$alreadyAwarded) {
+                    $bonusPoints = 5000;
+                    $this->roomRepo->addScore($roomId, $winnerUserId, $bonusPoints, 0);
+                    $this->roomRepo->logEvent($roomId, $round, $winnerUserId, $winnerEmail, 'win_bonus', [
+                        'bonus' => $bonusPoints,
+                        'winner_id' => $winnerUserId,
+                        'winner_email' => $winnerEmail,
+                    ]);
+                    Logger::room('finishGame:win_bonus_awarded', $guid, ['winner_id' => $winnerUserId, 'winner_email' => $winnerEmail, 'bonus' => $bonusPoints]);
+                }
             }
         }
 
