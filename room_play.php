@@ -330,19 +330,21 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     /* Victory & Final Standings Showcase */
     .victory-container {
       width: 100%;
-      max-width: 560px;
+      max-width: 760px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       animation: fadeIn 0.4s ease;
+      box-sizing: border-box;
+      padding: 0 4px;
     }
     .victory-header {
       text-align: center;
       margin-bottom: 12px;
     }
     .victory-trophy {
-      font-size: 48px;
+      font-size: 44px;
       line-height: 1;
       margin-bottom: 4px;
       filter: drop-shadow(0 4px 18px rgba(255, 193, 7, 0.45));
@@ -363,76 +365,270 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       color: var(--arena-muted);
       margin: 0;
     }
-    .champion-card {
-      position: relative;
+
+    /* Olympic Ranking Podium */
+    .podium-wrapper {
       width: 100%;
-      border-radius: 18px;
-      padding: 16px 20px;
-      background: linear-gradient(135deg, rgba(255, 193, 7, 0.16), rgba(255, 107, 91, 0.1));
-      border: 2px solid rgba(255, 193, 7, 0.45);
-      box-shadow: 0 10px 30px rgba(255, 193, 7, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(10px);
+      margin: 10px 0 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    .podium-stage {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 580px;
+    }
+    .podium-col {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 6px;
-      margin-bottom: 14px;
+      min-width: 0;
     }
-    .champion-card--me {
-      background: linear-gradient(135deg, rgba(32, 183, 125, 0.16), rgba(255, 193, 7, 0.16));
-      border-color: rgba(32, 183, 125, 0.6);
-      box-shadow: 0 10px 32px rgba(32, 183, 125, 0.2);
-    }
-    .champion-badge-pill {
-      display: inline-flex;
+    .podium-player-info {
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: rgba(255, 193, 7, 0.25);
-      border: 1px solid rgba(255, 193, 7, 0.55);
-      color: #ffd166;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
+      margin-bottom: 8px;
+      width: 100%;
+      min-height: 96px;
+      justify-content: flex-end;
     }
-    .champion-you-tag {
-      background: #20b77d;
-      color: #fff;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 800;
+    .podium-crown {
+      font-size: 24px;
+      line-height: 1;
+      margin-bottom: -2px;
+      animation: trophyFloat 1.8s ease-in-out infinite alternate;
     }
-    .champion-name {
+    .podium-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 5px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      position: relative;
+    }
+    .podium-col-1 .podium-avatar {
+      width: 54px;
+      height: 54px;
+      font-size: 28px;
+      background: radial-gradient(circle at 35% 35%, #fff6cc, #ffd700, #b8860b);
+      border: 3px solid #ffea79;
+      box-shadow: 0 0 22px rgba(255, 215, 0, 0.5);
+    }
+    .podium-col-2 .podium-avatar {
+      background: radial-gradient(circle at 35% 35%, #ffffff, #cfd8dc, #78909c);
+      border: 2px solid #eceff1;
+      box-shadow: 0 0 14px rgba(207, 216, 220, 0.4);
+    }
+    .podium-col-3 .podium-avatar {
+      background: radial-gradient(circle at 35% 35%, #fde0c5, #cd7f32, #7a3c10);
+      border: 2px solid #e0a370;
+      box-shadow: 0 0 14px rgba(205, 127, 50, 0.4);
+    }
+    .podium-name {
       font-family: "Baloo 2", sans-serif;
-      font-size: 26px;
-      font-weight: 900;
+      font-size: 14px;
+      font-weight: 700;
       color: #fff;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      justify-content: center;
+      line-height: 1.2;
+    }
+    .podium-col-1 .podium-name {
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .podium-score {
+      font-size: 12px;
+      font-weight: 700;
+      color: #ffd166;
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+      margin-top: 2px;
+    }
+    .podium-col-1 .podium-score {
+      font-size: 14px;
+    }
+    .podium-pedestal {
+      width: 100%;
+      border-radius: 14px 14px 4px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 10px;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.4);
+    }
+    .pedestal-1 {
+      height: 120px;
+      background: linear-gradient(180deg, #ffc837 0%, #ff8008 100%);
+      border: 2px solid #ffe57f;
+      border-bottom: none;
+    }
+    .pedestal-2 {
+      height: 88px;
+      background: linear-gradient(180deg, #b0bec5 0%, #455a64 100%);
+      border: 2px solid #cfd8dc;
+      border-bottom: none;
+    }
+    .pedestal-3 {
+      height: 64px;
+      background: linear-gradient(180deg, #b87333 0%, #5d2e0c 100%);
+      border: 2px solid #d79a6d;
+      border-bottom: none;
+    }
+    .podium-num {
+      font-size: 34px;
+      font-weight: 900;
+      line-height: 1;
+      font-family: "Rubik", sans-serif;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .podium-col-1 .podium-num {
+      font-size: 42px;
+    }
+    .podium-bonus-tag {
+      margin-top: 4px;
+      font-size: 9px;
+      font-weight: 800;
+      background: rgba(0,0,0,0.3);
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .podium-empty {
+      opacity: 0.35;
+      font-style: italic;
+    }
+
+    /* Personal Round-by-Round Stats */
+    .personal-stats-section {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid var(--arena-border);
+      border-radius: 18px;
+      overflow: hidden;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    .stats-header-bar {
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid var(--arena-border);
+      text-align: left;
+    }
+    .stats-header-bar h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 0 2px 0;
       display: flex;
       align-items: center;
       gap: 6px;
-      word-break: break-all;
     }
-    .champion-score {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 5px;
-      color: #ffd166;
+    .stats-header-bar p {
+      font-size: 12px;
+      color: var(--arena-muted);
+      margin: 0;
+    }
+    .stats-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(0,0,0,0.15);
+      border-bottom: 1px solid var(--arena-border);
+    }
+    .stat-metric-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .stat-metric-val {
+      font-size: 16px;
       font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
     }
-    .champion-score .score-num {
-      font-size: 22px;
-      line-height: 1;
+    .stat-metric-lbl {
+      font-size: 11px;
+      color: var(--arena-muted);
+      margin-top: 2px;
     }
-    .champion-score .score-label {
-      font-size: 13px;
+    .round-stats-table-wrap {
+      width: 100%;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+    .round-stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+      margin: 0;
+    }
+    .round-stats-table th {
+      position: sticky;
+      top: 0;
+      background: #0f172a;
+      padding: 9px 12px;
+      font-size: 11px;
+      font-weight: 700;
       color: var(--arena-muted);
       text-transform: uppercase;
-      font-weight: 600;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--arena-border);
+      z-index: 1;
+    }
+    .round-stats-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+      color: var(--arena-text);
+    }
+    .round-stats-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .color-swatch-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .color-swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+    .swatch-hex {
+      font-family: monospace;
+      font-size: 11px;
+      color: #e2e8f0;
     }
     .victory-standings {
       width: 100%;
@@ -574,15 +770,20 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       .hud-val {
         font-size: 15px;
       }
-      .champion-card {
-        padding: 14px 16px;
+      .stats-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
-      .champion-name {
-        font-size: 22px;
+      .podium-stage {
+        gap: 6px;
       }
-      .champion-score .score-num {
-        font-size: 19px;
-      }
+      .pedestal-1 { height: 95px; }
+      .pedestal-2 { height: 72px; }
+      .pedestal-3 { height: 52px; }
+      .podium-col-1 .podium-num { font-size: 32px; }
+      .podium-num { font-size: 26px; }
+      .podium-col-1 .podium-avatar { width: 44px; height: 44px; font-size: 22px; }
+      .podium-avatar { width: 36px; height: 36px; font-size: 18px; }
+      .podium-name { font-size: 12px; }
     }
 
     /* In-Game Debug Log Drawer & Waiting Notice Styles */
@@ -855,9 +1056,21 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       waitingMinPlayers: <?= json_encode(tt('room_waiting_min_players', 'Waiting for at least 2 players to start...')) ?>,
       winBonus: <?= json_encode(tt('room_win_bonus', 'Win Bonus')) ?>,
       waitingOthers: <?= json_encode(tt('room_waiting_others', 'Seçiminiz kaydedildi. Diğer oyuncular bekleniyor...')) ?>,
-      allAnsweredNext: <?= json_encode(tt('room_all_answered_next', 'Tüm oyuncular seçim yaptı! Sonraki tura geçiliyor...')) ?>,
       offline: <?= json_encode(tt('room_player_offline', 'Ayrıldı')) ?>,
       online: <?= json_encode(tt('room_player_online', 'Çevrimiçi')) ?>,
+      personalStatsTitle: <?= json_encode(tt('room_personal_stats', 'Tur İstatistikleriniz')) ?>,
+      personalStatsDesc: <?= json_encode(tt('room_personal_stats_desc', 'Her turdaki hedef renk, yaptığınız seçim, tepki süreniz ve puan değişiminiz')) ?>,
+      statAvgSpeed: <?= json_encode(tt('room_stat_avg_speed', 'Ortalama Süre')) ?>,
+      statFastest: <?= json_encode(tt('room_stat_fastest', 'En Hızlı')) ?>,
+      statAccuracy: <?= json_encode(tt('room_stat_accuracy', 'İsabet Oranı')) ?>,
+      statTotalDelta: <?= json_encode(tt('room_stat_total_delta', 'Net Puan')) ?>,
+      colRound: <?= json_encode(tt('room_col_round', 'Tur')) ?>,
+      colTarget: <?= json_encode(tt('room_col_target', 'Hedef Renk')) ?>,
+      colPicked: <?= json_encode(tt('room_col_picked', 'Verilen Cevap')) ?>,
+      colTime: <?= json_encode(tt('room_col_time', 'Süre')) ?>,
+      colResult: <?= json_encode(tt('room_col_result', 'Sonuç & Puan')) ?>,
+      colCorrect: <?= json_encode(tt('room_col_correct', 'Doğru')) ?>,
+      statTimeoutBadge: <?= json_encode(tt('room_stat_timeout_badge', 'Süre Doldu')) ?>,
     };
 
     function escapeHtml(s) {
@@ -975,6 +1188,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       intermissionTimer: null,
       players: [],
       presenceMemberIds: new Set(),
+      myRoundStats: [],
     };
 
     function isPlayerOnline(p) {
@@ -1257,6 +1471,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         gridEl.parentNode.appendChild(notice);
       }
 
+      const myStatEntry = {
+        round: state.round,
+        target: state.targetColor,
+        picked: color,
+        is_timeout: false,
+        correct: isCorrect,
+        response_ms: responseMs,
+        score_delta: 0
+      };
+      state.myRoundStats.push(myStatEntry);
+
       RoomLogger.info('Answer', `Picked color=${color} (${isCorrect ? 'CORRECT' : 'WRONG'}) in ${responseMs}ms for round ${state.round}`);
 
       try {
@@ -1275,6 +1500,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         RoomLogger.info('Answer', 'Server response received', data);
 
         if (data.ok && typeof data.score_delta !== 'undefined') {
+          myStatEntry.score_delta = data.score_delta;
           state.score += data.score_delta;
           hudScore.textContent = String(state.score);
           if (data.score_delta < 0) {
@@ -1306,6 +1532,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.answered = true;
       cells.forEach(c => c.disabled = true);
       playTone(200, 0.25, 'sawtooth');
+
+      state.myRoundStats.push({
+        round: state.round,
+        target: state.targetColor,
+        picked: null,
+        is_timeout: true,
+        correct: false,
+        response_ms: state.answerMs,
+        score_delta: 0
+      });
 
       if (state.gameMode === 'elimination') {
         state.eliminated = true;
@@ -1479,6 +1715,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       if (data.round === 1 || data.is_restart) {
         state.score = 0;
         state.eliminated = false;
+        state.myRoundStats = [];
         hudScore.textContent = '0';
       }
 
@@ -1528,15 +1765,59 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
 
       const sorted = sortPlayers(list || []);
-      const winner = sorted.length > 0 ? sorted[0] : null;
-      const isWinnerMe = winner ? (winner.email === ME_EMAIL || String(winner.user_id) === String(ME_ID)) : false;
-      const winnerName = winner ? (winner.email ? winner.email.split('@')[0] : (winner.nickname || STR.player)) : STR.winnerEveryone;
-      const winnerScore = winner ? (Number(winner.score) || 0) : 0;
+      const p1 = sorted.length > 0 ? sorted[0] : null;
+      const p2 = sorted.length > 1 ? sorted[1] : null;
+      const p3 = sorted.length > 2 ? sorted[2] : null;
 
       const meRow = (sorted || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
       if (meRow) {
         state.score = Number(meRow.score) || 0;
         hudScore.textContent = String(state.score);
+      }
+
+      function renderPodiumCol(player, rankNum, cssClass) {
+        if (!player) {
+          return `
+            <div class="podium-col ${cssClass}">
+              <div class="podium-player-info">
+                <div class="podium-avatar podium-empty">-</div>
+                <div class="podium-name podium-empty">-</div>
+                <div class="podium-score podium-empty">-</div>
+              </div>
+              <div class="podium-pedestal pedestal-${rankNum}">
+                <div class="podium-num">${rankNum}</div>
+              </div>
+            </div>
+          `;
+        }
+
+        const isMe = player.email === ME_EMAIL || String(player.user_id) === String(ME_ID);
+        const name = player.email ? player.email.split('@')[0] : (player.nickname || STR.player);
+        const score = Number(player.score) || 0;
+        const medalIcon = rankNum === 1 ? '🥇' : (rankNum === 2 ? '🥈' : '🥉');
+
+        return `
+          <div class="podium-col ${cssClass}">
+            <div class="podium-player-info">
+              ${rankNum === 1 ? '<div class="podium-crown">👑</div>' : ''}
+              <div class="podium-avatar">
+                <span>${medalIcon}</span>
+              </div>
+              <div class="podium-name" title="${escapeHtml(name)}">
+                <span>${escapeHtml(name)}</span>
+                ${isMe ? `<span class="badge bg-warning text-dark fs-7 ms-1 py-0 px-1">${STR.you}</span>` : ''}
+              </div>
+              <div class="podium-score">
+                <span>${score.toLocaleString()}</span>
+                <span class="score-pts">${STR.pts}</span>
+              </div>
+            </div>
+            <div class="podium-pedestal pedestal-${rankNum}">
+              <div class="podium-num">${rankNum}</div>
+              ${rankNum === 1 ? `<div class="podium-bonus-tag">🎁 +5.000 ${STR.winBonus}</div>` : ''}
+            </div>
+          </div>
+        `;
       }
 
       stageContent.innerHTML = `
@@ -1547,21 +1828,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <p class="stage-subtitle victory-subtitle">${STR.concludedDesc}</p>
           </div>
 
-          <div class="champion-card ${isWinnerMe ? 'champion-card--me' : ''}">
-            <div class="champion-badge-pill">
-              <span>🏆 1. ${STR.rank}</span>
-              ${isWinnerMe ? `<span class="champion-you-tag">🎉 ${STR.youWon}</span>` : ''}
-            </div>
-            <div class="champion-name">
-              <span>${winnerName}</span>
-              ${isWinnerMe ? `<span class="badge bg-warning text-dark fs-6 ms-1">${STR.you}</span>` : ''}
-            </div>
-            <div class="champion-score">
-              <span class="score-num">${winnerScore.toLocaleString()}</span>
-              <span class="score-label">${STR.pts}</span>
-            </div>
-            <div class="mt-1">
-              <span class="badge bg-warning text-dark fw-bold px-2 py-1 fs-7 shadow-sm">🎁 +5.000 ${STR.winBonus}</span>
+          <div class="podium-wrapper">
+            <div class="podium-stage">
+              ${renderPodiumCol(p2, 2, 'podium-col-2')}
+              ${renderPodiumCol(p1, 1, 'podium-col-1')}
+              ${renderPodiumCol(p3, 3, 'podium-col-3')}
             </div>
           </div>
 
@@ -1576,6 +1847,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                   <tr>
                     <th class="col-rank">#</th>
                     <th class="col-player">${STR.player}</th>
+                    <th class="col-correct text-center">${STR.colCorrect || 'Doğru'}</th>
                     <th class="col-score text-end">${STR.score}</th>
                     <th class="col-status text-center">${STR.status}</th>
                   </tr>
@@ -1587,6 +1859,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                     const isWin = (idx === 0);
                     const pName = p.email ? p.email.split('@')[0] : (p.nickname || STR.player);
                     const pScore = Number(p.score) || 0;
+                    const pCorrect = typeof p.correct_count !== 'undefined' ? Number(p.correct_count) : '-';
                     let rankBadge = '';
                     if (idx === 0) rankBadge = '<span class="rank-badge rank-1">🥇</span>';
                     else if (idx === 1) rankBadge = '<span class="rank-badge rank-2">🥈</span>';
@@ -1598,9 +1871,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                         <td class="col-rank">${rankBadge}</td>
                         <td class="col-player">
                           <div class="player-cell">
-                            <span class="player-name">${pName}</span>
+                            <span class="player-name">${escapeHtml(pName)}</span>
                             ${isMe ? `<span class="badge-you">${STR.you}</span>` : ''}
                           </div>
+                        </td>
+                        <td class="col-correct text-center">
+                          <span class="badge bg-dark-subtle text-light border px-2">${pCorrect}</span>
                         </td>
                         <td class="col-score text-end">
                           <span class="score-badge">${pScore.toLocaleString()} <span class="score-pts">${STR.pts}</span></span>
@@ -1632,8 +1908,55 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             ` : ''}
             <a class="btn btn-outline-secondary" href="rooms.php">← ${STR.backToRooms}</a>
           </div>
+
+          <div id="personalStatsSection" class="personal-stats-section">
+            <div class="stats-header-bar">
+              <h3>🎯 ${STR.personalStatsTitle}</h3>
+              <p>${STR.personalStatsDesc}</p>
+            </div>
+            <div id="statsSummaryGrid" class="stats-summary-grid">
+              <div class="stat-metric-card">
+                <div id="statAvgSpeed" class="stat-metric-val"><span class="spinner-border spinner-border-sm"></span></div>
+                <div class="stat-metric-lbl">⚡ ${STR.statAvgSpeed}</div>
+              </div>
+              <div class="stat-metric-card">
+                <div id="statFastest" class="stat-metric-val"><span class="spinner-border spinner-border-sm"></span></div>
+                <div class="stat-metric-lbl">🚀 ${STR.statFastest}</div>
+              </div>
+              <div class="stat-metric-card">
+                <div id="statAccuracy" class="stat-metric-val"><span class="spinner-border spinner-border-sm"></span></div>
+                <div class="stat-metric-lbl">🎯 ${STR.statAccuracy}</div>
+              </div>
+              <div class="stat-metric-card">
+                <div id="statTotalDelta" class="stat-metric-val"><span class="spinner-border spinner-border-sm"></span></div>
+                <div class="stat-metric-lbl">📈 ${STR.statTotalDelta}</div>
+              </div>
+            </div>
+            <div class="round-stats-table-wrap">
+              <table class="round-stats-table">
+                <thead>
+                  <tr>
+                    <th style="width: 55px">${STR.colRound}</th>
+                    <th>${STR.colTarget}</th>
+                    <th>${STR.colPicked}</th>
+                    <th style="width: 100px" class="text-center">${STR.colTime}</th>
+                    <th style="width: 140px" class="text-end">${STR.colResult}</th>
+                  </tr>
+                </thead>
+                <tbody id="personalStatsBody">
+                  <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                      <span class="spinner-border spinner-border-sm me-2"></span>${STR.waiting || 'Yükleniyor...'}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       `;
+
+      loadPlayerStatsTable();
 
       if (state.isHost) {
         const restartMatchBtn = document.getElementById('restartMatchBtn');
@@ -1718,6 +2041,111 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
     }
 
+    async function loadPlayerStatsTable() {
+      const bodyEl = document.getElementById('personalStatsBody');
+      const avgEl = document.getElementById('statAvgSpeed');
+      const fastEl = document.getElementById('statFastest');
+      const accEl = document.getElementById('statAccuracy');
+      const deltaEl = document.getElementById('statTotalDelta');
+
+      function renderStatsUI(summary, roundsList) {
+        if (avgEl) avgEl.textContent = (summary.avg_response_ms || 0) + ' ms';
+        if (fastEl) fastEl.textContent = (summary.fastest_response_ms || 0) + ' ms';
+        if (accEl) accEl.textContent = `${summary.correct_count || 0}/${summary.total_rounds || 0} (${summary.accuracy_percent || 0}%)`;
+        if (deltaEl) {
+          const d = summary.total_score_delta || 0;
+          deltaEl.textContent = (d > 0 ? '+' : '') + d.toLocaleString() + ' ' + STR.pts;
+          deltaEl.className = 'stat-metric-val ' + (d >= 0 ? 'text-success' : 'text-danger');
+        }
+
+        if (!bodyEl) return;
+        if (!roundsList || roundsList.length === 0) {
+          bodyEl.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">-</td></tr>`;
+          return;
+        }
+
+        bodyEl.innerHTML = roundsList.map(st => {
+          const targetBox = st.target
+            ? `<div class="color-swatch-cell">
+                 <span class="color-swatch" style="background: ${escapeHtml(st.target)}"></span>
+                 <span class="swatch-hex">${escapeHtml(st.target.toUpperCase())}</span>
+               </div>`
+            : '-';
+
+          let pickedBox = '';
+          if (st.is_timeout || !st.picked) {
+            pickedBox = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">⏱️ ${STR.statTimeoutBadge}</span>`;
+          } else {
+            pickedBox = `<div class="color-swatch-cell">
+                           <span class="color-swatch" style="background: ${escapeHtml(st.picked)}"></span>
+                           <span class="swatch-hex">${escapeHtml(st.picked.toUpperCase())}</span>
+                         </div>`;
+          }
+
+          const timeVal = st.is_timeout ? '-' : `${st.response_ms || 0} ms`;
+          let resultBadge = '';
+          if (st.correct) {
+            resultBadge = `<span class="badge bg-success-subtle text-success border border-success-subtle">✅ +${(st.score_delta || 0).toLocaleString()}</span>`;
+          } else if (st.is_timeout) {
+            resultBadge = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">⏱️ 0 ${STR.pts}</span>`;
+          } else if (state.gameMode === 'elimination') {
+            resultBadge = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle">💀 ${STR.eliminated}</span>`;
+          } else {
+            resultBadge = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle">❌ ${(st.score_delta || 0).toLocaleString()}</span>`;
+          }
+
+          return `
+            <tr>
+              <td class="fw-bold text-secondary">#${st.round}</td>
+              <td>${targetBox}</td>
+              <td>${pickedBox}</td>
+              <td class="text-center">
+                <span class="badge bg-dark-subtle text-light border px-2">${timeVal}</span>
+              </td>
+              <td class="text-end">${resultBadge}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Check if we have local stats immediately available as instant preview
+      if (state.myRoundStats && state.myRoundStats.length > 0) {
+        const localList = state.myRoundStats;
+        let totalMs = 0, answeredCount = 0, fastest = null, correct = 0, delta = 0;
+        localList.forEach(s => {
+          if (s.correct) correct++;
+          if (!s.is_timeout && s.response_ms > 0) {
+            totalMs += s.response_ms;
+            answeredCount++;
+            if (fastest === null || s.response_ms < fastest) fastest = s.response_ms;
+          }
+          delta += (s.score_delta || 0);
+        });
+        const summary = {
+          total_rounds: localList.length,
+          correct_count: correct,
+          accuracy_percent: localList.length > 0 ? Math.round((correct / localList.length) * 100) : 0,
+          avg_response_ms: answeredCount > 0 ? Math.round(totalMs / answeredCount) : 0,
+          fastest_response_ms: fastest || 0,
+          total_score_delta: delta
+        };
+        renderStatsUI(summary, localList);
+      }
+
+      // Fetch authoritative events from backend
+      try {
+        const res = await fetch(`api/rooms_player_stats.php?guid=${encodeURIComponent(GUID)}`);
+        const data = await res.json();
+        if (data && data.ok && Array.isArray(data.stats) && data.stats.length > 0) {
+          renderStatsUI(data.summary || {}, data.stats);
+        } else if (!state.myRoundStats || state.myRoundStats.length === 0) {
+          if (bodyEl) bodyEl.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">-</td></tr>`;
+        }
+      } catch (err) {
+        RoomLogger.error('PlayerStats', 'Failed to fetch personal stats from server', err);
+      }
+    }
+
     function resetToLobby(players) {
       if (state.countdownInterval) { clearInterval(state.countdownInterval); clearTimeout(state.countdownInterval); state.countdownInterval = null; }
       if (state.activeTimer) clearInterval(state.activeTimer);
@@ -1729,6 +2157,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.answered = false;
       state.targetColor = null;
       state.gridColors = [];
+      state.myRoundStats = [];
 
       hudRound.textContent = '-';
       hudScore.textContent = '0';
