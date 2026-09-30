@@ -271,6 +271,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       gap: 10px;
       margin: 6px auto 0 auto;
     }
+    .choice-grid.grid-loading {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .choice-grid.grid-ready {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.08s ease-in;
+    }
     .choice-cell {
       appearance: none;
       border: 3px solid rgba(255,255,255,0.15);
@@ -1060,6 +1069,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     const PUSHER_KEY = <?= json_encode(defined('PUSHER_KEY') ? PUSHER_KEY : '') ?>;
     const PUSHER_CLUSTER = <?= json_encode(defined('PUSHER_CLUSTER') ? PUSHER_CLUSTER : 'eu') ?>;
     const ROOM_GAME_MODE = <?= json_encode($room['game_mode'] ?? 'elimination') ?>;
+    const ALL_FLAGS = <?= json_encode((($room['game_mode'] ?? '') === 'flags') ? \Prismatch\Services\RoomGameService::getFlagPalette() : []) ?>;
 
     const STR = {
       correct: <?= json_encode(tt('badge_correct', 'Correct!')) ?>,
@@ -1157,6 +1167,59 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       if (!path) return '';
       const base = String(path).split('/').pop() || '';
       return base.replace(/\.png$/i, '').replace(/[-_]/g, ' ');
+    }
+
+    // Flag Image Preloader & Cache: Hedef bayrağın diğerlerinden önce yüklenip kendini ele vermesini önler
+    const flagImageCache = new Map();
+
+    function preloadFlagImage(src) {
+      if (!src) return Promise.resolve(src);
+      if (flagImageCache.has(src)) {
+        return flagImageCache.get(src);
+      }
+      const p = new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          if (typeof img.decode === 'function') {
+            img.decode().then(() => resolve(src)).catch(() => resolve(src));
+          } else {
+            resolve(src);
+          }
+        };
+        img.onerror = () => resolve(src);
+        img.src = src;
+      });
+      flagImageCache.set(src, p);
+      return p;
+    }
+
+    function preloadFlagImages(urls) {
+      if (!Array.isArray(urls) || urls.length === 0) return Promise.resolve([]);
+      return Promise.all(urls.map(u => preloadFlagImage(u)));
+    }
+
+    let backgroundPreloadStarted = false;
+    function backgroundPreloadAllFlags() {
+      if (backgroundPreloadStarted || !Array.isArray(ALL_FLAGS) || ALL_FLAGS.length === 0) return;
+      backgroundPreloadStarted = true;
+      let idx = 0;
+      function step() {
+        if (idx >= ALL_FLAGS.length) return;
+        const batch = ALL_FLAGS.slice(idx, idx + 6);
+        idx += 6;
+        preloadFlagImages(batch).then(() => {
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(step, { timeout: 1000 });
+          } else {
+            setTimeout(step, 80);
+          }
+        });
+      }
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(step, { timeout: 1000 });
+      } else {
+        setTimeout(step, 200);
+      }
     }
 
     // In-Browser Debug Logger with visual drawer integration
@@ -1258,6 +1321,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       phase: 'lobby', // 'lobby', 'countdown', 'show', 'question', 'intermission', 'finished'
       targetColor: null,
       gridColors: [],
+      gridPreloadPromise: null,
       showMs: 3000,
       answerMs: 5000,
       countdownMs: 3000,
@@ -1458,7 +1522,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       if (isFlag) {
         boxHtml = `
           <div class="target-box target-box-flag">
-            <img src="${escapeHtml(state.targetColor)}" class="target-flag-img" alt="Target Flag">
+            <img src="${escapeHtml(state.targetColor)}" class="target-flag-img" alt="Target Flag" loading="eager" decoding="sync">
           </div>
         `;
       } else {
@@ -1477,11 +1541,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     // Step 3: Question & Interactive Grid Phase
-    function runQuestion() {
+    async function runQuestion() {
       state.phase = 'question';
       state.answered = false;
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
-      state.questionStartTs = performance.now();
 
       const isFlag = isFlagTarget(state.targetColor);
       const pickTitle = isFlag ? STR.pickFlag : STR.pickColor;
@@ -1493,10 +1556,22 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       stageContent.innerHTML = `
         <h2 class="stage-title">${pickTitle}</h2>
         <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : STR.chooseFast}</div>
-        <div class="choice-grid" id="choiceGrid"></div>
+        <div class="choice-grid ${isFlag ? 'grid-loading' : ''}" id="choiceGrid"></div>
       `;
 
+      // Bayrak modunda: Hedef bayrak önceden belleğe alındığı için seçeneklerdeki diğer bayraklardan
+      // önce yüklenip kendini ele vermemesi adına tüm bayrak dosyalarının indiğinden emin ol
+      if (isFlag && state.gridPreloadPromise) {
+        await Promise.race([
+          state.gridPreloadPromise,
+          new Promise(r => setTimeout(r, 350))
+        ]);
+      }
+
+      state.questionStartTs = performance.now();
+
       const gridEl = document.getElementById('choiceGrid');
+      if (!gridEl) return;
       const cells = [];
       const count = (state.gridColors && state.gridColors.length) || 9;
       const cols = Math.round(Math.sqrt(count)) || 3;
@@ -1511,7 +1586,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         btn.className = 'choice-cell';
         if (isFlag) {
           btn.classList.add('choice-cell-flag');
-          btn.innerHTML = `<img src="${escapeHtml(item)}" class="choice-flag-img" alt="Flag">`;
+          btn.innerHTML = `<img src="${escapeHtml(item)}" class="choice-flag-img" alt="Flag" loading="eager" decoding="sync">`;
         } else {
           btn.style.background = item;
         }
@@ -1525,6 +1600,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         gridEl.appendChild(btn);
         cells.push(btn);
       });
+
+      if (isFlag) {
+        // Tüm bayraklar hazır, ızgarayı aynı anda pürüzsüzce görünür yap
+        requestAnimationFrame(() => {
+          gridEl.classList.remove('grid-loading');
+          gridEl.classList.add('grid-ready');
+        });
+      }
 
       // Timer countdown for answering
       let remaining = state.answerMs;
@@ -1821,6 +1904,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.answerMs = data.answer_ms || 5000;
       state.countdownMs = data.countdown_ms || 3000;
       state.answered = false;
+
+      // Tur başlamadan önce bu turda gösterilecek tüm bayrak dosyalarını (hedef ve tüm seçenekler) hemen indir
+      if (state.gameMode === 'flags' || isFlagTarget(state.targetColor)) {
+        const roundFlags = Array.from(new Set([
+          ...(Array.isArray(state.gridColors) ? state.gridColors : []),
+          state.targetColor
+        ])).filter(src => isFlagTarget(src));
+        state.gridPreloadPromise = preloadFlagImages(roundFlags);
+        RoomLogger.info('Flags', `Preloading ${roundFlags.length} flags before round ${state.round}`);
+      } else {
+        state.gridPreloadPromise = Promise.resolve();
+      }
 
       if (data.round === 1 || data.is_restart) {
         state.score = 0;
@@ -2274,6 +2369,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.answered = false;
       state.targetColor = null;
       state.gridColors = [];
+      state.gridPreloadPromise = null;
       state.myRoundStats = [];
 
       hudRound.textContent = '-';
@@ -2398,6 +2494,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         const room = data.room;
         if (room.game_mode) state.gameMode = room.game_mode;
+        if (state.gameMode === 'flags') backgroundPreloadAllFlags();
         if (room.rounds_total) state.roundsTotal = Number(room.rounds_total);
         state.isHost = (room.owner_id && ME_ID) ? (String(room.owner_id) === String(ME_ID)) : (String(room.owner_email || '').toLowerCase() === String(ME_EMAIL || '').toLowerCase());
         renderPlayers(data.players || []);
@@ -2645,6 +2742,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       wireDebugLogs();
     }
     wireCopyInviteBtn();
+    if (ROOM_GAME_MODE === 'flags') {
+      backgroundPreloadAllFlags();
+    }
     initRoom();
   </script>
 </body>
