@@ -156,14 +156,58 @@ class RoomRepository implements RoomRepositoryInterface {
     }
 
     public function listPlayers(string $roomId): array {
+        $cutoff = (new \DateTimeImmutable('-8 seconds', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s.v');
         $stmt = $this->pdo->prepare("
-            SELECT user_id, email, status, eliminated_round, score, correct, joined_at, last_active
+            SELECT user_id, email, status, eliminated_round, score, correct, joined_at, last_active,
+                   CASE WHEN last_active IS NOT NULL AND last_active >= :cutoff THEN 1 ELSE 0 END AS is_online
             FROM room_players
             WHERE room_id = :rid
             ORDER BY (status = 'active') DESC, score DESC, correct DESC, joined_at ASC
         ");
-        $stmt->execute([':rid' => $roomId]);
-        return $stmt->fetchAll() ?: [];
+        $stmt->execute([':rid' => $roomId, ':cutoff' => $cutoff]);
+        $rows = $stmt->fetchAll() ?: [];
+        foreach ($rows as &$r) {
+            $r['is_online'] = (int)($r['is_online'] ?? 0);
+        }
+        return $rows;
+    }
+
+    public function touchPlayer(string $roomId, string $userId, bool $reactivate = false): void {
+        $now = Database::nowUtc();
+        if ($reactivate) {
+            $stmt = $this->pdo->prepare("
+                UPDATE room_players
+                SET last_active = :now, status = 'active'
+                WHERE room_id = :rid AND user_id = :uid
+            ");
+        } else {
+            $stmt = $this->pdo->prepare("
+                UPDATE room_players
+                SET last_active = :now
+                WHERE room_id = :rid AND user_id = :uid
+            ");
+        }
+        $stmt->execute([':now' => $now, ':rid' => $roomId, ':uid' => $userId]);
+    }
+
+    public function removePlayer(string $roomId, string $userId): bool {
+        $stmt = $this->pdo->prepare("
+            DELETE FROM room_players
+            WHERE room_id = :rid AND user_id = :uid
+        ");
+        return $stmt->execute([':rid' => $roomId, ':uid' => $userId]);
+    }
+
+    public function cleanupStalePlayers(string $roomId, string $ownerId, int $staleSeconds = 8): int {
+        $cutoff = (new \DateTimeImmutable("-{$staleSeconds} seconds", new \DateTimeZone('UTC')))->format('Y-m-d H:i:s.v');
+        $stmt = $this->pdo->prepare("
+            DELETE FROM room_players
+            WHERE room_id = :rid 
+              AND user_id != :owner_id
+              AND (last_active IS NULL OR last_active < :cutoff)
+        ");
+        $stmt->execute([':rid' => $roomId, ':owner_id' => $ownerId, ':cutoff' => $cutoff]);
+        return $stmt->rowCount();
     }
 
     public function markEliminated(string $roomId, string $userId, int $roundIndex): void {

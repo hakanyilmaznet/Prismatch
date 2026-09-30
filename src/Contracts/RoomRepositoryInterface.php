@@ -11,6 +11,9 @@ interface RoomRepositoryInterface {
     public function listPublicRooms(int $limit = 20): array;
     public function addPlayer(string $roomId, string $userId, string $email): bool;
     public function listPlayers(string $roomId): array;
+    public function touchPlayer(string $roomId, string $userId, bool $reactivate = false): void;
+    public function removePlayer(string $roomId, string $userId): bool;
+    public function cleanupStalePlayers(string $roomId, string $ownerId, int $staleSeconds = 8): int;
     public function markEliminated(string $roomId, string $userId, int $roundIndex): void;
     public function addScore(string $roomId, string $userId, int $scoreDelta, int $correctDelta): void;
     public function setStatus(string $roomId, string $status, ?int $finishedRound = null): void;

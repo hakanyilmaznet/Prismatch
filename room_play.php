@@ -269,6 +269,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       opacity: 0.5;
       text-decoration: line-through;
     }
+    .player-tag.offline {
+      opacity: 0.5;
+      border-style: dashed;
+      background: rgba(100, 116, 139, 0.1);
+    }
+    .player-tag.offline .live-dot {
+      background: #64748b !important;
+      box-shadow: none !important;
+    }
     .live-dot {
       width: 7px;
       height: 7px;
@@ -824,6 +833,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       winBonus: <?= json_encode(tt('room_win_bonus', 'Win Bonus')) ?>,
       waitingOthers: <?= json_encode(tt('room_waiting_others', 'Seçiminiz kaydedildi. Diğer oyuncular bekleniyor...')) ?>,
       allAnsweredNext: <?= json_encode(tt('room_all_answered_next', 'Tüm oyuncular seçim yaptı! Sonraki tura geçiliyor...')) ?>,
+      offline: <?= json_encode(tt('room_player_offline', 'Ayrıldı')) ?>,
+      online: <?= json_encode(tt('room_player_online', 'Çevrimiçi')) ?>,
     };
 
     function escapeHtml(s) {
@@ -938,7 +949,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       countdownInterval: null,
       intermissionTimer: null,
       players: [],
+      presenceMemberIds: new Set(),
     };
+
+    function isPlayerOnline(p) {
+      if (!p) return false;
+      const uid = String(p.user_id || '');
+      const email = String(p.email || '');
+      if (email === ME_EMAIL || (ME_ID && uid === ME_ID)) return true;
+      if (state.presenceMemberIds && state.presenceMemberIds.has(uid)) return true;
+      return (p.is_online !== 0 && p.is_online !== false && p.is_online !== '0');
+    }
 
     // UI Elements
     const hudRound = document.getElementById('hudRound');
@@ -987,18 +1008,27 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
       if (!playerList) return;
       playerList.innerHTML = '';
-      (players || []).forEach(p => {
-        const isMe = p.email === ME_EMAIL || p.user_id === ME_ID;
+      (state.players || []).forEach(p => {
+        const isMe = p.email === ME_EMAIL || String(p.user_id) === String(ME_ID);
         const isElim = p.status === 'eliminated';
+        const isOnline = isPlayerOnline(p);
+
         const tag = document.createElement('div');
-        tag.className = 'player-tag' + (isMe ? ' self' : '') + (isElim ? ' eliminated' : '');
+        tag.className = 'player-tag' + (isMe ? ' self' : '') + (isElim ? ' eliminated' : '') + (!isOnline ? ' offline' : '');
+
         const dot = document.createElement('span');
         dot.className = 'live-dot';
-        if (isElim) dot.style.background = '#64748b';
+        if (isElim || !isOnline) {
+          dot.style.background = '#64748b';
+          dot.style.boxShadow = 'none';
+        }
         tag.appendChild(dot);
 
         const nameSpan = document.createElement('span');
-        nameSpan.textContent = p.email.split('@')[0] + (isMe ? ' ' + STR.you : '') + (isElim ? ' 💀' : '');
+        let statusSuffix = '';
+        if (isElim) statusSuffix = ' 💀';
+        else if (!isOnline) statusSuffix = ` (${STR.offline})`;
+        nameSpan.textContent = (p.email ? p.email.split('@')[0] : (p.nickname || STR.player)) + (isMe ? ' ' + STR.you : '') + statusSuffix;
         tag.appendChild(nameSpan);
 
         if (p.score > 0) {
@@ -1020,7 +1050,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       const btn = document.getElementById('startMatchBtn');
       const notice = document.getElementById('minPlayersNotice');
       if (!btn) return;
-      const count = (state.players || []).length;
+      const onlinePlayers = (state.players || []).filter(isPlayerOnline);
+      const count = onlinePlayers.length;
       if (count < 2) {
         btn.disabled = true;
         btn.classList.add('opacity-75');
@@ -1524,7 +1555,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const backToLobbyBtn = document.getElementById('backToLobbyBtn');
 
         restartMatchBtn?.addEventListener('click', async () => {
-          if ((state.players || []).length < 2) {
+          const onlineCount = (state.players || []).filter(isPlayerOnline).length;
+          if (onlineCount < 2) {
             showToast(STR.minPlayersRequired, false);
             return;
           }
@@ -1668,7 +1700,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     async function handleStartMatch() {
-      if ((state.players || []).length < 2) {
+      const onlinePlayers = (state.players || []).filter(isPlayerOnline);
+      if (onlinePlayers.length < 2) {
         showToast(STR.minPlayersRequired, false);
         return;
       }
@@ -1771,6 +1804,50 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       channel.bind('pusher:subscription_succeeded', (members) => {
         RoomLogger.info('Pusher', `Subscription succeeded to presence-room-${GUID}`, { count: members.count });
+        state.presenceMemberIds = new Set();
+        members.each((member) => {
+          if (member.id) state.presenceMemberIds.add(String(member.id));
+        });
+        renderPlayers(state.players);
+      });
+
+      channel.bind('pusher:member_added', (member) => {
+        RoomLogger.info('Pusher', 'Player connected to presence channel', member);
+        if (member && member.id) {
+          state.presenceMemberIds.add(String(member.id));
+        }
+        if (state.phase === 'lobby') {
+          fetch('api/rooms_state.php?guid=' + encodeURIComponent(GUID))
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.ok && Array.isArray(data.players)) {
+                renderPlayers(data.players);
+              }
+            }).catch(() => {});
+        } else {
+          renderPlayers(state.players);
+        }
+      });
+
+      channel.bind('pusher:member_removed', (member) => {
+        RoomLogger.info('Pusher', 'Player disconnected from presence channel', member);
+        if (member && member.id) {
+          const removedId = String(member.id);
+          state.presenceMemberIds.delete(removedId);
+          if (state.phase === 'lobby') {
+            state.players = (state.players || []).filter(p => String(p.user_id) !== removedId);
+            renderPlayers(state.players);
+            updateStartButtonState();
+          } else {
+            state.players = (state.players || []).map(p => {
+              if (String(p.user_id) === removedId) {
+                return { ...p, is_online: 0 };
+              }
+              return p;
+            });
+            renderPlayers(state.players);
+          }
+        }
       });
 
       channel.bind('pusher:subscription_error', (status) => {
@@ -1817,6 +1894,28 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     // Host Start Button Trigger
     startMatchBtn?.addEventListener('click', handleStartMatch);
 
+    // Leave Beacon: Inform server when player closes tab or navigates away
+    function sendLeaveBeacon() {
+      try {
+        const payload = JSON.stringify({guid: GUID});
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('api/rooms_leave.php', new Blob([payload], {type: 'application/json'}));
+        } else {
+          fetch('api/rooms_leave.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: payload,
+            keepalive: true
+          });
+        }
+      } catch(e) {}
+    }
+    window.addEventListener('beforeunload', sendLeaveBeacon);
+    window.addEventListener('pagehide', sendLeaveBeacon);
+    document.querySelectorAll('a[href="rooms.php"]').forEach(el => {
+      el.addEventListener('click', () => { sendLeaveBeacon(); });
+    });
+
     // Periodic Keep-Alive and State Synchronization Tick (every 1200ms)
     setInterval(async () => {
       try {
@@ -1833,6 +1932,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         } else if (data.status === 'waiting' && state.phase !== 'lobby' && state.phase !== 'finished') {
           RoomLogger.info('TickSync', 'Room reset to waiting lobby', data);
           resetToLobby(data.players || []);
+        } else if (data.status === 'waiting' && state.phase === 'lobby' && Array.isArray(data.players)) {
+          state.players = data.players;
+          renderPlayers(data.players);
         } else if ((state.phase === 'finished' || state.phase === 'lobby') && data.status === 'active' && data.round >= 1 && data.question) {
           RoomLogger.info('TickSync', 'Match restarted/active, applying round', data);
           applyRoundData(data);

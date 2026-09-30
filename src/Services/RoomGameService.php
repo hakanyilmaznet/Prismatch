@@ -138,11 +138,14 @@ class RoomGameService {
             return ['ok' => true, 'finished' => true];
         }
 
-        // Multiplayer rooms require at least 2 players to start
+        // Multiplayer rooms require at least 2 online players to start
         if ($current === 0 || $room['status'] === 'waiting') {
+            $ownerId = (string)($room['owner_id'] ?? $userId);
+            $this->roomRepo->cleanupStalePlayers($roomId, $ownerId, 8);
             $players = $this->roomRepo->listPlayers($roomId);
-            if (count($players) < 2) {
-                Logger::room('startOrNextRound:min_players_required', $guid, ['count' => count($players)], 'WARN');
+            $onlinePlayers = array_filter($players, fn($p) => !empty($p['is_online']));
+            if (count($onlinePlayers) < 2) {
+                Logger::room('startOrNextRound:min_players_required', $guid, ['online_count' => count($onlinePlayers), 'total_players' => count($players)], 'WARN');
                 return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
             }
         }
@@ -166,6 +169,9 @@ class RoomGameService {
         $roomId = (string)$room['id'];
         $now = Database::nowUtc();
 
+        // 1. Purge stale players who left or went offline before restarting room
+        $this->roomRepo->cleanupStalePlayers($roomId, $userId, 8);
+
         $this->pdo->beginTransaction();
         try {
             // Reset room status and round counter
@@ -180,17 +186,19 @@ class RoomGameService {
             ");
             $stmtRoom->execute([':rid' => $roomId]);
 
-            // Reset all players in the room to active, 0 score, 0 correct, clear elimination
+            // Reset only active/remaining players in the room (do not revive or update last_active of offline players)
             $stmtPlayers = $this->pdo->prepare("
                 UPDATE room_players
                 SET status = 'active',
                     eliminated_round = NULL,
                     score = 0,
-                    correct = 0,
-                    last_active = :now
+                    correct = 0
                 WHERE room_id = :rid
             ");
-            $stmtPlayers->execute([':now' => $now, ':rid' => $roomId]);
+            $stmtPlayers->execute([':rid' => $roomId]);
+
+            // Touch host's active timestamp
+            $this->roomRepo->touchPlayer($roomId, $userId, true);
 
             // Clean up previous rounds and events for clean state
             $stmtDelRounds = $this->pdo->prepare("DELETE FROM room_rounds WHERE room_id = :rid");
@@ -210,8 +218,9 @@ class RoomGameService {
         }
 
         $freshPlayers = $this->roomRepo->listPlayers($roomId);
+        $onlinePlayers = array_filter($freshPlayers, fn($p) => !empty($p['is_online']));
 
-        // Broadcast room:reset to all players so all clients leave victory screen & reset state
+        // Broadcast room:reset to all connected players
         if (function_exists('pusher_trigger')) {
             pusher_trigger('presence-room-' . $guid, 'room:reset', [
                 'guid' => $guid,
@@ -220,15 +229,15 @@ class RoomGameService {
                 'players' => $freshPlayers,
                 'restarting' => $startImmediately,
             ]);
-            Logger::room('restartRoom:pusher_reset_triggered', $guid, ['players_count' => count($freshPlayers)]);
+            Logger::room('restartRoom:pusher_reset_triggered', $guid, ['players_count' => count($freshPlayers), 'online_count' => count($onlinePlayers)]);
         }
 
         if ($startImmediately) {
             $freshRoom = $this->roomRepo->getRoomById($roomId);
             if ($freshRoom) {
-                if (count($freshPlayers) < 2) {
-                    Logger::room('restartRoom:min_players_required', $guid, ['count' => count($freshPlayers)], 'WARN');
-                    return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
+                if (count($onlinePlayers) < 2) {
+                    Logger::room('restartRoom:min_players_required', $guid, ['online_count' => count($onlinePlayers), 'total' => count($freshPlayers)], 'WARN');
+                    return ['ok' => false, 'error' => 'min_players_required', 'code' => 400, 'players' => $freshPlayers];
                 }
                 Logger::room('restartRoom:advancing_to_round_1', $guid);
                 $advResult = $this->advanceToRound($freshRoom, 1);
@@ -628,13 +637,18 @@ class RoomGameService {
         ];
     }
 
-    public function tick(string $guid): array {
+    public function tick(string $guid, ?string $userId = null): array {
         $room = $this->roomRepo->getRoomByGuid($guid);
         if (!$room) {
             return ['error' => 'not_found', 'code' => 404];
         }
 
         $roomId = (string)$room['id'];
+
+        if ($userId !== null && $userId !== '') {
+            $this->roomRepo->touchPlayer($roomId, $userId);
+        }
+
         if ($room['status'] === 'finished' || (int)$room['rounds_total'] <= 0) {
             $players = $this->roomRepo->listPlayers($roomId);
             return ['ok' => true, 'status' => 'finished', 'finished' => true, 'players' => $players];
@@ -642,7 +656,12 @@ class RoomGameService {
 
         $current = (int)$room['current_round'];
         if ($room['status'] === 'waiting' && $current === 0) {
-            return ['ok' => true, 'status' => 'waiting'];
+            $ownerId = (string)($room['owner_id'] ?? '');
+            if ($ownerId !== '') {
+                $this->roomRepo->cleanupStalePlayers($roomId, $ownerId, 10);
+            }
+            $players = $this->roomRepo->listPlayers($roomId);
+            return ['ok' => true, 'status' => 'waiting', 'players' => $players];
         }
 
         $st = $this->pdo->prepare("SELECT started_at, ended_at, question_json FROM room_rounds WHERE room_id = :rid AND round_index = :r LIMIT 1");
@@ -767,4 +786,49 @@ class RoomGameService {
             'players' => $this->roomRepo->listPlayers($roomId),
         ];
     }
+
+    public function leaveRoom(string $guid, string $userId): array {
+        Logger::room('leaveRoom:attempt', $guid, ['user_id' => $userId]);
+        $room = $this->roomRepo->getRoomByGuid($guid);
+        if (!$room) {
+            return ['ok' => false, 'error' => 'not_found', 'code' => 404];
+        }
+
+        $roomId = (string)$room['id'];
+        $status = (string)$room['status'];
+
+        if ($status === 'waiting' || $status === 'finished') {
+            $this->roomRepo->removePlayer($roomId, $userId);
+            $players = $this->roomRepo->listPlayers($roomId);
+            Logger::room('leaveRoom:removed_from_lobby', $guid, ['user_id' => $userId, 'remaining' => count($players)]);
+
+            if (function_exists('pusher_trigger')) {
+                pusher_trigger('presence-room-' . $guid, 'room:update', [
+                    'guid' => $guid,
+                    'round' => (int)$room['current_round'],
+                    'players' => $players,
+                    'left_user_id' => $userId,
+                ]);
+            }
+            return ['ok' => true, 'players' => $players];
+        }
+
+        // Active game: mark eliminated
+        $current = (int)$room['current_round'];
+        $this->roomRepo->markEliminated($roomId, $userId, $current);
+        $players = $this->roomRepo->listPlayers($roomId);
+        Logger::room('leaveRoom:marked_eliminated', $guid, ['user_id' => $userId, 'round' => $current]);
+
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:update', [
+                'guid' => $guid,
+                'round' => $current,
+                'players' => $players,
+                'left_user_id' => $userId,
+            ]);
+        }
+
+        return ['ok' => true, 'players' => $players];
+    }
 }
+
