@@ -205,6 +205,9 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           <div class="input-group">
             <input id="shareLink" class="form-control" type="text" readonly />
             <button id="copyLinkBtn" class="btn btn-dark" type="button"><?= htmlspecialchars(tt('rooms_copy', 'Copy Link')) ?></button>
+            <a id="shareWhatsappBtn" class="btn btn-success d-inline-flex align-items-center gap-1" href="#" target="_blank" rel="noopener noreferrer">
+              <span>💬</span> <?= htmlspecialchars(tt('rooms_share_whatsapp', 'WhatsApp ile Gönder')) ?>
+            </a>
             <a id="openRoomBtn" class="btn btn-primary" href="#"><?= htmlspecialchars(tt('rooms_open', 'Enter Room')) ?> →</a>
           </div>
           <div id="shareMsg" class="small text-success"></div>
@@ -385,6 +388,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       copyLink: <?= json_encode(tt('rooms_copy', 'Copy Link')) ?>,
       createdSuccess: <?= json_encode(tt('rooms_created_success', 'Room created successfully! Share this link with players:')) ?>,
       createdPrivateSuccess: <?= json_encode(tt('rooms_created_private_success', 'Private room created! Only players with this link can enter:')) ?>,
+      shareWhatsappText: <?= json_encode(tt('rooms_share_whatsapp_text', "Prismatch'te benimle oda oyununa katıl! 🎮 Bağlantı:")) ?>,
     };
 
     // Mode card selection behavior
@@ -442,6 +446,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             shareWrap.hidden = false;
             shareLink.value = url;
             if (openRoomBtn) openRoomBtn.href = url;
+            const shareWhatsappBtn = document.getElementById('shareWhatsappBtn');
+            if (shareWhatsappBtn) {
+              shareWhatsappBtn.href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent((STR.shareWhatsappText || "Prismatch'te benimle oda oyununa katıl! 🎮 Bağlantı:") + ' ' + url);
+            }
             const successTitle = document.getElementById('shareSuccessTitle');
             if (successTitle) {
               successTitle.textContent = isPrivate ? ('🔒 ' + STR.createdPrivateSuccess) : ('🎉 ' + STR.createdSuccess);

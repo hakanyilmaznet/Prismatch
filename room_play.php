@@ -738,6 +738,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           <button id="copyInviteLinkBtn" class="btn btn-outline-light" type="button">
             🔗 <?= htmlspecialchars(tt('room_copy_invite', 'Copy Invite Link')) ?>
           </button>
+          <a id="shareWhatsappLobbyBtn" class="btn btn-success d-inline-flex align-items-center gap-1" href="#" target="_blank" rel="noopener noreferrer">
+            <span>💬</span> <?= htmlspecialchars(tt('rooms_share_whatsapp', 'WhatsApp ile Gönder')) ?>
+          </a>
           <div id="hostControls" class="d-none">
             <button id="startMatchBtn" class="btn btn-action btn-lg">
               🚀 <?= htmlspecialchars(tt('room_start_btn', 'Start Match')) ?>
@@ -844,6 +847,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       startMatch: <?= json_encode(tt('room_start_btn', 'Start Match')) ?>,
       copyInvite: <?= json_encode(tt('room_copy_invite', 'Copy Invite Link')) ?>,
       inviteCopied: <?= json_encode(tt('room_invite_copied', 'Invite link copied to clipboard! Share it with your friends.')) ?>,
+      shareWhatsapp: <?= json_encode(tt('rooms_share_whatsapp', 'WhatsApp ile Gönder')) ?>,
+      shareWhatsappText: <?= json_encode(tt('rooms_share_whatsapp_text', "Prismatch'te benimle oda oyununa katıl! 🎮 Bağlantı:")) ?>,
       privateBadge: <?= json_encode(tt('rooms_private_badge', 'Private')) ?>,
       errorGeneric: <?= json_encode(tt('error_generic', 'An error occurred. Please try again.')) ?>,
       minPlayersRequired: <?= json_encode(tt('room_min_players', 'Room games can only be started when at least 2 players have joined.')) ?>,
@@ -1750,6 +1755,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <button id="copyInviteLinkBtn" class="btn btn-outline-light" type="button">
               🔗 ${STR.copyInvite}
             </button>
+            <a id="shareWhatsappLobbyBtn" class="btn btn-success d-inline-flex align-items-center gap-1" href="#" target="_blank" rel="noopener noreferrer">
+              <span>💬</span> ${STR.shareWhatsapp}
+            </a>
             <div id="hostControls" class="${state.isHost ? '' : 'd-none'}">
               <button id="startMatchBtn" class="btn btn-action btn-lg">
                 🚀 ${STR.startMatch}
@@ -2079,6 +2087,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           showToast(STR.inviteCopied, true);
         }
       });
+
+      const waBtn = document.getElementById('shareWhatsappLobbyBtn');
+      if (waBtn) {
+        const url = window.location.href;
+        waBtn.href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent((STR.shareWhatsappText || "Prismatch'te benimle oda oyununa katıl! 🎮 Bağlantı:") + ' ' + url);
+      }
     }
 
     if (CAN_VIEW_LOGS) {
