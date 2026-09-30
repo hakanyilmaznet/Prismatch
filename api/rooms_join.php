@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../pusher.php';
 
+use Prismatch\Core\Logger;
 use Prismatch\Services\RoomGameService;
 
 header('Content-Type: application/json; charset=utf-8');
@@ -24,13 +25,17 @@ if ($guid === '') {
     exit;
 }
 
+Logger::info('API:rooms_join', "Player join request for guid={$guid} by user={$userId}, email={$email}");
 $service = new RoomGameService();
 $result = $service->joinRoom($guid, (string)$userId, (string)$email);
 
 if (!($result['ok'] ?? false)) {
-    http_response_code($result['code'] ?? 400);
+    $code = (int)($result['code'] ?? 400);
+    http_response_code($code);
+    Logger::warning('API:rooms_join', "Failed join for guid={$guid}, code={$code}, error=" . ($result['error'] ?? 'unknown'));
     echo json_encode($result);
     exit;
 }
 
+Logger::info('API:rooms_join', "Player joined successfully for guid={$guid}");
 echo json_encode($result);

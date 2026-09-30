@@ -574,6 +574,100 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         font-size: 19px;
       }
     }
+
+    /* In-Game Debug Log Drawer & Waiting Notice Styles */
+    .waiting-others-box {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      padding: 10px 16px;
+      color: #fbbf24;
+      font-size: 14px;
+      animation: pulseGlow 1.8s infinite ease-in-out;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.85; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.01); }
+    }
+    .debug-log-toggle {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      z-index: 1050;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .debug-log-toggle:hover {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.5);
+      transform: translateY(-2px);
+    }
+    .debug-log-drawer {
+      position: fixed;
+      bottom: 50px;
+      right: 12px;
+      width: min(640px, 94vw);
+      height: 340px;
+      z-index: 1050;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+    }
+    .debug-log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      background: rgba(30, 41, 59, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px 14px 0 0;
+      color: #cbd5e1;
+      font-weight: bold;
+    }
+    .debug-log-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .debug-log-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: baseline;
+      line-height: 1.4;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .debug-log-line:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .debug-log-error { color: #f87171; }
+    .debug-log-warn { color: #facc15; }
+    .debug-log-info { color: #38bdf8; }
   </style>
 </head>
 <body class="pm-has-fixed-header">
@@ -650,6 +744,22 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     <span id="toastText"></span>
   </div>
 
+  <!-- In-Game Debug / Log Panel Toggle & Drawer -->
+  <div id="debugLogToggleBtn" class="debug-log-toggle" title="Debug / Hata Ayıklama">
+    🐞 <?= htmlspecialchars(tt('room_debug_logs', 'Logs')) ?>
+  </div>
+  <div id="debugLogDrawer" class="debug-log-drawer d-none">
+    <div class="debug-log-header">
+      <span>🐞 <?= htmlspecialchars(tt('room_debug_logs', 'Oda Oyunu Logları / Debug Console')) ?></span>
+      <div class="d-flex gap-2">
+        <button id="debugCopyLogsBtn" class="btn btn-sm btn-outline-light py-0">📋 <?= htmlspecialchars(tt('room_copy_logs', 'Kopyala')) ?></button>
+        <button id="debugClearLogsBtn" class="btn btn-sm btn-outline-secondary py-0">🧹 <?= htmlspecialchars(tt('room_clear_logs', 'Temizle')) ?></button>
+        <button id="debugCloseLogsBtn" class="btn btn-sm btn-outline-danger py-0">✕</button>
+      </div>
+    </div>
+    <div id="debugLogDrawerBody" class="debug-log-body"></div>
+  </div>
+
   <?php include __DIR__ . '/footer.php'; ?>
 
   <!-- Pusher JS -->
@@ -712,7 +822,103 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       minPlayersRequired: <?= json_encode(tt('room_min_players', 'Room games can only be started when at least 2 players have joined.')) ?>,
       waitingMinPlayers: <?= json_encode(tt('room_waiting_min_players', 'Waiting for at least 2 players to start...')) ?>,
       winBonus: <?= json_encode(tt('room_win_bonus', 'Win Bonus')) ?>,
+      waitingOthers: <?= json_encode(tt('room_waiting_others', 'Seçiminiz kaydedildi. Diğer oyuncular bekleniyor...')) ?>,
+      allAnsweredNext: <?= json_encode(tt('room_all_answered_next', 'Tüm oyuncular seçim yaptı! Sonraki tura geçiliyor...')) ?>,
     };
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // In-Browser Debug Logger with visual drawer integration
+    const RoomLogger = {
+      logs: [],
+      maxLogs: 250,
+      log(type, tag, msg, data = null) {
+        const now = new Date();
+        const time = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+        const entry = { time, type, tag, msg, data };
+        this.logs.push(entry);
+        if (this.logs.length > this.maxLogs) this.logs.shift();
+        window.RoomLogHistory = this.logs;
+
+        const colorMap = {
+          INFO: 'color: #38bdf8; font-weight: 600',
+          WARN: 'color: #facc15; font-weight: 600',
+          ERROR: 'color: #f87171; font-weight: 700',
+          DEBUG: 'color: #a78bfa'
+        };
+        const style = colorMap[type] || 'color: #94a3b8';
+        if (data !== null) {
+          console.log(`%c[${time}] [${type}] [${tag}] ${msg}`, style, data);
+        } else {
+          console.log(`%c[${time}] [${type}] [${tag}] ${msg}`, style);
+        }
+
+        this.renderToDrawer();
+      },
+      info(tag, msg, data = null) { this.log('INFO', tag, msg, data); },
+      warn(tag, msg, data = null) { this.log('WARN', tag, msg, data); },
+      error(tag, msg, data = null) { this.log('ERROR', tag, msg, data); },
+      debug(tag, msg, data = null) { this.log('DEBUG', tag, msg, data); },
+
+      renderToDrawer() {
+        const drawerBody = document.getElementById('debugLogDrawerBody');
+        const drawer = document.getElementById('debugLogDrawer');
+        if (!drawerBody || !drawer || drawer.classList.contains('d-none')) return;
+
+        drawerBody.innerHTML = this.logs.map(l => `
+          <div class="debug-log-line debug-log-${l.type.toLowerCase()}">
+            <span class="text-secondary">[${l.time}]</span>
+            <span class="badge ${l.type === 'ERROR' ? 'bg-danger' : (l.type === 'WARN' ? 'bg-warning text-dark' : 'bg-secondary')} py-0 px-1">${l.type}</span>
+            <span class="text-info fw-semibold">[${escapeHtml(l.tag)}]</span>
+            <span>${escapeHtml(l.msg)}</span>
+            ${l.data !== null ? `<span class="text-muted small">${escapeHtml(typeof l.data === 'object' ? JSON.stringify(l.data) : String(l.data))}</span>` : ''}
+          </div>
+        `).join('');
+        drawerBody.scrollTop = drawerBody.scrollHeight;
+      }
+    };
+
+    function wireDebugLogs() {
+      const toggleBtn = document.getElementById('debugLogToggleBtn');
+      const drawer = document.getElementById('debugLogDrawer');
+      const closeBtn = document.getElementById('debugCloseLogsBtn');
+      const clearBtn = document.getElementById('debugClearLogsBtn');
+      const copyBtn = document.getElementById('debugCopyLogsBtn');
+
+      toggleBtn?.addEventListener('click', () => {
+        if (!drawer) return;
+        const isHidden = drawer.classList.contains('d-none');
+        if (isHidden) {
+          drawer.classList.remove('d-none');
+          RoomLogger.renderToDrawer();
+        } else {
+          drawer.classList.add('d-none');
+        }
+      });
+
+      closeBtn?.addEventListener('click', () => {
+        drawer?.classList.add('d-none');
+      });
+
+      clearBtn?.addEventListener('click', () => {
+        RoomLogger.logs = [];
+        window.RoomLogHistory = [];
+        const drawerBody = document.getElementById('debugLogDrawerBody');
+        if (drawerBody) drawerBody.innerHTML = '';
+        RoomLogger.info('DebugConsole', 'Log history cleared by user');
+      });
+
+      copyBtn?.addEventListener('click', async () => {
+        const text = RoomLogger.logs.map(l => `[${l.time}] [${l.type}] [${l.tag}] ${l.msg} ${l.data ? JSON.stringify(l.data) : ''}`).join('\n');
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = '✅';
+          setTimeout(() => { copyBtn.textContent = '📋 ' + (STR.copyLogs || 'Kopyala'); }, 1500);
+        } catch(e) {}
+      });
+    }
 
     const state = {
       round: 0,
@@ -730,6 +936,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       questionStartTs: 0,
       activeTimer: null,
       countdownInterval: null,
+      intermissionTimer: null,
       players: [],
     };
 
@@ -880,6 +1087,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     function runQuestion() {
       state.phase = 'question';
       state.answered = false;
+      if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       state.questionStartTs = performance.now();
       hudStatus.textContent = state.eliminated ? STR.spectating : STR.pickColorUpper;
       hudStatus.className = 'hud-val ' + (state.eliminated ? 'text-secondary' : 'text-success');
@@ -955,6 +1163,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         state.eliminated = true;
       }
 
+      // Show immediate waiting notice so player knows selection registered
+      const gridEl = document.getElementById('choiceGrid');
+      if (gridEl && !document.getElementById('waitingOthersNotice')) {
+        const notice = document.createElement('div');
+        notice.id = 'waitingOthersNotice';
+        notice.className = 'waiting-others-box mt-3 text-center fw-semibold';
+        notice.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${STR.waitingOthers}`;
+        gridEl.parentNode.appendChild(notice);
+      }
+
+      RoomLogger.info('Answer', `Picked color=${color} (${isCorrect ? 'CORRECT' : 'WRONG'}) in ${responseMs}ms for round ${state.round}`);
+
       try {
         const res = await fetch('api/rooms_answer.php', {
           method: 'POST',
@@ -968,14 +1188,28 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           })
         });
         const data = await res.json();
+        RoomLogger.info('Answer', 'Server response received', data);
+
         if (data.ok && data.score_delta) {
           state.score += data.score_delta;
           hudScore.textContent = String(state.score);
         }
+
         if (data.ok && data.finished && state.phase !== 'finished') {
+          RoomLogger.info('GameState', 'Game finished after answer');
           renderFinalVictory(data.players || []);
+        } else if (data.ok && (data.round_ended || data.all_answered)) {
+          RoomLogger.info('GameState', 'All players answered! Immediately transitioning to leaderboard');
+          renderLeaderboard(data.players || []);
+        } else if (data.ok && data.answered_count && data.total_participants) {
+          const notice = document.getElementById('waitingOthersNotice');
+          if (notice) {
+            notice.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${STR.waitingOthers} (${data.answered_count}/${data.total_participants})`;
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        RoomLogger.error('Answer', 'Failed to submit answer', e);
+      }
     }
 
     async function onTimeOut(cells) {
@@ -985,6 +1219,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       cells.forEach(c => c.disabled = true);
       playTone(200, 0.25, 'sawtooth');
       showToast(STR.timeUp, false);
+      RoomLogger.warn('Answer', `Player timed out on round ${state.round}`);
 
       try {
         const res = await fetch('api/rooms_answer.php', {
@@ -999,10 +1234,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           })
         });
         const data = await res.json();
+        RoomLogger.info('Answer', 'Timeout response received', data);
+
         if (data && data.ok && data.finished && state.phase !== 'finished') {
           renderFinalVictory(data.players || []);
+        } else if (data && data.ok && (data.round_ended || data.all_answered)) {
+          renderLeaderboard(data.players || []);
         }
-      } catch (e) {}
+      } catch (e) {
+        RoomLogger.error('Answer', 'Failed to submit timeout', e);
+      }
     }
 
     function sortPlayers(list) {
@@ -1023,14 +1264,27 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     function renderLeaderboard(players) {
       if (state.phase === 'finished') return;
+      state.phase = 'intermission';
+      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      if (state.activeTimer) clearInterval(state.activeTimer);
+      if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
+      hudTimer.textContent = '-';
+
       if (Array.isArray(players) && players.length > 0) {
         state.players = players;
+        renderPlayers(players);
       }
       const sorted = sortPlayers(players || state.players || []);
+
+      RoomLogger.info('GameState', `Rendering leaderboard for round ${state.round}`, { players_count: sorted.length });
+
       stageContent.innerHTML = `
         <div class="fs-1">🏆</div>
         <h2 class="stage-title">${STR.roundComplete.replace('{round}', state.round)}</h2>
         <p class="stage-subtitle">${STR.nextRoundIn}</p>
+        <div class="progress my-2 mx-auto" style="height: 6px; max-width: 260px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden;">
+          <div id="intermissionProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width: 100%; transition: width 3.5s linear;"></div>
+        </div>
         <div class="table-responsive w-100 mt-2">
           <table class="table table-sm align-middle text-start">
             <thead>
@@ -1054,19 +1308,90 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           </table>
         </div>
       `;
+
+      // Animate progress bar smoothly
+      setTimeout(() => {
+        const bar = document.getElementById('intermissionProgressBar');
+        if (bar) bar.style.width = '0%';
+      }, 50);
+
+      // Intermission safety timer: automatically advance after 3.8s if Pusher event was delayed
+      state.intermissionTimer = setTimeout(async () => {
+        if (state.phase === 'intermission') {
+          RoomLogger.info('Intermission', 'Safety timer expired, polling tick to advance round');
+          try {
+            const res = await fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID));
+            const data = await res.json();
+            if (data && data.round && data.round > state.round && data.question) {
+              applyRoundData(data);
+            } else if (data && (data.finished || data.status === 'finished')) {
+              renderFinalVictory(data.players || []);
+            }
+          } catch(e) {}
+        }
+      }, 3800);
+    }
+
+    function applyRoundData(data) {
+      if (!data || !data.round) return;
+
+      if (state.phase === 'finished' && data.round !== 1 && !data.is_restart) {
+        RoomLogger.warn('GameState', 'applyRoundData skipped because game is finished and not restart', data);
+        return;
+      }
+
+      if (state.round === data.round && (state.phase === 'countdown' || state.phase === 'show' || state.phase === 'question')) {
+        return;
+      }
+
+      RoomLogger.info('GameState', `applyRoundData: Starting round ${data.round}`, data);
+
+      if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
+      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      if (state.activeTimer) clearInterval(state.activeTimer);
+
+      state.phase = 'countdown';
+      state.round = data.round;
+      hudRound.textContent = `${data.round} / ${data.rounds_total || 50}`;
+      state.targetColor = data.question?.target;
+      state.gridColors = data.question?.grid || [];
+      state.showMs = data.show_ms || 3000;
+      state.answerMs = data.answer_ms || 5000;
+      state.countdownMs = data.countdown_ms || 3000;
+      state.answered = false;
+
+      if (data.round === 1 || data.is_restart) {
+        state.score = 0;
+        state.eliminated = false;
+        hudScore.textContent = '0';
+      }
+
+      if (Array.isArray(data.players) && data.players.length > 0) {
+        renderPlayers(data.players);
+        const meRow = data.players.find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
+        if (meRow) {
+          state.eliminated = (meRow.status === 'eliminated');
+          state.score = Number(meRow.score) || 0;
+          hudScore.textContent = String(state.score);
+        }
+      }
+
+      runCountdown();
     }
 
     async function renderFinalVictory(players) {
       state.phase = 'finished';
       if (state.countdownInterval) clearInterval(state.countdownInterval);
       if (state.activeTimer) clearInterval(state.activeTimer);
+      if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       hudTimer.textContent = '-';
       hudStatus.textContent = STR.finished;
       hudStatus.className = 'hud-val text-success';
 
+      RoomLogger.info('GameState', 'Rendering Final Victory screen');
+
       let list = Array.isArray(players) && players.length > 0 ? players : state.players;
 
-      // Listenin boş kalmaması için gerekirse sunucudan son durumu çek
       if (!list || list.length === 0) {
         try {
           const res = await fetch('api/rooms_join.php', {
@@ -1092,7 +1417,6 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       const winnerName = winner ? (winner.email ? winner.email.split('@')[0] : (winner.nickname || STR.player)) : STR.winnerEveryone;
       const winnerScore = winner ? (Number(winner.score) || 0) : 0;
 
-      // Update current player's HUD score to match final score
       const meRow = (sorted || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
       if (meRow) {
         state.score = Number(meRow.score) || 0;
@@ -1207,6 +1531,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           restartMatchBtn.disabled = true;
           restartMatchBtn.textContent = '⏳ ' + STR.restarting;
           if (backToLobbyBtn) backToLobbyBtn.disabled = true;
+
+          RoomLogger.info('RestartMatch', 'Host clicked Restart Match', { guid: GUID });
+
           try {
             const res = await fetch('api/rooms_restart.php', {
               method: 'POST',
@@ -1214,6 +1541,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               body: JSON.stringify({guid: GUID, start_immediately: true})
             });
             const data = await res.json();
+            RoomLogger.info('RestartMatch', 'Response received from rooms_restart.php', data);
+
             if (!data.ok) {
               restartMatchBtn.disabled = false;
               restartMatchBtn.textContent = '🚀 ' + STR.restartMatch;
@@ -1223,8 +1552,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               } else {
                 showToast(data.error || STR.errorGeneric, false);
               }
+            } else {
+              // Direct state transition if round 1 data returned in HTTP response
+              if (data.round === 1 && data.question) {
+                RoomLogger.info('RestartMatch', 'Instantly applying round 1 from HTTP response');
+                applyRoundData(data);
+              }
             }
           } catch(e) {
+            RoomLogger.error('RestartMatch', 'Fetch error on rooms_restart.php', e);
             restartMatchBtn.disabled = false;
             restartMatchBtn.textContent = '🚀 ' + STR.restartMatch;
             if (backToLobbyBtn) backToLobbyBtn.disabled = false;
@@ -1235,6 +1571,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           backToLobbyBtn.disabled = true;
           backToLobbyBtn.textContent = '⏳ ' + STR.restarting;
           if (restartMatchBtn) restartMatchBtn.disabled = true;
+
+          RoomLogger.info('BackToLobby', 'Host clicked Back to Lobby', { guid: GUID });
+
           try {
             const res = await fetch('api/rooms_restart.php', {
               method: 'POST',
@@ -1242,6 +1581,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               body: JSON.stringify({guid: GUID, start_immediately: false})
             });
             const data = await res.json();
+            RoomLogger.info('BackToLobby', 'Response received', data);
+
             if (data.ok) {
               resetToLobby(data.players || []);
             } else {
@@ -1251,6 +1592,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               showToast(data.error || STR.errorGeneric, false);
             }
           } catch(e) {
+            RoomLogger.error('BackToLobby', 'Fetch error', e);
             backToLobbyBtn.disabled = false;
             backToLobbyBtn.textContent = '⏳ ' + STR.backToLobby;
             if (restartMatchBtn) restartMatchBtn.disabled = false;
@@ -1262,6 +1604,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     function resetToLobby(players) {
       if (state.countdownInterval) clearInterval(state.countdownInterval);
       if (state.activeTimer) clearInterval(state.activeTimer);
+      if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       state.round = 0;
       state.score = 0;
       state.phase = 'lobby';
@@ -1275,6 +1618,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       hudTimer.textContent = '-';
       hudStatus.textContent = STR.waiting;
       hudStatus.className = 'hud-val text-info';
+
+      RoomLogger.info('GameState', 'Resetting room to lobby', { players_count: (players || []).length });
 
       const isPriv = <?= json_encode(!empty($room['is_private'])) ?>;
       stageContent.innerHTML = `
@@ -1332,6 +1677,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         btn.disabled = true;
         btn.textContent = '⏳ ' + STR.starting;
       }
+      RoomLogger.info('StartMatch', 'Starting match for guid=' + GUID);
       try {
         const res = await fetch('api/rooms_next_round.php', {
           method: 'POST',
@@ -1339,6 +1685,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           body: JSON.stringify({guid: GUID})
         });
         const data = await res.json();
+        RoomLogger.info('StartMatch', 'Response received', data);
         if (!data.ok) {
           if (btn) {
             btn.disabled = false;
@@ -1349,8 +1696,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           } else {
             showToast(data.error || STR.errorGeneric, false);
           }
+        } else if (data.round === 1 && data.question) {
+          applyRoundData(data);
         }
       } catch (e) {
+        RoomLogger.error('StartMatch', 'Fetch error', e);
         if (btn) {
           btn.disabled = false;
           btn.textContent = '🚀 ' + STR.startMatch;
@@ -1360,6 +1710,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     // Join room & bind realtime
     async function initRoom() {
+      RoomLogger.info('Init', `Joining room guid=${GUID} as me=${ME_EMAIL} (${ME_ID})`);
       try {
         const res = await fetch('api/rooms_join.php', {
           method: 'POST',
@@ -1367,6 +1718,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           body: JSON.stringify({guid: GUID})
         });
         const data = await res.json();
+        RoomLogger.info('Init', 'Join response received', data);
+
         if (!data.ok) {
           hudStatus.textContent = STR.errorJoining;
           return;
@@ -1390,59 +1743,73 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           hudStatus.className = 'hud-val text-info';
         }
       } catch (e) {
+        RoomLogger.error('Init', 'Connection error joining room', e);
         hudStatus.textContent = STR.connError;
       }
     }
 
     // Pusher Setup
     if (PUSHER_KEY) {
+      RoomLogger.info('Pusher', `Initializing Pusher key=${PUSHER_KEY} cluster=${PUSHER_CLUSTER}`);
       const pusher = new Pusher(PUSHER_KEY, {
         cluster: PUSHER_CLUSTER,
         authEndpoint: 'api/pusher_auth.php',
         forceTLS: true
       });
 
+      pusher.connection.bind('state_change', (states) => {
+        RoomLogger.info('Pusher', `Connection state changed: ${states.previous} -> ${states.current}`);
+        if (states.current === 'connected') {
+          hudStatus.textContent = state.phase === 'lobby' ? STR.waiting : (state.phase === 'finished' ? STR.finished : STR.active);
+          hudStatus.className = 'hud-val ' + (state.phase === 'finished' ? 'text-success' : 'text-info');
+        } else if (states.current === 'unavailable' || states.current === 'failed') {
+          RoomLogger.warn('Pusher', 'Connection lost or unavailable; polling will handle sync');
+        }
+      });
+
       const channel = pusher.subscribe('presence-room-' + GUID);
 
+      channel.bind('pusher:subscription_succeeded', (members) => {
+        RoomLogger.info('Pusher', `Subscription succeeded to presence-room-${GUID}`, { count: members.count });
+      });
+
+      channel.bind('pusher:subscription_error', (status) => {
+        RoomLogger.error('Pusher', 'Subscription error on presence channel', status);
+      });
+
       channel.bind('room:update', (data) => {
+        RoomLogger.info('Pusher', 'Event room:update received', data);
         renderPlayers(data.players || []);
-        const meRow = (data.players || []).find(p => p.email === ME_EMAIL);
+        const meRow = (data.players || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
         if (meRow && meRow.status === 'eliminated') {
           state.eliminated = true;
+        }
+        if (state.answered && data.answered_count && data.total_participants) {
+          const notice = document.getElementById('waitingOthersNotice');
+          if (notice) {
+            notice.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${STR.waitingOthers} (${data.answered_count}/${data.total_participants})`;
+          }
         }
       });
 
       channel.bind('room:round', (data) => {
-        if (state.phase === 'finished') return;
-        state.round = data.round;
-        hudRound.textContent = `${data.round} / ${data.rounds_total || 50}`;
-        state.targetColor = data.question?.target;
-        state.gridColors = data.question?.grid || [];
-        state.showMs = data.show_ms || 3000;
-        state.answerMs = data.answer_ms || 5000;
-        state.countdownMs = data.countdown_ms || 3000;
-        if (data.round === 1) {
-          state.score = 0;
-          state.eliminated = false;
-          state.answered = false;
-          hudScore.textContent = '0';
-        }
-        if (data.players) {
-          renderPlayers(data.players);
-        }
-        runCountdown();
+        RoomLogger.info('Pusher', 'Event room:round received', data);
+        applyRoundData(data);
       });
 
       channel.bind('room:reset', (data) => {
+        RoomLogger.info('Pusher', 'Event room:reset received', data);
         resetToLobby(data.players || []);
       });
 
       channel.bind('room:leaderboard', (data) => {
+        RoomLogger.info('Pusher', 'Event room:leaderboard received', data);
         if (state.phase === 'finished') return;
         renderLeaderboard(data.players || []);
       });
 
       channel.bind('room:finished', (data) => {
+        RoomLogger.info('Pusher', 'Event room:finished received', data);
         renderFinalVictory(data.players || []);
       });
     }
@@ -1450,18 +1817,36 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     // Host Start Button Trigger
     startMatchBtn?.addEventListener('click', handleStartMatch);
 
-    // Periodic Keep-Alive Tick
+    // Periodic Keep-Alive and State Synchronization Tick (every 1200ms)
     setInterval(async () => {
       try {
         const res = await fetch('api/rooms_tick.php?guid=' + encodeURIComponent(GUID));
         const data = await res.json();
-        if (data && (data.finished || data.status === 'finished') && state.phase !== 'finished') {
+        if (!data || !data.ok) return;
+
+        if ((data.finished || data.status === 'finished') && state.phase !== 'finished') {
+          RoomLogger.info('TickSync', 'Match concluded on server', data);
           renderFinalVictory(data.players || []);
-        } else if (data && data.status === 'waiting' && state.phase === 'finished') {
+        } else if (data.status === 'waiting' && state.phase === 'finished') {
+          RoomLogger.info('TickSync', 'Match reset to waiting lobby on server', data);
           resetToLobby(data.players || []);
+        } else if (data.status === 'waiting' && state.phase !== 'lobby' && state.phase !== 'finished') {
+          RoomLogger.info('TickSync', 'Room reset to waiting lobby', data);
+          resetToLobby(data.players || []);
+        } else if ((state.phase === 'finished' || state.phase === 'lobby') && data.status === 'active' && data.round >= 1 && data.question) {
+          RoomLogger.info('TickSync', 'Match restarted/active, applying round', data);
+          applyRoundData(data);
+        } else if (data.round && data.round > state.round && data.question && state.phase !== 'finished') {
+          RoomLogger.info('TickSync', `New round ${data.round} detected, applying round`, data);
+          applyRoundData(data);
+        } else if (data.status === 'intermission' && state.phase === 'question') {
+          RoomLogger.info('TickSync', 'Round intermission detected, rendering leaderboard', data);
+          renderLeaderboard(data.players || []);
         }
-      } catch(e) {}
-    }, 1500);
+      } catch(e) {
+        RoomLogger.debug('TickSync', 'Tick fetch error (harmless)', e);
+      }
+    }, 1200);
 
     function wireCopyInviteBtn() {
       const copyBtn = document.getElementById('copyInviteLinkBtn');
@@ -1480,6 +1865,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       });
     }
 
+    wireDebugLogs();
     wireCopyInviteBtn();
     initRoom();
   </script>

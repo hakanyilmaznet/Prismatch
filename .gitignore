@@ -1,0 +1,4 @@
+logs/*.log
+.phpstan-cache/
+.DS_Store
+Thumbs.db

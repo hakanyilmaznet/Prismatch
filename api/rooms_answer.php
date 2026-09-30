@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../pusher.php';
 
+use Prismatch\Core\Logger;
 use Prismatch\Services\RoomGameService;
 
 header('Content-Type: application/json; charset=utf-8');
@@ -33,7 +34,9 @@ $service = new RoomGameService();
 $result = $service->processAnswer($guid, (string)$userId, (string)$email, $round, $picked, $isTimeout, $responseMs);
 
 if (!($result['ok'] ?? false)) {
-    http_response_code($result['code'] ?? 400);
+    $code = (int)($result['code'] ?? 400);
+    http_response_code($code);
+    Logger::warning('API:rooms_answer', "Failed answer guid={$guid}, round={$round}, user={$userId}, code={$code}, error=" . ($result['error'] ?? 'unknown'));
     echo json_encode($result);
     exit;
 }

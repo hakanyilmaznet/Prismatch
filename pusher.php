@@ -27,6 +27,7 @@ function pusher_sign_query(string $body): string {
 }
 
 function pusher_trigger(string $channel, string $event, array $data): bool {
+  $startTime = microtime(true);
   $payload = json_encode([
     'name' => $event,
     'channel' => $channel,
@@ -43,10 +44,25 @@ function pusher_trigger(string $channel, string $event, array $data): bool {
   curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
   curl_setopt($ch, CURLOPT_TIMEOUT, 8);
   $resp = curl_exec($ch);
+  $curlErr = curl_error($ch);
   $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
   curl_close($ch);
 
-  return ($resp !== false && $code >= 200 && $code < 300);
+  $durationMs = round((microtime(true) - $startTime) * 1000, 2);
+  $ok = ($resp !== false && $code >= 200 && $code < 300);
+
+  if (class_exists('Prismatch\Core\Logger')) {
+    \Prismatch\Core\Logger::log($ok ? 'INFO' : 'ERROR', 'Pusher', "trigger '{$event}' on '{$channel}'", [
+      'ok' => $ok,
+      'http_code' => $code,
+      'duration_ms' => $durationMs,
+      'error' => $curlErr ?: null,
+      'resp' => $resp !== false ? substr((string)$resp, 0, 120) : null,
+      'data_keys' => array_keys($data),
+    ]);
+  }
+
+  return $ok;
 }
 
 function pusher_auth_response(string $socketId, string $channelName, ?string $userId = null, ?array $userInfo = null): string {

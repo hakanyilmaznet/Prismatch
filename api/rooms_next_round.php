@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../pusher.php';
 
+use Prismatch\Core\Logger;
 use Prismatch\Services\RoomGameService;
 
 header('Content-Type: application/json; charset=utf-8');
@@ -24,13 +25,17 @@ if ($guid === '') {
     exit;
 }
 
+Logger::info('API:rooms_next_round', "Start/Next round request for guid={$guid} by user={$userId}");
 $service = new RoomGameService();
 $result = $service->startOrNextRound($guid, (string)$userId, true);
 
 if (!($result['ok'] ?? false)) {
-    http_response_code($result['code'] ?? 400);
+    $code = (int)($result['code'] ?? 400);
+    http_response_code($code);
+    Logger::warning('API:rooms_next_round', "Failed next round for guid={$guid}, code={$code}, error=" . ($result['error'] ?? 'unknown'));
     echo json_encode($result);
     exit;
 }
 
+Logger::info('API:rooms_next_round', "Success next round for guid={$guid}, round=" . ($result['round'] ?? 'finished'));
 echo json_encode($result);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../pusher.php';
 
+use Prismatch\Core\Logger;
 use Prismatch\Services\RoomGameService;
 
 header('Content-Type: application/json; charset=utf-8');
@@ -25,14 +26,18 @@ if ($guid === '') {
 }
 
 $startImmediately = !empty($input['start_immediately']);
+Logger::info('API:rooms_restart', "Incoming request for guid={$guid} from user={$userId} (start_immediately=" . ($startImmediately ? '1' : '0') . ")");
 
 $service = new RoomGameService();
 $result = $service->restartRoom($guid, (string)$userId, $startImmediately);
 
 if (!($result['ok'] ?? false)) {
-    http_response_code($result['code'] ?? 400);
+    $code = (int)($result['code'] ?? 400);
+    http_response_code($code);
+    Logger::warning('API:rooms_restart', "Failed restart for guid={$guid}, code={$code}, error=" . ($result['error'] ?? 'unknown'));
     echo json_encode($result);
     exit;
 }
 
+Logger::info('API:rooms_restart', "Success restart for guid={$guid}, round=" . ($result['round'] ?? 0));
 echo json_encode($result);

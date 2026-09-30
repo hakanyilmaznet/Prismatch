@@ -5,6 +5,7 @@ namespace Prismatch\Services;
 
 use PDO;
 use Prismatch\Core\Database;
+use Prismatch\Core\Logger;
 use Prismatch\Repositories\RoomRepository;
 use Prismatch\Repositories\UserRepository;
 
@@ -72,18 +73,22 @@ class RoomGameService {
     }
 
     public function joinRoom(string $guid, string $userId, string $email): array {
+        Logger::room('joinRoom:attempt', $guid, ['user_id' => $userId, 'email' => $email]);
         $room = $this->roomRepo->getRoomByGuid($guid);
         if (!$room) {
+            Logger::room('joinRoom:not_found', $guid, ['user_id' => $userId], 'WARN');
             return ['ok' => false, 'error' => 'not_found', 'code' => 404];
         }
 
         $roomId = (string)$room['id'];
         $added = $this->roomRepo->addPlayer($roomId, $userId, $email);
         if (!$added) {
+            Logger::room('joinRoom:room_full', $guid, ['user_id' => $userId], 'WARN');
             return ['ok' => false, 'error' => 'room_full', 'code' => 403];
         }
 
         $players = $this->roomRepo->listPlayers($roomId);
+        Logger::room('joinRoom:success', $guid, ['players_count' => count($players), 'joined' => $email]);
 
         // Realtime notification: Notify waiting room that a player joined
         if (function_exists('pusher_trigger')) {
@@ -112,12 +117,15 @@ class RoomGameService {
     }
 
     public function startOrNextRound(string $guid, string $userId, bool $requireHost = true): array {
+        Logger::room('startOrNextRound:attempt', $guid, ['user_id' => $userId, 'require_host' => $requireHost]);
         $room = $this->roomRepo->getRoomByGuid($guid);
         if (!$room) {
+            Logger::room('startOrNextRound:not_found', $guid, [], 'WARN');
             return ['ok' => false, 'error' => 'not_found', 'code' => 404];
         }
 
         if ($requireHost && ($room['owner_id'] ?? null) !== $userId) {
+            Logger::room('startOrNextRound:not_owner', $guid, ['owner_id' => $room['owner_id'] ?? null, 'user_id' => $userId], 'WARN');
             return ['ok' => false, 'error' => 'not_owner', 'code' => 403];
         }
 
@@ -126,6 +134,7 @@ class RoomGameService {
         $total = (int)$room['rounds_total'];
 
         if ($room['status'] === 'finished') {
+            Logger::room('startOrNextRound:already_finished', $guid);
             return ['ok' => true, 'finished' => true];
         }
 
@@ -133,6 +142,7 @@ class RoomGameService {
         if ($current === 0 || $room['status'] === 'waiting') {
             $players = $this->roomRepo->listPlayers($roomId);
             if (count($players) < 2) {
+                Logger::room('startOrNextRound:min_players_required', $guid, ['count' => count($players)], 'WARN');
                 return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
             }
         }
@@ -141,12 +151,15 @@ class RoomGameService {
     }
 
     public function restartRoom(string $guid, string $userId, bool $startImmediately = false): array {
+        Logger::room('restartRoom:attempt', $guid, ['user_id' => $userId, 'start_immediately' => $startImmediately]);
         $room = $this->roomRepo->getRoomByGuid($guid);
         if (!$room) {
+            Logger::room('restartRoom:not_found', $guid, [], 'WARN');
             return ['ok' => false, 'error' => 'not_found', 'code' => 404];
         }
 
         if (($room['owner_id'] ?? null) !== $userId) {
+            Logger::room('restartRoom:not_owner', $guid, ['owner_id' => $room['owner_id'] ?? null, 'user_id' => $userId], 'WARN');
             return ['ok' => false, 'error' => 'not_owner', 'code' => 403];
         }
 
@@ -187,32 +200,42 @@ class RoomGameService {
             $stmtDelEvents->execute([':rid' => $roomId]);
 
             $this->pdo->commit();
+            Logger::room('restartRoom:db_reset_done', $guid, ['room_id' => $roomId]);
         } catch (\Throwable $e) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+            Logger::error('RoomGame', "restartRoom DB error on guid={$guid}: " . $e->getMessage(), [], $e);
             return ['ok' => false, 'error' => 'db_error', 'code' => 500, 'detail' => $e->getMessage()];
         }
 
         $freshPlayers = $this->roomRepo->listPlayers($roomId);
 
-        if ($startImmediately) {
-            $freshRoom = $this->roomRepo->getRoomById($roomId);
-            if ($freshRoom) {
-                if (count($freshPlayers) < 2) {
-                    return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
-                }
-                return $this->advanceToRound($freshRoom, 1);
-            }
-        }
-
+        // Broadcast room:reset to all players so all clients leave victory screen & reset state
         if (function_exists('pusher_trigger')) {
             pusher_trigger('presence-room-' . $guid, 'room:reset', [
                 'guid' => $guid,
                 'status' => 'waiting',
                 'round' => 0,
                 'players' => $freshPlayers,
+                'restarting' => $startImmediately,
             ]);
+            Logger::room('restartRoom:pusher_reset_triggered', $guid, ['players_count' => count($freshPlayers)]);
+        }
+
+        if ($startImmediately) {
+            $freshRoom = $this->roomRepo->getRoomById($roomId);
+            if ($freshRoom) {
+                if (count($freshPlayers) < 2) {
+                    Logger::room('restartRoom:min_players_required', $guid, ['count' => count($freshPlayers)], 'WARN');
+                    return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
+                }
+                Logger::room('restartRoom:advancing_to_round_1', $guid);
+                $advResult = $this->advanceToRound($freshRoom, 1);
+                $advResult['is_restart'] = true;
+                $advResult['players'] = $freshPlayers;
+                return $advResult;
+            }
         }
 
         return [
@@ -229,6 +252,8 @@ class RoomGameService {
         $total = (int)$room['rounds_total'];
         $current = (int)$room['current_round'];
 
+        Logger::room('advanceToRound:attempt', $guid, ['from_round' => $current, 'next_round' => $nextRound]);
+
         // Atomic lock check: only advance if the round matches current
         $this->pdo->beginTransaction();
         try {
@@ -238,6 +263,7 @@ class RoomGameService {
 
             if (!$locked || $locked['status'] === 'finished') {
                 $this->pdo->rollBack();
+                Logger::room('advanceToRound:locked_finished', $guid);
                 return ['ok' => true, 'finished' => true];
             }
 
@@ -245,6 +271,7 @@ class RoomGameService {
             if ($currentInDb >= $nextRound) {
                 // Already advanced by another thread/request
                 $this->pdo->rollBack();
+                Logger::room('advanceToRound:already_advanced', $guid, ['current_in_db' => $currentInDb, 'requested' => $nextRound]);
                 return ['ok' => true, 'already_advanced' => true, 'round' => $currentInDb];
             }
 
@@ -257,6 +284,7 @@ class RoomGameService {
 
             if (($activeCount <= 1 && count($players) >= 2 && $currentInDb > 0) || ($activeCount === 0 && $currentInDb > 0) || $nextRound > $total) {
                 $this->pdo->commit();
+                Logger::room('advanceToRound:match_finished_condition', $guid, ['active_count' => $activeCount, 'next_round' => $nextRound]);
                 $finishResult = $this->finishGame($roomId, $currentInDb, $guid);
                 return ['ok' => true, 'finished' => true, 'players' => $finishResult['players']];
             }
@@ -265,6 +293,7 @@ class RoomGameService {
             if ($currentInDb === 0) {
                 if (count($players) < 2) {
                     $this->pdo->rollBack();
+                    Logger::room('advanceToRound:min_players_failed', $guid, ['players_count' => count($players)], 'WARN');
                     return ['ok' => false, 'error' => 'min_players_required', 'code' => 400];
                 }
                 $this->roomRepo->setStatus($roomId, 'active');
@@ -294,6 +323,8 @@ class RoomGameService {
             $this->pdo->commit();
 
             $timing = $this->getTimingForRound($nextRound);
+            $freshPlayers = $this->roomRepo->listPlayers($roomId);
+
             $payload = [
                 'guid' => $guid,
                 'round' => $nextRound,
@@ -302,32 +333,57 @@ class RoomGameService {
                 'countdown_ms' => $timing['countdown_ms'],
                 'show_ms' => $timing['show_ms'],
                 'answer_ms' => $timing['answer_ms'],
+                'players' => $freshPlayers,
             ];
 
             if (function_exists('pusher_trigger')) {
                 pusher_trigger('presence-room-' . $guid, 'room:round', $payload);
             }
 
-            return ['ok' => true, 'round' => $nextRound];
+            Logger::room('advanceToRound:success', $guid, ['round' => $nextRound, 'active_players' => $activeCount]);
+
+            return [
+                'ok' => true,
+                'round' => $nextRound,
+                'rounds_total' => $total,
+                'question' => $question,
+                'countdown_ms' => $timing['countdown_ms'],
+                'show_ms' => $timing['show_ms'],
+                'answer_ms' => $timing['answer_ms'],
+                'players' => $freshPlayers,
+            ];
         } catch (\Throwable $e) {
-            $this->pdo->rollBack();
-            error_log("Failed advanceToRound: " . $e->getMessage());
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            Logger::error('RoomGame', "advanceToRound exception on guid={$guid}: " . $e->getMessage(), [], $e);
             return ['ok' => false, 'error' => 'advance_failed', 'msg' => $e->getMessage()];
         }
     }
 
     public function processAnswer(string $guid, string $userId, string $email, int $round, string $picked, bool $isTimeout, int $responseMs): array {
+        Logger::room('processAnswer:attempt', $guid, [
+            'user_id' => $userId,
+            'email' => $email,
+            'round' => $round,
+            'picked' => $picked,
+            'timeout' => $isTimeout,
+            'response_ms' => $responseMs,
+        ]);
+
         $room = $this->roomRepo->getRoomByGuid($guid);
         if (!$room) {
+            Logger::room('processAnswer:room_not_found', $guid, ['round' => $round], 'WARN');
             return ['ok' => false, 'error' => 'not_found', 'code' => 404];
         }
 
         $roomId = (string)$room['id'];
         if ($room['status'] !== 'active') {
+            Logger::room('processAnswer:room_not_active', $guid, ['status' => $room['status']], 'WARN');
             return ['ok' => false, 'error' => 'room_not_active', 'code' => 409];
         }
 
-        // Verify player is currently active
+        // Verify player is currently active in the room
         $players = $this->roomRepo->listPlayers($roomId);
         $me = null;
         foreach ($players as $p) {
@@ -337,6 +393,7 @@ class RoomGameService {
             }
         }
         if (!$me || $me['status'] !== 'active') {
+            Logger::room('processAnswer:player_not_active', $guid, ['user_id' => $userId, 'player_status' => $me['status'] ?? 'null'], 'WARN');
             return ['ok' => false, 'error' => 'not_active', 'code' => 403];
         }
 
@@ -345,12 +402,14 @@ class RoomGameService {
         $qStmt->execute([':rid' => $roomId, ':r' => $round]);
         $qRow = $qStmt->fetchColumn();
         if (!$qRow) {
+            Logger::room('processAnswer:round_not_found', $guid, ['round' => $round], 'WARN');
             return ['ok' => false, 'error' => 'round_not_found', 'code' => 404];
         }
 
         $question = json_decode((string)$qRow, true);
         $target = $question['target'] ?? '';
         if ($target === '') {
+            Logger::room('processAnswer:invalid_round_target', $guid, ['round' => $round], 'ERROR');
             return ['ok' => false, 'error' => 'invalid_round', 'code' => 500];
         }
 
@@ -361,6 +420,7 @@ class RoomGameService {
         ");
         $dupStmt->execute([':rid' => $roomId, ':r' => $round, ':uid' => $userId]);
         if ((int)$dupStmt->fetchColumn() > 0) {
+            Logger::room('processAnswer:already_answered', $guid, ['user_id' => $userId, 'round' => $round]);
             return ['ok' => true, 'already_answered' => true];
         }
 
@@ -377,6 +437,7 @@ class RoomGameService {
                 'correct' => true,
                 'score_delta' => $scoreDelta,
             ]);
+            Logger::room('processAnswer:correct', $guid, ['user_id' => $userId, 'score_delta' => $scoreDelta, 'round' => $round]);
         } else {
             $this->roomRepo->markEliminated($roomId, $userId, $round);
             $this->roomRepo->logEvent($roomId, $round, $userId, $email, $isTimeout ? 'timeout' : 'eliminate', [
@@ -385,6 +446,7 @@ class RoomGameService {
                 'response_ms' => $responseMs,
                 'correct' => false,
             ]);
+            Logger::room('processAnswer:eliminated', $guid, ['user_id' => $userId, 'timeout' => $isTimeout, 'round' => $round]);
         }
 
         $freshPlayers = $this->roomRepo->listPlayers($roomId);
@@ -393,6 +455,7 @@ class RoomGameService {
             if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
         }
 
+        // Realtime update: notify presence channel about this player's answer / elimination
         if (function_exists('pusher_trigger')) {
             pusher_trigger('presence-room-' . $guid, 'room:update', [
                 'guid' => $guid,
@@ -402,8 +465,9 @@ class RoomGameService {
             ]);
         }
 
-        // Winner determined: when only 1 non-eliminated player remains (or all players eliminated)
-        if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0) {
+        // Check if game has ended: only 1 non-eliminated player remains (or all players eliminated)
+        if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0 || $round >= (int)$room['rounds_total']) {
+            Logger::room('processAnswer:game_over', $guid, ['active_count' => $activeCount, 'round' => $round]);
             $finishResult = $this->finishGame($roomId, $round, $guid);
             return [
                 'ok' => true,
@@ -414,35 +478,80 @@ class RoomGameService {
             ];
         }
 
-        // IMPROVED MECHANIC: Check if ALL active players have answered this round!
-        // If everyone answered, immediately end the round early instead of waiting 5s!
-        $ansCountStmt = $this->pdo->prepare("
-            SELECT COUNT(DISTINCT user_id)
-            FROM room_events
-            WHERE room_id = :rid AND round_index = :r AND event_type IN ('answer', 'eliminate', 'timeout')
+        // =========================================================================
+        // REQUIREMENT 3: Tüm oyuncular seçim yaptıktan sonra turu hemen bitir!
+        // =========================================================================
+        // Participating players in this round are players who were NOT eliminated before this round
+        // (i.e. eliminated_round IS NULL or eliminated_round >= $round).
+        $partStmt = $this->pdo->prepare("
+            SELECT user_id
+            FROM room_players
+            WHERE room_id = :rid
+              AND (eliminated_round IS NULL OR eliminated_round >= :r)
         ");
-        $ansCountStmt->execute([':rid' => $roomId, ':r' => $round]);
-        $answeredCount = (int)$ansCountStmt->fetchColumn();
+        $partStmt->execute([':rid' => $roomId, ':r' => $round]);
+        $participatingUserIds = $partStmt->fetchAll(PDO::FETCH_COLUMN, 0) ?: [];
+        $totalParticipants = count($participatingUserIds);
 
-        // Total remaining players before this round
-        $totalRoundParticipants = count($freshPlayers);
-        // Active participants in this round
-        if ($answeredCount >= $activeCount) {
-            // All active players have answered! End round immediately!
+        // Fetch distinct user IDs that have recorded an answer/timeout/eliminate event in this round
+        $ansStmt = $this->pdo->prepare("
+            SELECT DISTINCT user_id
+            FROM room_events
+            WHERE room_id = :rid
+              AND round_index = :r
+              AND event_type IN ('answer', 'eliminate', 'timeout')
+        ");
+        $ansStmt->execute([':rid' => $roomId, ':r' => $round]);
+        $answeredUserIds = $ansStmt->fetchAll(PDO::FETCH_COLUMN, 0) ?: [];
+        $answeredCount = count($answeredUserIds);
+
+        $allAnswered = ($answeredCount >= $totalParticipants && $totalParticipants > 0);
+
+        Logger::room('processAnswer:participation_check', $guid, [
+            'round' => $round,
+            'total_participants' => $totalParticipants,
+            'answered_count' => $answeredCount,
+            'all_answered' => $allAnswered,
+            'active_survivors' => $activeCount,
+        ]);
+
+        if ($allAnswered) {
+            // All participating players have made their choice! End round immediately!
+            Logger::room('processAnswer:all_players_answered_ending_round', $guid, ['round' => $round]);
             $this->endRound($roomId, $round);
+
             if (function_exists('pusher_trigger')) {
                 pusher_trigger('presence-room-' . $guid, 'room:leaderboard', [
                     'guid' => $guid,
                     'round' => $round,
                     'players' => $freshPlayers,
+                    'all_answered' => true,
                 ]);
             }
+
+            return [
+                'ok' => true,
+                'correct' => $isCorrect,
+                'score_delta' => $scoreDelta,
+                'round_ended' => true,
+                'all_answered' => true,
+                'players' => $freshPlayers,
+            ];
         }
 
-        return ['ok' => true, 'correct' => $isCorrect, 'score_delta' => $scoreDelta];
+        return [
+            'ok' => true,
+            'correct' => $isCorrect,
+            'score_delta' => $scoreDelta,
+            'round_ended' => false,
+            'all_answered' => false,
+            'answered_count' => $answeredCount,
+            'total_participants' => $totalParticipants,
+        ];
     }
 
     public function endRound(string $roomId, int $roundIndex): void {
+        Logger::room('endRound', $roomId, ['round' => $roundIndex]);
         $stmt = $this->pdo->prepare("
             UPDATE room_rounds
             SET ended_at = COALESCE(ended_at, :now)
@@ -452,6 +561,7 @@ class RoomGameService {
     }
 
     public function finishGame(string $roomId, int $round, string $guid): array {
+        Logger::room('finishGame:attempt', $guid, ['round' => $round]);
         $this->endRound($roomId, $round);
 
         // Fetch players sorted by: (status = 'active') DESC, score DESC, correct DESC, joined_at ASC
@@ -478,15 +588,21 @@ class RoomGameService {
                     'winner_id' => $winnerUserId,
                     'winner_email' => $winnerEmail,
                 ]);
-
-                try {
-                    $updUser = $this->pdo->prepare("UPDATE users SET total_wins = total_wins + 1 WHERE id = :uid");
-                    $updUser->execute([':uid' => $winnerUserId]);
-                } catch (\Throwable $e) {}
+                Logger::room('finishGame:win_bonus_awarded', $guid, ['winner_id' => $winnerUserId, 'winner_email' => $winnerEmail, 'bonus' => $bonusPoints]);
             }
         }
 
-        $this->roomRepo->setStatus($roomId, 'finished', $round);
+        // Mark room as finished in database
+        $now = Database::nowUtc();
+        $updRoom = $this->pdo->prepare("
+            UPDATE rooms
+            SET status = 'finished',
+                finished_round = :r,
+                finished_at = COALESCE(finished_at, :now)
+            WHERE id = :rid
+        ");
+        $updRoom->execute([':r' => $round, ':now' => $now, ':rid' => $roomId]);
+
         $finalPlayers = $this->roomRepo->listPlayers($roomId);
 
         if (function_exists('pusher_trigger')) {
@@ -501,6 +617,8 @@ class RoomGameService {
                 ] : null,
             ]);
         }
+
+        Logger::room('finishGame:success', $guid, ['round' => $round, 'players_count' => count($finalPlayers)]);
 
         return [
             'ok' => true,
@@ -531,45 +649,51 @@ class RoomGameService {
         $st->execute([':rid' => $roomId, ':r' => $current]);
         $round = $st->fetch();
         if (!$round) {
-            return ['ok' => true];
+            return ['ok' => true, 'status' => $room['status'], 'round' => $current];
         }
 
         $timing = $this->getTimingForRound($current);
         $countdownMs = $timing['countdown_ms'];
         $showMs = $timing['show_ms'];
         $answerMs = $timing['answer_ms'];
-        $intermissionMs = 4000; // slightly snappier 4 seconds
+        $intermissionMs = 3500; // 3.5s smooth intermission
 
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $startedAt = new \DateTimeImmutable($round['started_at'], new \DateTimeZone('UTC'));
         $endedAt = $round['ended_at'] ? new \DateTimeImmutable($round['ended_at'], new \DateTimeZone('UTC')) : null;
 
-        $elapsed = ($now->getTimestamp() - $startedAt->getTimestamp()) * 1000;
+        // Accurate millisecond elapsed calculation
+        $elapsed = (int)round(((float)$now->format('U.u') - (float)$startedAt->format('U.u')) * 1000);
 
-        // Auto-end round when time runs out
-        if ($endedAt === null && $elapsed >= ($countdownMs + $showMs + $answerMs)) {
+        // Auto-end round when time runs out (+ 1000ms buffer for network latency)
+        if ($endedAt === null && $elapsed >= ($countdownMs + $showMs + $answerMs + 1000)) {
+            Logger::room('tick:round_timeout_reached', $guid, ['round' => $current, 'elapsed_ms' => $elapsed]);
             $this->endRound($roomId, $current);
 
-            // Eliminate players who didn't answer in time
-            $stc = $this->pdo->prepare("
-                SELECT email
-                FROM room_events
-                WHERE room_id = :rid AND round_index = :r AND event_type = 'answer' AND payload_json LIKE '%\"correct\":true%'
+            // Eliminate players who didn't submit any answer/timeout in time
+            $unansweredStmt = $this->pdo->prepare("
+                SELECT rp.user_id, rp.email
+                FROM room_players rp
+                WHERE rp.room_id = :rid
+                  AND rp.status = 'active'
+                  AND (rp.eliminated_round IS NULL OR rp.eliminated_round >= :r)
+                  AND rp.user_id NOT IN (
+                      SELECT re.user_id
+                      FROM room_events re
+                      WHERE re.room_id = :rid
+                        AND re.round_index = :r
+                        AND re.event_type IN ('answer', 'eliminate', 'timeout')
+                  )
             ");
-            $stc->execute([':rid' => $roomId, ':r' => $current]);
-            $correctEmails = $stc->fetchAll(PDO::FETCH_COLUMN, 0) ?: [];
-            $correctSet = array_flip($correctEmails);
+            $unansweredStmt->execute([':rid' => $roomId, ':r' => $current]);
+            $unansweredPlayers = $unansweredStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
             $question = json_decode((string)$round['question_json'], true);
             $target = $question['target'] ?? null;
 
-            $players = $this->roomRepo->listPlayers($roomId);
-            foreach ($players as $p) {
-                if (($p['status'] ?? '') === 'eliminated') continue;
-                $pEmail = (string)($p['email'] ?? '');
-                $pUserId = (string)($p['user_id'] ?? '');
-                if ($pEmail === '' || isset($correctSet[$pEmail])) continue;
-
+            foreach ($unansweredPlayers as $up) {
+                $pUserId = (string)$up['user_id'];
+                $pEmail = (string)$up['email'];
                 $this->roomRepo->markEliminated($roomId, $pUserId, $current);
                 $this->roomRepo->logEvent($roomId, $current, $pUserId, $pEmail, 'timeout', [
                     'picked' => null,
@@ -577,6 +701,7 @@ class RoomGameService {
                     'response_ms' => $answerMs,
                     'correct' => false,
                 ]);
+                Logger::room('tick:player_auto_timed_out', $guid, ['user_id' => $pUserId, 'email' => $pEmail, 'round' => $current]);
             }
 
             $freshPlayers = $this->roomRepo->listPlayers($roomId);
@@ -586,7 +711,8 @@ class RoomGameService {
             }
 
             // Winner determined: when only 1 non-eliminated player remains (or all players eliminated)
-            if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0) {
+            if (($activeCount <= 1 && count($freshPlayers) >= 2) || $activeCount === 0 || $current >= (int)$room['rounds_total']) {
+                Logger::room('tick:timeout_triggered_game_finish', $guid, ['round' => $current, 'active_count' => $activeCount]);
                 $finishResult = $this->finishGame($roomId, $current, $guid);
                 return ['ok' => true, 'finished' => true, 'players' => $finishResult['players']];
             }
@@ -596,38 +722,49 @@ class RoomGameService {
                     'guid' => $guid,
                     'round' => $current,
                     'players' => $freshPlayers,
+                    'timeout_ended' => true,
                 ]);
             }
 
-            return ['ok' => true, 'ended' => true];
+            return ['ok' => true, 'status' => 'intermission', 'round' => $current, 'ended' => true, 'players' => $freshPlayers];
         }
 
         // Intermission check: automatically advance to next round when intermission is over
         if ($endedAt !== null) {
-            $elapsedEnd = ($now->getTimestamp() - $endedAt->getTimestamp()) * 1000;
+            $elapsedEnd = (int)round(((float)$now->format('U.u') - (float)$endedAt->format('U.u')) * 1000);
             if ($elapsedEnd >= $intermissionMs) {
-                return $this->advanceToRound($room, $current + 1);
+                Logger::room('tick:intermission_complete_advancing', $guid, ['current' => $current, 'next' => $current + 1, 'elapsed_intermission_ms' => $elapsedEnd]);
+                $freshRoom = $this->roomRepo->getRoomById($roomId);
+                if ($freshRoom) {
+                    return $this->advanceToRound($freshRoom, $current + 1);
+                }
             }
+
+            return [
+                'ok' => true,
+                'status' => 'intermission',
+                'round' => $current,
+                'ended_at' => $round['ended_at'],
+                'elapsed_intermission_ms' => $elapsedEnd,
+                'intermission_ms' => $intermissionMs,
+                'players' => $this->roomRepo->listPlayers($roomId),
+            ];
         }
 
         // If currently in active question phase, return current question info
-        if ($endedAt === null) {
-            $question = json_decode((string)$round['question_json'], true);
-            if ($question) {
-                return [
-                    'ok' => true,
-                    'round' => $current,
-                    'rounds_total' => (int)$room['rounds_total'],
-                    'question' => $question,
-                    'countdown_ms' => $countdownMs,
-                    'show_ms' => $showMs,
-                    'answer_ms' => $answerMs,
-                    'started_at' => $round['started_at'],
-                    'elapsed_ms' => $elapsed,
-                ];
-            }
-        }
-
-        return ['ok' => true];
+        $question = json_decode((string)$round['question_json'], true);
+        return [
+            'ok' => true,
+            'status' => 'active',
+            'round' => $current,
+            'rounds_total' => (int)$room['rounds_total'],
+            'question' => $question,
+            'countdown_ms' => $countdownMs,
+            'show_ms' => $showMs,
+            'answer_ms' => $answerMs,
+            'started_at' => $round['started_at'],
+            'elapsed_ms' => $elapsed,
+            'players' => $this->roomRepo->listPlayers($roomId),
+        ];
     }
 }
