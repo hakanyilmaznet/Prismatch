@@ -23,7 +23,7 @@ class RoomRepository implements RoomRepositoryInterface {
         $cleanName = $name !== null ? trim($name) : null;
         if ($cleanName === '') $cleanName = null;
 
-        $cleanMode = in_array($gameMode, ['elimination', 'points'], true) ? $gameMode : 'elimination';
+        $cleanMode = in_array($gameMode, ['elimination', 'points', 'flags'], true) ? $gameMode : 'elimination';
 
         $stmt = $this->pdo->prepare("
             INSERT INTO rooms (

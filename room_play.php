@@ -202,6 +202,65 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       animation: pop 0.4s ease both;
       position: relative;
     }
+    .target-box-flag {
+      background-color: #151922;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      overflow: hidden;
+    }
+    .target-flag-img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
+    .choice-cell-flag {
+      background-color: #171c26;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      overflow: hidden;
+    }
+    .choice-cell-flag .choice-flag-img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      pointer-events: none;
+    }
+    .flag-swatch-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 100%;
+    }
+    .flag-swatch-img {
+      width: 28px;
+      height: 18px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+    .flag-name-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 130px;
+    }
     /* Question Grid */
     .choice-grid {
       width: min(440px, 100%, calc(100vh - 440px));
@@ -916,6 +975,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <span class="badge bg-warning-subtle text-warning fs-6 text-nowrap align-middle border border-warning-subtle ms-1">
               ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan Yarışı')) ?>
             </span>
+          <?php elseif (($room['game_mode'] ?? 'elimination') === 'flags'): ?>
+            <span class="badge bg-info-subtle text-info fs-6 text-nowrap align-middle border border-info-subtle ms-1">
+              🚩 <?= htmlspecialchars(tt('rooms_mode_flags_short', 'Bayrak Modu')) ?>
+            </span>
           <?php else: ?>
             <span class="badge bg-danger-subtle text-danger fs-6 text-nowrap align-middle border border-danger-subtle ms-1">
               💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme Modu')) ?>
@@ -1013,14 +1076,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       active: <?= json_encode(tt('room_active', 'Active')) ?>,
       finished: <?= json_encode(tt('status_finished', 'Finished')) ?>,
       rememberColor: <?= json_encode(tt('remember_this', 'Remember this color!')) ?>,
+      rememberFlag: <?= json_encode(tt('remember_flag', 'Remember this flag!')) ?>,
       pickColor: <?= json_encode(tt('question_pick_target', 'Which color was shown?')) ?>,
+      pickFlag: <?= json_encode(tt('question_pick_target_flag', 'Which flag was shown?')) ?>,
       nextRoundIn: <?= json_encode(tt('room_next_in', 'Next round starting soon...')) ?>,
       winner: <?= json_encode(tt('room_winner_announcement', 'Winner!')) ?>,
       getReady: <?= json_encode(tt('status_get_ready', 'Get Ready!')) ?>,
       watchScreen: <?= json_encode(tt('room_watch_screen', 'Watch the screen carefully...')) ?>,
       memorize: <?= json_encode(tt('status_memorize', 'Memorize!')) ?>,
       showingTarget: <?= json_encode(tt('badge_showing_target', 'Showing target color...')) ?>,
+      showingTargetFlag: <?= json_encode(tt('badge_showing_target_flag', 'Showing target flag...')) ?>,
       pickColorUpper: <?= json_encode(tt('badge_pick_color', 'PICK COLOR!')) ?>,
+      pickFlagUpper: <?= json_encode(tt('badge_pick_flag', 'PICK FLAG!')) ?>,
       eliminatedSubtitle: <?= json_encode(tt('room_eliminated_subtitle', 'You are eliminated. Spectating alive players...')) ?>,
       chooseFast: <?= json_encode(tt('room_choose_fast', 'Choose fast for maximum score!')) ?>,
       roundComplete: <?= json_encode(tt('room_round_complete', 'Round {round} Complete')) ?>,
@@ -1060,13 +1127,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       online: <?= json_encode(tt('room_player_online', 'Çevrimiçi')) ?>,
       personalStatsTitle: <?= json_encode(tt('room_personal_stats', 'Tur İstatistikleriniz')) ?>,
       personalStatsDesc: <?= json_encode(tt('room_personal_stats_desc', 'Her turdaki hedef renk, yaptığınız seçim, tepki süreniz ve puan değişiminiz')) ?>,
+      personalStatsDescFlag: <?= json_encode(tt('room_personal_stats_desc_flag', 'Her turdaki hedef bayrak, yaptığınız seçim, tepki süreniz ve puan değişiminiz')) ?>,
       statAvgSpeed: <?= json_encode(tt('room_stat_avg_speed', 'Ortalama Süre')) ?>,
       statFastest: <?= json_encode(tt('room_stat_fastest', 'En Hızlı')) ?>,
       statAccuracy: <?= json_encode(tt('room_stat_accuracy', 'İsabet Oranı')) ?>,
       statTotalDelta: <?= json_encode(tt('room_stat_total_delta', 'Net Puan')) ?>,
       colRound: <?= json_encode(tt('room_col_round', 'Tur')) ?>,
       colTarget: <?= json_encode(tt('room_col_target', 'Hedef Renk')) ?>,
+      colTargetFlag: <?= json_encode(tt('room_col_target_flag', 'Hedef Bayrak')) ?>,
       colPicked: <?= json_encode(tt('room_col_picked', 'Verilen Cevap')) ?>,
+      colPickedFlag: <?= json_encode(tt('room_col_picked_flag', 'Seçilen Bayrak')) ?>,
       colTime: <?= json_encode(tt('room_col_time', 'Süre')) ?>,
       colResult: <?= json_encode(tt('room_col_result', 'Sonuç & Puan')) ?>,
       colCorrect: <?= json_encode(tt('room_col_correct', 'Doğru')) ?>,
@@ -1075,6 +1145,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     function escapeHtml(s) {
       return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function isFlagTarget(val) {
+      if (state.gameMode === 'flags') return true;
+      if (typeof val === 'string' && val.toLowerCase().endsWith('.png')) return true;
+      return false;
+    }
+
+    function formatFlagLabel(path) {
+      if (!path) return '';
+      const base = String(path).split('/').pop() || '';
+      return base.replace(/\.png$/i, '').replace(/[-_]/g, ' ');
     }
 
     // In-Browser Debug Logger with visual drawer integration
@@ -1322,11 +1404,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         state.countdownInterval = null;
       }
 
+      const isFlag = isFlagTarget(state.targetColor);
+      const remTitle = isFlag ? STR.rememberFlag : STR.rememberColor;
+
       // Sonraki tura geçişte (round > 1 veya countdownMs <= 1000): 3-2-1 diye sayma, 1 saniye sonra sonraki tura geç
       if (state.round > 1 || state.countdownMs <= 1000) {
         stageContent.innerHTML = `
-          <h2 class="stage-title">${STR.rememberColor}</h2>
-          <div class="fs-1 my-3">🎯</div>
+          <h2 class="stage-title">${remTitle}</h2>
+          <div class="fs-1 my-3">${isFlag ? '🚩' : '🎯'}</div>
           <div class="stage-subtitle">${STR.watchScreen}</div>
         `;
 
@@ -1340,7 +1425,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       // İlk tur / Maç başlangıcı: 3-2-1 geri sayımı
       let remaining = Math.max(1, Math.round(state.countdownMs / 1000));
       stageContent.innerHTML = `
-        <h2 class="stage-title">${STR.rememberColor}</h2>
+        <h2 class="stage-title">${remTitle}</h2>
         <div class="big-countdown" id="countdownNum">${remaining}</div>
         <div class="stage-subtitle">${STR.watchScreen}</div>
       `;
@@ -1359,16 +1444,31 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }, 1000);
     }
 
-    // Step 2: Target Color Show
+    // Step 2: Target Color / Flag Show
     function runTargetShow() {
       state.phase = 'show';
       hudStatus.textContent = STR.memorize;
       hudStatus.className = 'hud-val text-warning';
 
+      const isFlag = isFlagTarget(state.targetColor);
+      const remTitle = isFlag ? STR.rememberFlag : STR.rememberColor;
+      const showSub = isFlag ? STR.showingTargetFlag : STR.showingTarget;
+
+      let boxHtml = '';
+      if (isFlag) {
+        boxHtml = `
+          <div class="target-box target-box-flag">
+            <img src="${escapeHtml(state.targetColor)}" class="target-flag-img" alt="Target Flag">
+          </div>
+        `;
+      } else {
+        boxHtml = `<div class="target-box" style="background: ${state.targetColor}"></div>`;
+      }
+
       stageContent.innerHTML = `
-        <h2 class="stage-title">${STR.rememberColor}</h2>
-        <div class="target-box" style="background: ${state.targetColor}"></div>
-        <div class="stage-subtitle">${STR.showingTarget}</div>
+        <h2 class="stage-title">${remTitle}</h2>
+        ${boxHtml}
+        <div class="stage-subtitle">${showSub}</div>
       `;
 
       setTimeout(() => {
@@ -1382,11 +1482,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.answered = false;
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       state.questionStartTs = performance.now();
-      hudStatus.textContent = state.eliminated ? STR.spectating : STR.pickColorUpper;
+
+      const isFlag = isFlagTarget(state.targetColor);
+      const pickTitle = isFlag ? STR.pickFlag : STR.pickColor;
+      const pickUpper = isFlag ? STR.pickFlagUpper : STR.pickColorUpper;
+
+      hudStatus.textContent = state.eliminated ? STR.spectating : pickUpper;
       hudStatus.className = 'hud-val ' + (state.eliminated ? 'text-secondary' : 'text-success');
 
       stageContent.innerHTML = `
-        <h2 class="stage-title">${STR.pickColor}</h2>
+        <h2 class="stage-title">${pickTitle}</h2>
         <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : STR.chooseFast}</div>
         <div class="choice-grid" id="choiceGrid"></div>
       `;
@@ -1400,18 +1505,23 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         gridEl.style.gap = cols >= 5 ? '6px' : '8px';
       }
 
-      state.gridColors.forEach(color => {
+      state.gridColors.forEach(item => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'choice-cell';
-        btn.style.background = color;
+        if (isFlag) {
+          btn.classList.add('choice-cell-flag');
+          btn.innerHTML = `<img src="${escapeHtml(item)}" class="choice-flag-img" alt="Flag">`;
+        } else {
+          btn.style.background = item;
+        }
         if (cols >= 5) {
           btn.style.borderRadius = '10px';
         } else if (cols >= 4) {
           btn.style.borderRadius = '14px';
         }
         btn.disabled = state.eliminated;
-        btn.onclick = () => onChoicePick(color, btn, cells);
+        btn.onclick = () => onChoicePick(item, btn, cells);
         gridEl.appendChild(btn);
         cells.push(btn);
       });
@@ -1912,7 +2022,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           <div id="personalStatsSection" class="personal-stats-section">
             <div class="stats-header-bar">
               <h3>🎯 ${STR.personalStatsTitle}</h3>
-              <p>${STR.personalStatsDesc}</p>
+              <p>${state.gameMode === 'flags' ? STR.personalStatsDescFlag : STR.personalStatsDesc}</p>
             </div>
             <div id="statsSummaryGrid" class="stats-summary-grid">
               <div class="stat-metric-card">
@@ -1937,8 +2047,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                 <thead>
                   <tr>
                     <th style="width: 55px">${STR.colRound}</th>
-                    <th>${STR.colTarget}</th>
-                    <th>${STR.colPicked}</th>
+                    <th>${state.gameMode === 'flags' ? STR.colTargetFlag : STR.colTarget}</th>
+                    <th>${state.gameMode === 'flags' ? STR.colPickedFlag : STR.colPicked}</th>
                     <th style="width: 100px" class="text-center">${STR.colTime}</th>
                     <th style="width: 140px" class="text-end">${STR.colResult}</th>
                   </tr>
@@ -2064,22 +2174,29 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           return;
         }
 
+        function renderSwatchOrFlag(val) {
+          if (!val) return '-';
+          if (isFlagTarget(val)) {
+            const name = formatFlagLabel(val);
+            return `<div class="flag-swatch-wrap" title="${escapeHtml(name)}">
+                      <img src="${escapeHtml(val)}" class="flag-swatch-img" alt="Flag">
+                      <span class="flag-name-text">${escapeHtml(name)}</span>
+                    </div>`;
+          }
+          return `<div class="color-swatch-cell">
+                    <span class="color-swatch" style="background: ${escapeHtml(val)}"></span>
+                    <span class="swatch-hex">${escapeHtml(String(val).toUpperCase())}</span>
+                  </div>`;
+        }
+
         bodyEl.innerHTML = roundsList.map(st => {
-          const targetBox = st.target
-            ? `<div class="color-swatch-cell">
-                 <span class="color-swatch" style="background: ${escapeHtml(st.target)}"></span>
-                 <span class="swatch-hex">${escapeHtml(st.target.toUpperCase())}</span>
-               </div>`
-            : '-';
+          const targetBox = st.target ? renderSwatchOrFlag(st.target) : '-';
 
           let pickedBox = '';
           if (st.is_timeout || !st.picked) {
             pickedBox = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">⏱️ ${STR.statTimeoutBadge}</span>`;
           } else {
-            pickedBox = `<div class="color-swatch-cell">
-                           <span class="color-swatch" style="background: ${escapeHtml(st.picked)}"></span>
-                           <span class="swatch-hex">${escapeHtml(st.picked.toUpperCase())}</span>
-                         </div>`;
+            pickedBox = renderSwatchOrFlag(st.picked);
           }
 
           const timeVal = st.is_timeout ? '-' : `${st.response_ms || 0} ms`;

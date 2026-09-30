@@ -178,7 +178,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           <span>🎯</span> <?= htmlspecialchars(tt('rooms_mode_label', 'Game Mode')) ?>
         </label>
         <div class="row g-2">
-          <div class="col-sm-6">
+          <div class="col-md-4">
             <div class="card h-100 p-3 mode-select-card" id="modeCardPoints" style="cursor: pointer; border: 2px solid var(--bs-primary); border-radius: 12px; transition: all 0.2s ease;">
               <div class="form-check m-0">
                 <input class="form-check-input" type="radio" name="roomGameMode" id="modePoints" value="points" checked style="cursor: pointer;">
@@ -191,7 +191,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               </div>
             </div>
           </div>
-          <div class="col-sm-6">
+          <div class="col-md-4">
             <div class="card h-100 p-3 mode-select-card" id="modeCardElimination" style="cursor: pointer; border: 2px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.2s ease;">
               <div class="form-check m-0">
                 <input class="form-check-input" type="radio" name="roomGameMode" id="modeElimination" value="elimination" style="cursor: pointer;">
@@ -201,6 +201,19 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               </div>
               <div class="small text-secondary mt-1 ps-4">
                 <?= htmlspecialchars(tt('rooms_mode_elim_desc', 'Yanlış yapan veya süresi dolan elenir. Son hayatta kalan veya en yüksek puanlı kazanır.')) ?>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card h-100 p-3 mode-select-card" id="modeCardFlags" style="cursor: pointer; border: 2px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.2s ease;">
+              <div class="form-check m-0">
+                <input class="form-check-input" type="radio" name="roomGameMode" id="modeFlags" value="flags" style="cursor: pointer;">
+                <label class="form-check-label fw-bold user-select-none" for="modeFlags" style="cursor: pointer;">
+                  🚩 <?= htmlspecialchars(tt('rooms_mode_flags_title', 'Bayrak Modu (Dünya Bayrakları)')) ?>
+                </label>
+              </div>
+              <div class="small text-secondary mt-1 ps-4">
+                <?= htmlspecialchars(tt('rooms_mode_flags_desc', 'Renkler yerine 250+ ülke bayrağı! Elenme yok, doğru bayrak puan kazandırır, yanlış seçim puan düşürür.')) ?>
               </div>
             </div>
           </div>
@@ -286,6 +299,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                     <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill room-badge-mode">
                       ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?>
                     </span>
+                  <?php elseif (($pr['game_mode'] ?? 'elimination') === 'flags'): ?>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill room-badge-mode">
+                      🚩 <?= htmlspecialchars(tt('rooms_mode_flags_short', 'Bayrak')) ?>
+                    </span>
                   <?php else: ?>
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
                       💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme')) ?>
@@ -355,6 +372,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                   <?php if (($r['game_mode'] ?? 'elimination') === 'points'): ?>
                     <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill room-badge-mode">
                       ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?>
+                    </span>
+                  <?php elseif (($r['game_mode'] ?? 'elimination') === 'flags'): ?>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill room-badge-mode">
+                      🚩 <?= htmlspecialchars(tt('rooms_mode_flags_short', 'Bayrak')) ?>
                     </span>
                   <?php else: ?>
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
@@ -436,17 +457,24 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     // Mode card selection behavior
     const modeCardPoints = document.getElementById('modeCardPoints');
     const modeCardElimination = document.getElementById('modeCardElimination');
+    const modeCardFlags = document.getElementById('modeCardFlags');
     const radioPoints = document.getElementById('modePoints');
     const radioElimination = document.getElementById('modeElimination');
+    const radioFlags = document.getElementById('modeFlags');
 
     function syncModeCards() {
-      if (radioPoints && radioPoints.checked) {
-        modeCardPoints?.style.setProperty('border-color', 'var(--bs-primary)', 'important');
-        modeCardElimination?.style.setProperty('border-color', 'rgba(255,255,255,0.12)', 'important');
-      } else if (radioElimination && radioElimination.checked) {
-        modeCardElimination?.style.setProperty('border-color', 'var(--bs-danger)', 'important');
-        modeCardPoints?.style.setProperty('border-color', 'rgba(255,255,255,0.12)', 'important');
-      }
+      const cards = [
+        { card: modeCardPoints, radio: radioPoints, color: 'var(--bs-primary)' },
+        { card: modeCardElimination, radio: radioElimination, color: 'var(--bs-danger)' },
+        { card: modeCardFlags, radio: radioFlags, color: '#0dcaf0' }
+      ];
+      cards.forEach(item => {
+        if (item.radio && item.radio.checked) {
+          item.card?.style.setProperty('border-color', item.color, 'important');
+        } else {
+          item.card?.style.setProperty('border-color', 'rgba(255,255,255,0.12)', 'important');
+        }
+      });
     }
 
     modeCardPoints?.addEventListener('click', () => {
@@ -457,8 +485,13 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       if (radioElimination) radioElimination.checked = true;
       syncModeCards();
     });
+    modeCardFlags?.addEventListener('click', () => {
+      if (radioFlags) radioFlags.checked = true;
+      syncModeCards();
+    });
     radioPoints?.addEventListener('change', syncModeCards);
     radioElimination?.addEventListener('change', syncModeCards);
+    radioFlags?.addEventListener('change', syncModeCards);
 
     createBtn?.addEventListener('click', async () => {
       setMsg(createMsg, '');

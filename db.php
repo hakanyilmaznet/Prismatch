@@ -292,13 +292,13 @@ function grid_count_for_round(int $roundIndex, int $roundsTotal = 50): int {
     return (new RoomGameService())->getGridCountForRound($roundIndex, $roundsTotal);
 }
 
-function room_generate_question(int $roundIndex, int $roundsTotal = 50): array {
-    return (new RoomGameService())->generateQuestion($roundIndex, $roundsTotal);
+function room_generate_question(int $roundIndex, int $roundsTotal = 50, string $gameMode = 'elimination'): array {
+    return (new RoomGameService())->generateQuestion($roundIndex, $roundsTotal, $gameMode);
 }
 
-function room_create_round(string $roomId, int $roundIndex, int $roundsTotal = 50): array {
+function room_create_round(string $roomId, int $roundIndex, int $roundsTotal = 50, string $gameMode = 'elimination'): array {
     $service = new RoomGameService();
-    $question = $service->generateQuestion($roundIndex, $roundsTotal);
+    $question = $service->generateQuestion($roundIndex, $roundsTotal, $gameMode);
     $pdo = db();
     $stmt = $pdo->prepare("
         INSERT INTO room_rounds (id, room_id, round_index, question_json, started_at)

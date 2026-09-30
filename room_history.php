@@ -164,6 +164,13 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         <div class="small text-secondary">
           GUID: <code class="text-secondary"><?= htmlspecialchars($room['guid']) ?></code> · 
           <?= htmlspecialchars(tt('room_status', 'Status')) ?>: <span class="badge bg-secondary-subtle text-secondary rounded-pill"><?= htmlspecialchars(room_status_label($room['status'] ?? '')) ?></span>
+          <?php if (($room['game_mode'] ?? 'elimination') === 'points'): ?>
+            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill ms-1">⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan Yarışı')) ?></span>
+          <?php elseif (($room['game_mode'] ?? 'elimination') === 'flags'): ?>
+            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill ms-1">🚩 <?= htmlspecialchars(tt('rooms_mode_flags_short', 'Bayrak Modu')) ?></span>
+          <?php else: ?>
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill ms-1">💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme Modu')) ?></span>
+          <?php endif; ?>
         </div>
       </div>
       <div>
@@ -218,15 +225,21 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           $q = json_decode($r['question_json'], true);
           $target = $q['target'] ?? '';
           $roundNum = (int)$r['round_index'];
+          $isFlag = (str_ends_with(strtolower($target), '.png') || ($room['game_mode'] ?? '') === 'flags');
         ?>
           <div class="round-card">
             <div class="d-flex align-items-center justify-content-between mb-2">
               <span class="fw-bold fs-6"><?= htmlspecialchars(tt('hud_round', 'Round')) ?> <?= $roundNum ?></span>
               <?php if ($target): ?>
                 <div class="small d-flex align-items-center gap-2">
-                  <span class="text-secondary"><?= htmlspecialchars(tt('room_target_label', 'Target Color')) ?>:</span>
-                  <span class="color-swatch" style="background:<?= htmlspecialchars($target) ?>"></span>
-                  <code><?= htmlspecialchars($target) ?></code>
+                  <span class="text-secondary"><?= htmlspecialchars($isFlag ? tt('room_col_target_flag', 'Hedef Bayrak') : tt('room_target_label', 'Target Color')) ?>:</span>
+                  <?php if ($isFlag): ?>
+                    <img src="<?= htmlspecialchars($target) ?>" alt="Flag" style="width:24px;height:16px;object-fit:cover;border-radius:3px;border:1px solid rgba(255,255,255,0.25);">
+                    <code><?= htmlspecialchars(str_replace(['flags/', '.png', '-', '_'], ['', '', ' ', ' '], $target)) ?></code>
+                  <?php else: ?>
+                    <span class="color-swatch" style="background:<?= htmlspecialchars($target) ?>"></span>
+                    <code><?= htmlspecialchars($target) ?></code>
+                  <?php endif; ?>
                 </div>
               <?php endif; ?>
             </div>

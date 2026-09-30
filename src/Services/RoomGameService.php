@@ -64,13 +64,37 @@ class RoomGameService {
         return 25;                  // Sonraki 5 tur: 25 kare (5x5)
     }
 
-    public function generateQuestion(int $roundIndex, int $roundsTotal = 25): array {
-        $palette = array_values(array_unique(self::COLOR_PALETTE));
+    public static function getFlagPalette(): array {
+        static $flags = null;
+        if ($flags === null) {
+            $flagDir = dirname(__DIR__, 2) . '/flags';
+            $files = glob($flagDir . '/*.png');
+            if ($files) {
+                $flags = [];
+                foreach ($files as $file) {
+                    $base = basename($file);
+                    if (str_ends_with(strtolower($base), '.png')) {
+                        $flags[] = 'flags/' . $base;
+                    }
+                }
+            } else {
+                $flags = [];
+            }
+        }
+        return $flags;
+    }
+
+    public function generateQuestion(int $roundIndex, int $roundsTotal = 25, string $gameMode = 'elimination'): array {
+        if ($gameMode === 'flags') {
+            $palette = self::getFlagPalette();
+        } else {
+            $palette = array_values(array_unique(self::COLOR_PALETTE));
+        }
         $count = $this->getGridCountForRound($roundIndex, $roundsTotal);
         shuffle($palette);
-        $grid = array_slice($palette, 0, $count);
+        $grid = array_slice($palette, 0, min($count, count($palette)));
         $target = $grid[array_rand($grid)];
-        return ['target' => $target, 'grid' => $grid, 'gridCount' => $count];
+        return ['target' => $target, 'grid' => $grid, 'gridCount' => count($grid)];
     }
 
     public function joinRoom(string $guid, string $userId, string $email): array {
@@ -323,7 +347,7 @@ class RoomGameService {
             }
 
             // Generate question
-            $question = $this->generateQuestion($nextRound, $total);
+            $question = $this->generateQuestion($nextRound, $total, $gameMode);
             $now = Database::nowUtc();
 
             // Insert round
