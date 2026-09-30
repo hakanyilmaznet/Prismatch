@@ -22,7 +22,8 @@ class RoomGameService {
 
     public function getTimingForRound(int $roundIndex): array {
         $lvl = max(1, $roundIndex);
-        $countdownMs = 3000;
+        // Sonraki tura geçişte 3-2-1 saymasın, 1 saniye sonra başlasın (1000ms)
+        $countdownMs = ($lvl > 1) ? 1000 : 3000;
         $answerMs = 5000;
 
         if ($lvl === 21 || $lvl === 41) {
@@ -685,7 +686,7 @@ class RoomGameService {
         $countdownMs = $timing['countdown_ms'];
         $showMs = $timing['show_ms'];
         $answerMs = $timing['answer_ms'];
-        $intermissionMs = 3500; // 3.5s smooth intermission
+        $intermissionMs = 2500; // 2.5s smooth intermission
 
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $startedAt = new \DateTimeImmutable($round['started_at'], new \DateTimeZone('UTC'));

@@ -1081,6 +1081,28 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       hudStatus.className = 'hud-val text-info';
       playTone(520, 0.08, 'square');
 
+      if (state.countdownInterval) {
+        clearInterval(state.countdownInterval);
+        clearTimeout(state.countdownInterval);
+        state.countdownInterval = null;
+      }
+
+      // Sonraki tura geçişte (round > 1 veya countdownMs <= 1000): 3-2-1 diye sayma, 1 saniye sonra sonraki tura geç
+      if (state.round > 1 || state.countdownMs <= 1000) {
+        stageContent.innerHTML = `
+          <h2 class="stage-title">${STR.rememberColor}</h2>
+          <div class="fs-1 my-3">🎯</div>
+          <div class="stage-subtitle">${STR.watchScreen}</div>
+        `;
+
+        state.countdownInterval = setTimeout(() => {
+          state.countdownInterval = null;
+          runTargetShow();
+        }, 1000);
+        return;
+      }
+
+      // İlk tur / Maç başlangıcı: 3-2-1 geri sayımı
       let remaining = Math.max(1, Math.round(state.countdownMs / 1000));
       stageContent.innerHTML = `
         <h2 class="stage-title">${STR.rememberColor}</h2>
@@ -1088,7 +1110,6 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <div class="stage-subtitle">${STR.watchScreen}</div>
       `;
 
-      if (state.countdownInterval) clearInterval(state.countdownInterval);
       state.countdownInterval = setInterval(() => {
         remaining -= 1;
         const el = document.getElementById('countdownNum');
@@ -1097,6 +1118,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           if (el) el.textContent = String(remaining);
         } else {
           clearInterval(state.countdownInterval);
+          state.countdownInterval = null;
           runTargetShow();
         }
       }, 1000);
@@ -1310,7 +1332,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
       state.leaderboardRound = r;
       state.phase = 'intermission';
-      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      if (state.countdownInterval) { clearInterval(state.countdownInterval); clearTimeout(state.countdownInterval); state.countdownInterval = null; }
       if (state.activeTimer) clearInterval(state.activeTimer);
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       hudTimer.textContent = '-';
@@ -1328,7 +1350,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <h2 class="stage-title">${STR.roundComplete.replace('{round}', state.round)}</h2>
         <p class="stage-subtitle">${STR.nextRoundIn}</p>
         <div class="progress my-2 mx-auto" style="height: 6px; max-width: 260px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden;">
-          <div id="intermissionProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width: 100%; transition: width 3.5s linear;"></div>
+          <div id="intermissionProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width: 100%; transition: width 2.5s linear;"></div>
         </div>
         <div class="table-responsive w-100 mt-2">
           <table class="table table-sm align-middle text-start">
@@ -1360,7 +1382,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         if (bar) bar.style.width = '0%';
       }, 50);
 
-      // Intermission safety timer: automatically advance after 3.8s if Pusher event was delayed
+      // Intermission safety timer: automatically advance after 2.8s if Pusher event was delayed
       state.intermissionTimer = setTimeout(async () => {
         if (state.phase === 'intermission') {
           RoomLogger.info('Intermission', 'Safety timer expired, polling tick to advance round');
@@ -1374,7 +1396,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             }
           } catch(e) {}
         }
-      }, 3800);
+      }, 2800);
     }
 
     function applyRoundData(data) {
@@ -1397,7 +1419,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       RoomLogger.info('GameState', `applyRoundData: Starting round ${data.round}`, data);
 
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
-      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      if (state.countdownInterval) {
+        clearInterval(state.countdownInterval);
+        clearTimeout(state.countdownInterval);
+        state.countdownInterval = null;
+      }
       if (state.activeTimer) clearInterval(state.activeTimer);
 
       state.phase = 'countdown';
@@ -1431,7 +1457,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     async function renderFinalVictory(players) {
       state.phase = 'finished';
-      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      if (state.countdownInterval) { clearInterval(state.countdownInterval); clearTimeout(state.countdownInterval); state.countdownInterval = null; }
       if (state.activeTimer) clearInterval(state.activeTimer);
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       hudTimer.textContent = '-';
@@ -1653,7 +1679,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     function resetToLobby(players) {
-      if (state.countdownInterval) clearInterval(state.countdownInterval);
+      if (state.countdownInterval) { clearInterval(state.countdownInterval); clearTimeout(state.countdownInterval); state.countdownInterval = null; }
       if (state.activeTimer) clearInterval(state.activeTimer);
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       state.round = 0;
