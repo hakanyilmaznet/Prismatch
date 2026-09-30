@@ -712,16 +712,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <h1 class="stage-title">
           <span><?= htmlspecialchars($room['name'] ?: tt('room_default_name', 'Match Room')) ?></span>
           <?php if (($room['game_mode'] ?? 'elimination') === 'points'): ?>
-            <span class="badge bg-warning-subtle text-warning fs-6 align-middle border border-warning-subtle ms-1">
+            <span class="badge bg-warning-subtle text-warning fs-6 text-nowrap align-middle border border-warning-subtle ms-1">
               ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan Yarışı')) ?>
             </span>
           <?php else: ?>
-            <span class="badge bg-danger-subtle text-danger fs-6 align-middle border border-danger-subtle ms-1">
+            <span class="badge bg-danger-subtle text-danger fs-6 text-nowrap align-middle border border-danger-subtle ms-1">
               💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme Modu')) ?>
             </span>
           <?php endif; ?>
           <?php if (!empty($room['is_private'])): ?>
-            <span class="badge bg-secondary-subtle text-secondary fs-6 align-middle border border-secondary-subtle ms-1">
+            <span class="badge bg-secondary-subtle text-secondary fs-6 text-nowrap align-middle border border-secondary-subtle ms-1">
               🔒 <?= htmlspecialchars(tt('rooms_private_badge', 'Private')) ?>
             </span>
           <?php endif; ?>
@@ -1746,9 +1746,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           <h1 class="stage-title">
             <span><?= htmlspecialchars($room['name'] ?: tt('room_default_name', 'Match Room')) ?></span>
             ${isPointsMode 
-              ? `<span class="badge bg-warning-subtle text-warning fs-6 align-middle border border-warning-subtle ms-1">⚡ ${STR.modePoints}</span>`
-              : `<span class="badge bg-danger-subtle text-danger fs-6 align-middle border border-danger-subtle ms-1">💀 ${STR.modeElimination}</span>`}
-            ${isPriv ? `<span class="badge bg-secondary-subtle text-secondary fs-6 align-middle border border-secondary-subtle ms-1">🔒 ${STR.privateBadge}</span>` : ''}
+              ? `<span class="badge bg-warning-subtle text-warning fs-6 text-nowrap align-middle border border-warning-subtle ms-1">⚡ ${STR.modePoints}</span>`
+              : `<span class="badge bg-danger-subtle text-danger fs-6 text-nowrap align-middle border border-danger-subtle ms-1">💀 ${STR.modeElimination}</span>`}
+            ${isPriv ? `<span class="badge bg-secondary-subtle text-secondary fs-6 text-nowrap align-middle border border-secondary-subtle ms-1">🔒 ${STR.privateBadge}</span>` : ''}
           </h1>
           <p class="stage-subtitle">${isPriv ? STR.waitingDescPrivate : STR.waitingDesc}</p>
           <div class="d-flex flex-wrap gap-2 justify-content-center mt-2">

@@ -102,6 +102,28 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       font-weight: 700;
       color: #ffb020;
     }
+    .room-badge-mode {
+      white-space: nowrap !important;
+      word-break: keep-all !important;
+      overflow-wrap: normal !important;
+      display: inline-flex !important;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.72rem;
+      padding: 0.25rem 0.6rem;
+      line-height: 1.2;
+    }
+    .table-modern {
+      min-width: 580px;
+    }
+    .share-link-input {
+      font-size: 0.88rem;
+    }
+    @media (max-width: 576px) {
+      .share-link-input {
+        font-size: 0.8rem;
+      }
+    }
     @media (max-width: 767px) {
       .card-modern .row > div {
         width: 100% !important;
@@ -200,17 +222,25 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
 
       <!-- Share Box (Revealed after creation) -->
       <div id="shareWrap" class="mt-4 pt-3 border-top" hidden>
-        <div class="alert alert-success d-flex flex-column gap-2 rounded-3 mb-0">
-          <div class="fw-semibold" id="shareSuccessTitle">🎉 <?= htmlspecialchars(tt('rooms_created_success', 'Room created successfully! Share this link with players:')) ?></div>
+        <div class="alert alert-success d-flex flex-column gap-3 rounded-3 p-3 p-sm-4 shadow-sm mb-0">
+          <div class="fw-semibold fs-6" id="shareSuccessTitle">🎉 <?= htmlspecialchars(tt('rooms_created_success', 'Room created successfully! Share this link with players:')) ?></div>
+          
           <div class="input-group">
-            <input id="shareLink" class="form-control" type="text" readonly />
-            <button id="copyLinkBtn" class="btn btn-dark" type="button"><?= htmlspecialchars(tt('rooms_copy', 'Copy Link')) ?></button>
-            <a id="shareWhatsappBtn" class="btn btn-success d-inline-flex align-items-center gap-1" href="#" target="_blank" rel="noopener noreferrer">
-              <span>💬</span> <?= htmlspecialchars(tt('rooms_share_whatsapp', 'WhatsApp ile Gönder')) ?>
-            </a>
-            <a id="openRoomBtn" class="btn btn-primary" href="#"><?= htmlspecialchars(tt('rooms_open', 'Enter Room')) ?> →</a>
+            <input id="shareLink" class="form-control font-monospace px-3 py-2 bg-body-tertiary share-link-input" type="text" readonly />
+            <button id="copyLinkBtn" class="btn btn-dark px-3 py-2 d-inline-flex align-items-center gap-1.5 fw-semibold text-nowrap" type="button">
+              <span>📋</span> <span id="copyLinkBtnText"><?= htmlspecialchars(tt('rooms_copy', 'Copy Link')) ?></span>
+            </button>
           </div>
-          <div id="shareMsg" class="small text-success"></div>
+
+          <div class="d-flex flex-column flex-sm-row gap-2 pt-1">
+            <a id="shareWhatsappBtn" class="btn btn-success flex-fill py-2.5 d-inline-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm" href="#" target="_blank" rel="noopener noreferrer">
+              <span class="fs-5">💬</span> <?= htmlspecialchars(tt('rooms_share_whatsapp', 'WhatsApp ile Gönder')) ?>
+            </a>
+            <a id="openRoomBtn" class="btn btn-primary flex-fill py-2.5 d-inline-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm" href="#">
+              <?= htmlspecialchars(tt('rooms_open', 'Enter Room')) ?> →
+            </a>
+          </div>
+          <div id="shareMsg" class="small text-success fw-semibold"></div>
         </div>
       </div>
     </div>
@@ -249,18 +279,19 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             $pPlayers = (int)($pr['player_count'] ?? 1);
             $pHost = explode('@', (string)($pr['owner_email'] ?? ''))[0] ?: tt('room_host', 'Host');
           ?>
-            <tr>
-              <td class="fw-semibold text-break">
-                <?= htmlspecialchars($pr['name'] ?: tt('room_prefix', 'Room #') . substr($pGuid, 0, 8)) ?>
-                <?php if (($pr['game_mode'] ?? 'elimination') === 'points'): ?>
-                  <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill ms-1" style="font-size: 0.72rem;">
-                    ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?>
-                  </span>
-                <?php else: ?>
-                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill ms-1" style="font-size: 0.72rem;">
-                    💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme')) ?>
-                  </span>
-                <?php endif; ?>
+              <td>
+                <div class="d-flex flex-wrap align-items-center gap-1.5">
+                  <span class="fw-semibold"><?= htmlspecialchars($pr['name'] ?: tt('room_prefix', 'Room #') . substr($pGuid, 0, 8)) ?></span>
+                  <?php if (($pr['game_mode'] ?? 'elimination') === 'points'): ?>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill room-badge-mode">
+                      ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?>
+                    </span>
+                  <?php else: ?>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
+                      💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme')) ?>
+                    </span>
+                  <?php endif; ?>
+                </div>
               </td>
               <td><?= room_status_badge($pStatus) ?></td>
               <td><span class="badge bg-dark-subtle text-dark-emphasis rounded-pill"><?= $pPlayers ?> 👥</span></td>
@@ -318,9 +349,20 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               $isPriv = !empty($r['is_private']);
             ?>
               <tr>
-                <td class="fw-semibold text-break">
-                  <?= htmlspecialchars($r['name'] ?: tt('room_prefix', 'Room #') . substr($guid, 0, 8)) ?>
-                </td>
+                <td>
+                  <div class="d-flex flex-wrap align-items-center gap-1.5">
+                  <span class="fw-semibold"><?= htmlspecialchars($r['name'] ?: tt('room_prefix', 'Room #') . substr($guid, 0, 8)) ?></span>
+                  <?php if (($r['game_mode'] ?? 'elimination') === 'points'): ?>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill room-badge-mode">
+                      ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?>
+                    </span>
+                  <?php else: ?>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
+                      💀 <?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme')) ?>
+                    </span>
+                  <?php endif; ?>
+                </div>
+              </td>
                 <td>
                   <?php if ($isPriv): ?>
                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 rounded-pill">
@@ -473,13 +515,13 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       if (!shareLink || !shareLink.value) return;
       try {
         await navigator.clipboard.writeText(shareLink.value);
-        copyLinkBtn.textContent = STR.shareCopied;
-        setTimeout(() => { copyLinkBtn.textContent = STR.copyLink; }, 2000);
+        copyLinkBtn.innerHTML = '<span>✅</span> <span>' + STR.shareCopied + '</span>';
+        setTimeout(() => { copyLinkBtn.innerHTML = '<span>📋</span> <span>' + STR.copyLink + '</span>'; }, 2000);
       } catch (e) {
         shareLink.select();
         document.execCommand('copy');
-        copyLinkBtn.textContent = STR.shareCopied;
-        setTimeout(() => { copyLinkBtn.textContent = STR.copyLink; }, 2000);
+        copyLinkBtn.innerHTML = '<span>✅</span> <span>' + STR.shareCopied + '</span>';
+        setTimeout(() => { copyLinkBtn.innerHTML = '<span>📋</span> <span>' + STR.copyLink + '</span>'; }, 2000);
       }
     });
   </script>
