@@ -28,10 +28,10 @@ class RoomRepository implements RoomRepositoryInterface {
         $stmt = $this->pdo->prepare("
             INSERT INTO rooms (
                 id, guid, name, owner_id, owner_email,
-                status, rounds_total, current_round, is_private, game_mode, created_at
+                status, rounds_total, current_round, is_private, game_mode, created_at, updated_at
             ) VALUES (
                 :id, :guid, :name, :owner_id, :owner_email,
-                'waiting', :rounds_total, 0, :is_private, :game_mode, :created_at
+                'waiting', :rounds_total, 0, :is_private, :game_mode, :created_at, :updated_at
             )
         ");
         $stmt->execute([
@@ -44,6 +44,7 @@ class RoomRepository implements RoomRepositoryInterface {
             ':is_private' => $isPrivate ? 1 : 0,
             ':game_mode' => $cleanMode,
             ':created_at' => $now,
+            ':updated_at' => $now,
         ]);
 
         $this->addPlayer($roomId, $ownerId, $ownerEmail);
@@ -78,6 +79,7 @@ class RoomRepository implements RoomRepositoryInterface {
     }
 
     public function listUserRooms(string $userId, int $limit = 50): array {
+        $this->cleanupInactiveRooms(60);
         $stmt = $this->pdo->prepare("
             SELECT DISTINCT r.*
             FROM rooms r
@@ -98,6 +100,7 @@ class RoomRepository implements RoomRepositoryInterface {
     }
 
     public function listPublicRooms(int $limit = 20): array {
+        $this->cleanupInactiveRooms(60);
         $stmt = $this->pdo->prepare("
             SELECT r.*,
                    COUNT(DISTINCT rp.id) AS player_count
@@ -125,15 +128,19 @@ class RoomRepository implements RoomRepositoryInterface {
         $countStmt->execute([':rid' => $roomId]);
         $count = (int)$countStmt->fetchColumn();
 
-        $maxStmt = $this->pdo->prepare("SELECT max_players FROM rooms WHERE id = :rid LIMIT 1");
-        $maxStmt->execute([':rid' => $roomId]);
-        $maxPlayers = (int)$maxStmt->fetchColumn();
+        $roomStmt = $this->pdo->prepare("SELECT status, current_round, max_players FROM rooms WHERE id = :rid LIMIT 1");
+        $roomStmt->execute([':rid' => $roomId]);
+        $roomRow = $roomStmt->fetch(PDO::FETCH_ASSOC);
+        $maxPlayers = (int)($roomRow['max_players'] ?? 25);
         if ($maxPlayers <= 0) $maxPlayers = 25;
 
         // Check if already in room
-        $existsStmt = $this->pdo->prepare("SELECT id FROM room_players WHERE room_id = :rid AND user_id = :uid LIMIT 1");
+        $existsStmt = $this->pdo->prepare("SELECT id, status FROM room_players WHERE room_id = :rid AND user_id = :uid LIMIT 1");
         $existsStmt->execute([':rid' => $roomId, ':uid' => $userId]);
-        if ($existsStmt->fetch()) {
+        $existing = $existsStmt->fetch(PDO::FETCH_ASSOC);
+        if ($existing) {
+            $this->touchPlayer($roomId, $userId);
+            $this->touchRoom($roomId);
             return true;
         }
 
@@ -141,22 +148,32 @@ class RoomRepository implements RoomRepositoryInterface {
             return false;
         }
 
+        $isMatchInProgress = (($roomRow['status'] ?? 'waiting') === 'active' || (int)($roomRow['current_round'] ?? 0) > 0);
+        $initialStatus = $isMatchInProgress ? 'eliminated' : 'active';
+        $eliminatedRound = $isMatchInProgress ? (int)($roomRow['current_round'] ?? 1) : null;
+
         $stmt = $this->pdo->prepare("
             INSERT INTO room_players (
-                id, room_id, user_id, email, joined_at, status, score, correct, last_active
+                id, room_id, user_id, email, joined_at, status, eliminated_round, score, correct, last_active
             ) VALUES (
-                :id, :room_id, :user_id, :email, :joined_at, 'active', 0, 0, :last_active
+                :id, :room_id, :user_id, :email, :joined_at, :status, :eliminated_round, 0, 0, :last_active
             )
         ");
         $now = Database::nowUtc();
-        return $stmt->execute([
+        $ok = $stmt->execute([
             ':id' => Database::generateUuid(),
             ':room_id' => $roomId,
             ':user_id' => $userId,
             ':email' => $email,
             ':joined_at' => $now,
+            ':status' => $initialStatus,
+            ':eliminated_round' => $eliminatedRound,
             ':last_active' => $now,
         ]);
+        if ($ok) {
+            $this->touchRoom($roomId);
+        }
+        return $ok;
     }
 
     public function listPlayers(string $roomId): array {
@@ -192,6 +209,7 @@ class RoomRepository implements RoomRepositoryInterface {
             ");
         }
         $stmt->execute([':now' => $now, ':rid' => $roomId, ':uid' => $userId]);
+        $this->touchRoom($roomId);
     }
 
     public function removePlayer(string $roomId, string $userId): bool {
@@ -199,7 +217,9 @@ class RoomRepository implements RoomRepositoryInterface {
             DELETE FROM room_players
             WHERE room_id = :rid AND user_id = :uid
         ");
-        return $stmt->execute([':rid' => $roomId, ':uid' => $userId]);
+        $res = $stmt->execute([':rid' => $roomId, ':uid' => $userId]);
+        $this->touchRoom($roomId);
+        return $res;
     }
 
     public function cleanupStalePlayers(string $roomId, string $ownerId, int $staleSeconds = 8): int {
@@ -211,6 +231,7 @@ class RoomRepository implements RoomRepositoryInterface {
               AND (last_active IS NULL OR last_active < :cutoff)
         ");
         $stmt->execute([':rid' => $roomId, ':owner_id' => $ownerId, ':cutoff' => $cutoff]);
+        $this->touchRoom($roomId);
         return $stmt->rowCount();
     }
 
@@ -221,6 +242,7 @@ class RoomRepository implements RoomRepositoryInterface {
             WHERE room_id = :rid AND user_id = :uid AND status = 'active'
         ");
         $stmt->execute([':r' => $roundIndex, ':rid' => $roomId, ':uid' => $userId]);
+        $this->touchRoom($roomId);
     }
 
     public function addScore(string $roomId, string $userId, int $scoreDelta, int $correctDelta): void {
@@ -238,6 +260,7 @@ class RoomRepository implements RoomRepositoryInterface {
             ':rid' => $roomId,
             ':uid' => $userId,
         ]);
+        $this->touchRoom($roomId);
     }
 
     public function setStatus(string $roomId, string $status, ?int $finishedRound = null): void {
@@ -245,7 +268,9 @@ class RoomRepository implements RoomRepositoryInterface {
         if ($status === 'active') {
             $stmt = $this->pdo->prepare("
                 UPDATE rooms
-                SET status = 'active', started_at = COALESCE(started_at, :now)
+                SET status = 'active',
+                    started_at = COALESCE(started_at, :now),
+                    updated_at = :now
                 WHERE id = :rid
             ");
             $stmt->execute([':now' => $now, ':rid' => $roomId]);
@@ -254,13 +279,73 @@ class RoomRepository implements RoomRepositoryInterface {
                 UPDATE rooms
                 SET status = 'finished',
                     finished_at = COALESCE(finished_at, :now),
-                    finished_round = COALESCE(:fr, current_round)
+                    finished_round = COALESCE(:fr, current_round),
+                    updated_at = :now
                 WHERE id = :rid
             ");
             $stmt->execute([':now' => $now, ':fr' => $finishedRound, ':rid' => $roomId]);
         } else {
-            $stmt = $this->pdo->prepare("UPDATE rooms SET status = :s WHERE id = :rid");
-            $stmt->execute([':s' => $status, ':rid' => $roomId]);
+            $stmt = $this->pdo->prepare("UPDATE rooms SET status = :s, updated_at = :now WHERE id = :rid");
+            $stmt->execute([':s' => $status, ':now' => $now, ':rid' => $roomId]);
+        }
+    }
+
+    public function touchRoom(string $roomId): void {
+        try {
+            $stmt = $this->pdo->prepare("UPDATE rooms SET updated_at = :now WHERE id = :rid");
+            $stmt->execute([':now' => Database::nowUtc(), ':rid' => $roomId]);
+        } catch (\Throwable $e) {}
+    }
+
+    public function cleanupInactiveRooms(int $inactiveMinutes = 60): int {
+        try {
+            $cutoff = (new \DateTimeImmutable("-{$inactiveMinutes} minutes", new \DateTimeZone('UTC')))->format('Y-m-d H:i:s.v');
+
+            // Find rooms with no active players for 60 minutes:
+            // 1. Rooms with 0 players in room_players whose last activity (updated_at or created_at) is older than cutoff.
+            // 2. Rooms where players exist, but MAX(COALESCE(last_active, joined_at)) across all players is older than cutoff.
+            $findStmt = $this->pdo->prepare("
+                SELECT r.id, r.guid, r.name
+                FROM rooms r
+                LEFT JOIN room_players rp ON rp.room_id = r.id
+                GROUP BY r.id, r.guid, r.name, r.updated_at, r.created_at
+                HAVING (
+                    (COUNT(rp.id) = 0 AND COALESCE(r.updated_at, r.created_at) < :cutoff1)
+                    OR
+                    (COUNT(rp.id) > 0 AND MAX(COALESCE(rp.last_active, rp.joined_at)) < :cutoff2)
+                )
+            ");
+            $findStmt->execute([
+                ':cutoff1' => $cutoff,
+                ':cutoff2' => $cutoff,
+            ]);
+            $staleRooms = $findStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            if (empty($staleRooms)) {
+                return 0;
+            }
+
+            $deletedCount = 0;
+            $delStmt = $this->pdo->prepare("DELETE FROM rooms WHERE id = :rid");
+
+            foreach ($staleRooms as $room) {
+                $rid = (string)$room['id'];
+                $guid = (string)$room['guid'];
+                $rName = (string)($room['name'] ?? '');
+
+                $delStmt->execute([':rid' => $rid]);
+                $deletedCount++;
+                Logger::room('cleanupInactiveRooms:deleted', $guid, [
+                    'id' => $rid,
+                    'name' => $rName,
+                    'inactive_minutes' => $inactiveMinutes,
+                ]);
+            }
+
+            return $deletedCount;
+        } catch (\Throwable $e) {
+            Logger::error('cleanupInactiveRooms:error', ['msg' => $e->getMessage()]);
+            return 0;
         }
     }
 
@@ -282,5 +367,6 @@ class RoomRepository implements RoomRepositoryInterface {
             ':payload_json' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ':created_at' => Database::nowUtc(),
         ]);
+        $this->touchRoom($roomId);
     }
 }

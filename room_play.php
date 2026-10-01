@@ -971,6 +971,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <span class="hud-label"><?= htmlspecialchars(tt('room_status', 'Status')) ?></span>
         <span id="hudStatus" class="hud-val text-warning"><?= htmlspecialchars(tt('status_connecting', 'Connecting...')) ?></span>
       </div>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <button id="leaveRoomBtn" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1.5" type="button" title="<?= htmlspecialchars(tt('room_leave_btn_title', 'Odadan ayrıl ve izleyici ol')) ?>">
+          <span>🚪</span> <span class="d-none d-sm-inline"><?= htmlspecialchars(tt('room_leave_btn', 'Odadan Ayrıl')) ?></span>
+        </button>
+      </div>
     </div>
 
     <!-- Main Live Game Stage -->
@@ -1133,6 +1138,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       waitingMinPlayers: <?= json_encode(tt('room_waiting_min_players', 'Waiting for at least 2 players to start...')) ?>,
       winBonus: <?= json_encode(tt('room_win_bonus', 'Win Bonus')) ?>,
       waitingOthers: <?= json_encode(tt('room_waiting_others', 'Seçiminiz kaydedildi. Diğer oyuncular bekleniyor...')) ?>,
+      confirmLeaveLobby: <?= json_encode(tt('room_confirm_leave_lobby', 'Odadan ayrılmak istiyor musunuz?')) ?>,
+      confirmLeaveMatch: <?= json_encode(tt('room_confirm_leave_match', 'Odadan ayrılmak istediğinize emin misiniz? Oyundan elenecek ve izleyici durumuna geçeceksiniz.')) ?>,
+      confirmExitToRooms: <?= json_encode(tt('room_confirm_exit_to_rooms', 'İzleyici olarak odada kalıp maçı izlemek istiyor musunuz? (İptal: Oda listesine dön)')) ?>,
+      spectatorNotice: <?= json_encode(tt('room_spectator_notice', 'Elendiniz. İzleyici modundasınız.')) ?>,
       offline: <?= json_encode(tt('room_player_offline', 'Ayrıldı')) ?>,
       online: <?= json_encode(tt('room_player_online', 'Çevrimiçi')) ?>,
       personalStatsTitle: <?= json_encode(tt('room_personal_stats', 'Tur İstatistikleriniz')) ?>,
@@ -1411,7 +1420,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         const nameSpan = document.createElement('span');
         let statusSuffix = '';
-        if (isElim) statusSuffix = ' 💀';
+        if (isElim) statusSuffix = ' 💀 (' + (STR.spectating || 'İzleyici') + ')';
         else if (!isOnline) statusSuffix = ` (${STR.offline})`;
         nameSpan.textContent = (p.email ? p.email.split('@')[0] : (p.nickname || STR.player)) + (isMe ? ' ' + STR.you : '') + statusSuffix;
         tag.appendChild(nameSpan);
@@ -1919,7 +1928,6 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       if (data.round === 1 || data.is_restart) {
         state.score = 0;
-        state.eliminated = false;
         state.myRoundStats = [];
         hudScore.textContent = '0';
       }
@@ -1928,7 +1936,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         renderPlayers(data.players);
         const meRow = data.players.find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
         if (meRow) {
-          state.eliminated = (state.gameMode === 'elimination' && meRow.status === 'eliminated');
+          state.eliminated = Boolean(meRow.status === 'eliminated');
           state.score = Number(meRow.score) || 0;
           hudScore.textContent = String(state.score);
         }
@@ -2615,8 +2623,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         RoomLogger.info('Pusher', 'Event room:update received', data);
         renderPlayers(data.players || []);
         const meRow = (data.players || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
-        if (meRow && meRow.status === 'eliminated' && state.gameMode === 'elimination') {
+        if (meRow && meRow.status === 'eliminated') {
           state.eliminated = true;
+          if (hudStatus) {
+            hudStatus.textContent = STR.spectating;
+            hudStatus.className = 'hud-val text-secondary';
+          }
+          document.querySelectorAll('.arena-btn').forEach(b => b.disabled = true);
         }
         if (state.answered && data.answered_count && data.total_participants) {
           const notice = document.getElementById('waitingOthersNotice');
@@ -2683,6 +2696,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const data = await res.json();
         if (!data || !data.ok) return;
 
+        if (Array.isArray(data.players)) {
+          const meRow = data.players.find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
+          if (meRow && meRow.status === 'eliminated' && !state.eliminated) {
+            state.eliminated = true;
+            if (hudStatus) {
+              hudStatus.textContent = STR.spectating;
+              hudStatus.className = 'hud-val text-secondary';
+            }
+            document.querySelectorAll('.arena-btn').forEach(b => b.disabled = true);
+          }
+        }
+
         if ((data.finished || data.status === 'finished') && state.phase !== 'finished') {
           RoomLogger.info('TickSync', 'Match concluded on server', data);
           renderFinalVictory(data.players || []);
@@ -2738,10 +2763,47 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
     }
 
+    function wireLeaveRoomBtn() {
+      const leaveBtn = document.getElementById('leaveRoomBtn');
+      leaveBtn?.addEventListener('click', async () => {
+        if (state.phase === 'lobby') {
+          if (confirm(STR.confirmLeaveLobby || 'Odadan ayrılmak istiyor musunuz?')) {
+            sendLeaveBeacon();
+            window.location.href = 'rooms.php';
+          }
+          return;
+        }
+
+        if (confirm(STR.confirmLeaveMatch || 'Odadan ayrılmak istediğinize emin misiniz? Oyundan elenecek ve izleyici durumuna geçeceksiniz.')) {
+          try {
+            await fetch('api/rooms_leave.php', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({guid: GUID})
+            });
+          } catch(e) {}
+          state.eliminated = true;
+          if (hudStatus) {
+            hudStatus.textContent = STR.spectating;
+            hudStatus.className = 'hud-val text-secondary';
+          }
+          document.querySelectorAll('.arena-btn').forEach(b => b.disabled = true);
+          showToast(STR.spectatorNotice || 'Elendiniz. İzleyici modundasınız.', false);
+          renderPlayers(state.players);
+
+          const stayAsSpectator = confirm(STR.confirmExitToRooms || 'İzleyici olarak odada kalıp maçı izlemek istiyor musunuz? (İptal: Oda listesine dön)');
+          if (!stayAsSpectator) {
+            window.location.href = 'rooms.php';
+          }
+        }
+      });
+    }
+
     if (CAN_VIEW_LOGS) {
       wireDebugLogs();
     }
     wireCopyInviteBtn();
+    wireLeaveRoomBtn();
     if (ROOM_GAME_MODE === 'flags') {
       backgroundPreloadAllFlags();
     }

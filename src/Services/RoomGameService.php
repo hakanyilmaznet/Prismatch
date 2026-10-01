@@ -743,6 +743,7 @@ class RoomGameService {
             if ($ownerId !== '') {
                 $this->roomRepo->cleanupStalePlayers($roomId, $ownerId, 10);
             }
+            $this->roomRepo->cleanupInactiveRooms(60);
             $players = $this->roomRepo->listPlayers($roomId);
             return ['ok' => true, 'status' => 'waiting', 'game_mode' => $gameMode, 'players' => $players];
         }
@@ -895,6 +896,7 @@ class RoomGameService {
 
         if ($status === 'waiting' || $status === 'finished') {
             $this->roomRepo->removePlayer($roomId, $userId);
+            $this->roomRepo->touchRoom($roomId);
             $players = $this->roomRepo->listPlayers($roomId);
             Logger::room('leaveRoom:removed_from_lobby', $guid, ['user_id' => $userId, 'remaining' => count($players)]);
 
@@ -906,14 +908,48 @@ class RoomGameService {
                     'left_user_id' => $userId,
                 ]);
             }
-            return ['ok' => true, 'players' => $players];
+            return ['ok' => true, 'players' => $players, 'spectator' => false];
         }
 
-        // Active game: mark eliminated
+        // Active game: mark eliminated and set to spectator status
         $current = (int)$room['current_round'];
         $this->roomRepo->markEliminated($roomId, $userId, $current);
+        $this->roomRepo->touchRoom($roomId);
+
+        // Fetch leaving player details for logging
+        $allPlayers = $this->roomRepo->listPlayers($roomId);
+        $leavingPlayer = null;
+        foreach ($allPlayers as $p) {
+            if ($p['user_id'] === $userId) {
+                $leavingPlayer = $p;
+                break;
+            }
+        }
+        $userEmail = (string)($leavingPlayer['email'] ?? '');
+
+        // Log elimination event so round progression knows this player has concluded
+        $this->roomRepo->logEvent($roomId, $current, $userId, $userEmail, 'eliminate', [
+            'reason' => 'left_room',
+            'status' => 'spectator',
+            'round' => $current,
+        ]);
+
         $players = $this->roomRepo->listPlayers($roomId);
-        Logger::room('leaveRoom:marked_eliminated', $guid, ['user_id' => $userId, 'round' => $current]);
+        Logger::room('leaveRoom:marked_eliminated_spectator', $guid, ['user_id' => $userId, 'round' => $current]);
+
+        $activeCount = 0;
+        foreach ($players as $p) {
+            if (($p['status'] ?? '') !== 'eliminated') $activeCount++;
+        }
+        $gameMode = (string)($room['game_mode'] ?? 'elimination');
+        $isElimination = ($gameMode === 'elimination');
+
+        // Check if elimination game should finish (only 1 or 0 survivor left)
+        if ($isElimination && (($activeCount <= 1 && count($players) >= 2) || $activeCount === 0)) {
+            Logger::room('leaveRoom:triggered_game_finish', $guid, ['round' => $current, 'active_count' => $activeCount]);
+            $finishResult = $this->finishGame($roomId, $current, $guid);
+            $players = $finishResult['players'] ?? $this->roomRepo->listPlayers($roomId);
+        }
 
         if (function_exists('pusher_trigger')) {
             pusher_trigger('presence-room-' . $guid, 'room:update', [
@@ -921,10 +957,11 @@ class RoomGameService {
                 'round' => $current,
                 'players' => $players,
                 'left_user_id' => $userId,
+                'spectator' => true,
             ]);
         }
 
-        return ['ok' => true, 'players' => $players];
+        return ['ok' => true, 'players' => $players, 'spectator' => true];
     }
 }
 

@@ -127,6 +127,7 @@ class SchemaManager {
                 is_private TINYINT(1) NOT NULL DEFAULT 0,
                 game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination',
                 created_at DATETIME(3) NOT NULL,
+                updated_at DATETIME(3) NULL,
                 started_at DATETIME(3) NULL,
                 finished_at DATETIME(3) NULL,
                 PRIMARY KEY (id),
@@ -136,6 +137,7 @@ class SchemaManager {
                 KEY idx_rooms_status (status),
                 KEY idx_rooms_is_private (is_private),
                 KEY idx_rooms_game_mode (game_mode),
+                KEY idx_rooms_updated_at (updated_at),
                 CONSTRAINT fk_rooms_owner FOREIGN KEY (owner_id) REFERENCES users(id)
                     ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -211,6 +213,13 @@ class SchemaManager {
         try {
             $pdo->exec("ALTER TABLE rooms ADD COLUMN game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination'");
             $pdo->exec("ALTER TABLE rooms ADD INDEX idx_rooms_game_mode (game_mode)");
+        } catch (\Throwable $e) {}
+
+        // Ensure updated_at column exists in rooms table
+        try {
+            $pdo->exec("ALTER TABLE rooms ADD COLUMN updated_at DATETIME(3) NULL");
+            $pdo->exec("ALTER TABLE rooms ADD INDEX idx_rooms_updated_at (updated_at)");
+            $pdo->exec("UPDATE rooms SET updated_at = COALESCE(finished_at, started_at, created_at) WHERE updated_at IS NULL");
         } catch (\Throwable $e) {}
 
         // Ensure game_mode column exists in games (single player) table

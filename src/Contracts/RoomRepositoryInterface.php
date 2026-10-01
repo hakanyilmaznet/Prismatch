@@ -18,4 +18,6 @@ interface RoomRepositoryInterface {
     public function addScore(string $roomId, string $userId, int $scoreDelta, int $correctDelta): void;
     public function setStatus(string $roomId, string $status, ?int $finishedRound = null): void;
     public function logEvent(string $roomId, int $roundIndex, ?string $userId, string $email, string $type, array $payload): void;
+    public function touchRoom(string $roomId): void;
+    public function cleanupInactiveRooms(int $inactiveMinutes = 60): int;
 }
