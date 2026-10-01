@@ -827,6 +827,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
         </div>
 
         <div id="dailyNotice" class="badge pm-error" style="display:none; font-size:13px; font-weight:600;"></div>
+        <div id="localBestBadge" class="badge" style="display:none; font-size:13px; font-weight:700; color: #ffb84d; border-color: rgba(255,184,77,0.3); background: rgba(255,184,77,0.08); margin-bottom: 8px;">
+          ⭐ <?= htmlspecialchars(tt('personal_best', 'Personal Best')) ?>: <span id="localBestVal">0</span>
+        </div>
 
         <div class="action-row">
           <button id="btnStart" class="btn primary" type="button">
@@ -971,6 +974,8 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     'save_with_google' => tt('save_with_google', 'Save with {google}'),
     'continue_without_saving' => tt('continue_without_saving', 'Continue without saving'),
     'save_pending' => tt('save_pending', 'Save queued. It will sync on next load.'),
+    'save_offline_queued' => tt('save_offline_queued', 'Skor cihazınıza kaydedildi. İnternet bağlantısı sağlandığında sunucuyla senkronize edilecektir.'),
+    'personal_best' => tt('personal_best', 'Kişisel En İyi'),
     'a11y_color_option' => tt('a11y_color_option', 'Color option {n}'),
     'a11y_flag_option' => tt('a11y_flag_option', 'Flag option {n}'),
     'no_results' => tt('no_results', 'No results'),
@@ -1377,6 +1382,19 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     return shuffle(pool).slice(0, count);
   }
 
+  function updateLocalBestUI(){
+    const badge = document.getElementById('localBestBadge');
+    const val = document.getElementById('localBestVal');
+    if (!badge || !val || !window.PrismatchOfflineStore) return;
+    const best = window.PrismatchOfflineStore.getLocalBest(state.gameMode);
+    if (best && (best.score > 0 || best.level > 0)) {
+      badge.style.display = 'inline-flex';
+      val.textContent = (state.gameMode === 'elimination') ? `Level ${best.level}` : `${best.score} pts`;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
   function setMode(mode){
     if (state.phase !== 'idle' && state.phase !== 'finished' && state.phase !== 'gameover' && state.phase !== 'win') {
       return;
@@ -1395,6 +1413,7 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     } catch(e) {}
 
     checkModeDailyStatus();
+    updateLocalBestUI();
     updateHUD(ANSWER_WINDOW_MS);
   }
 
@@ -1496,6 +1515,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     if (!IS_LOGGED_IN){
       return { ok: false, reason: 'not_logged_in' };
     }
+    if (!navigator.onLine) {
+      return { ok: false, reason: 'network' };
+    }
     const endpoint = IS_DAILY_MODE ? "api/daily_record.php" : "api/record.php";
     try {
       const res = await fetch(endpoint, {
@@ -1513,6 +1535,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       if (!res.ok || !j || !j.ok){
         if (j && j.error === 'already_played'){
           state.dailyModesStatus[state.gameMode] = true;
+          if (window.PrismatchOfflineStore) {
+            window.PrismatchOfflineStore.setDailyPlayed(DAILY_UTC_DATE, state.gameMode);
+          }
           lockDailyAlreadyPlayed();
           return { ok: false, reason: 'already_played' };
         }
@@ -1520,6 +1545,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       }
 
       state.dailyModesStatus[state.gameMode] = true;
+      if (window.PrismatchOfflineStore) {
+        window.PrismatchOfflineStore.setDailyPlayed(DAILY_UTC_DATE, state.gameMode);
+      }
       checkModeDailyStatus();
       return { ok: true, reason: 'ok' };
     } catch (e) {
@@ -1542,22 +1570,59 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
   }
 
   async function postResultOrPrompt(payload){
+    // Update local personal best in client-side storage
+    try {
+      if (window.PrismatchOfflineStore) {
+        window.PrismatchOfflineStore.saveLocalBest(state.gameMode, payload.score || 0, payload);
+        updateLocalBestUI();
+      }
+    } catch(e) {}
+
     if (IS_DAILY_MODE){
       if (!IS_LOGGED_IN){
         lockDaily(tjs('daily_login_required', 'Log in to play the daily challenge.'));
         return false;
       }
       const res = await postResultIfLoggedIn(payload);
-      return !!res.ok;
+      if (res.ok) {
+        return true;
+      }
+      // If offline or network error, queue offline and mark played
+      if (res.reason === 'network' || !navigator.onLine) {
+        if (window.PrismatchOfflineStore) {
+          await window.PrismatchOfflineStore.queueScore(payload, true);
+          window.PrismatchOfflineStore.setDailyPlayed(DAILY_UTC_DATE, state.gameMode);
+          state.dailyModesStatus[state.gameMode] = true;
+          checkModeDailyStatus();
+          toastQuick(tjs('save_offline_queued', 'Skor cihazınıza kaydedildi. Bağlantı kurulduğunda sunucuyla eşitlenecektir.'));
+        }
+        return false;
+      }
+      return false;
     }
 
     const res = await postResultIfLoggedIn(payload);
     if (res.ok) return true;
 
     if (IS_LOGGED_IN){
+      if (!navigator.onLine || res.reason === 'network') {
+        if (window.PrismatchOfflineStore) {
+          await window.PrismatchOfflineStore.queueScore(payload, false);
+          toastQuick(tjs('save_offline_queued', 'Skor cihazınıza kaydedildi. Bağlantı kurulduğunda sunucuyla eşitlenecektir.'));
+          return false;
+        }
+      }
       const queued = await storePendingSilently(payload);
       if (queued) toastQuick(tjs('save_pending', 'Save queued. It will sync on next load.'));
       return false;
+    }
+
+    if (!navigator.onLine) {
+      if (window.PrismatchOfflineStore) {
+        await window.PrismatchOfflineStore.queueScore(payload, false);
+        toastQuick(tjs('save_offline_queued', 'Skor cihazınıza kaydedildi.'));
+        return false;
+      }
     }
 
     showSavePromptModal(payload);
@@ -1603,6 +1668,18 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       showDailyLoginModal();
       return;
     }
+
+    // Check client offline store first
+    if (window.PrismatchOfflineStore && window.PrismatchOfflineStore.isDailyPlayed(DAILY_UTC_DATE, state.gameMode)) {
+      state.dailyModesStatus[state.gameMode] = true;
+      checkModeDailyStatus();
+      if (state.dailyModesStatus[state.gameMode]) {
+        lockDailyAlreadyPlayed();
+      }
+    }
+
+    if (!navigator.onLine) return;
+
     try{
       const r = await fetch(`api/daily_status.php?day=${encodeURIComponent(DAILY_UTC_DATE)}&mode=${encodeURIComponent(state.gameMode)}`, {
         credentials: "same-origin"
@@ -1610,6 +1687,11 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       const j = await r.json();
       if (j.ok && j.modes){
         state.dailyModesStatus = j.modes;
+        if (window.PrismatchOfflineStore) {
+          Object.keys(j.modes).forEach(m => {
+            if (j.modes[m]) window.PrismatchOfflineStore.setDailyPlayed(DAILY_UTC_DATE, m);
+          });
+        }
         if (playedBadgeElim) playedBadgeElim.style.display = j.modes.elimination ? 'inline-flex' : 'none';
         if (playedBadgePoints) playedBadgePoints.style.display = j.modes.points ? 'inline-flex' : 'none';
         if (playedBadgeFlags) playedBadgeFlags.style.display = j.modes.flags ? 'inline-flex' : 'none';
@@ -2140,6 +2222,10 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
   setMode(INITIAL_MODE);
   checkDailyStatus();
   updateHUD(ANSWER_WINDOW_MS);
+  window.addEventListener('pm:offline-ready', () => {
+    updateLocalBestUI();
+    checkDailyStatus();
+  });
   if (FLASH_MSG) toastQuick(FLASH_MSG);
   </script>
 

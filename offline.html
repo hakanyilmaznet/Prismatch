@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="tr" dir="ltr" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Çevrimdışı - Prismatch</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#081017" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    :root {
+      --pm-prism-1: #ff5e62;
+      --pm-prism-2: #ff9966;
+      --pm-prism-3: #ffd166;
+      --pm-prism-4: #06d6a0;
+      --pm-prism-5: #118ab2;
+      --pm-prism-6: #7c89ff;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, rgba(255, 107, 91, 0.12), transparent 45%),
+                  radial-gradient(circle at bottom, rgba(124, 137, 255, 0.12), transparent 50%),
+                  var(--bs-body-bg, #081017);
+      color: var(--bs-body-color, #f8fafc);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .offline-card {
+      width: min(540px, 100%);
+      background: rgba(18, 24, 38, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 28px;
+      padding: 40px 28px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .offline-icon-wrap {
+      width: 88px;
+      height: 88px;
+      border-radius: 24px;
+      background: rgba(255, 107, 91, 0.14);
+      border: 1px solid rgba(255, 107, 91, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 20px auto;
+      animation: pulse 2.4s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.06); opacity: 0.85; }
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.3px;
+    }
+    p {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+    .offline-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn-offline-play {
+      background: linear-gradient(135deg, #ff6b5b, #ff8c42);
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 14px 24px;
+      border-radius: 14px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 10px 24px rgba(255, 107, 91, 0.35);
+      transition: all 0.2s ease;
+    }
+    .btn-offline-play:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(255, 107, 91, 0.45);
+    }
+    .btn-offline-retry {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 12px 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-offline-retry:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+    .offline-feature-box {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+      text-align: left;
+      color: rgba(255, 255, 255, 0.65);
+    }
+    .offline-feature-box div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .offline-feature-box div:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-card">
+    <div class="offline-icon-wrap">⚡</div>
+    <h1>Şu Anda Çevrimdışısınız</h1>
+    <p>İnternet bağlantınız kesildi, ancak endişelenmeyin! Prismatch PWA altyapısı sayesinde oyunları çevrimdışı oynamaya devam edebilirsiniz.</p>
+    
+    <div class="offline-actions">
+      <a href="play.php" class="btn-offline-play">
+        <span>🎮</span>
+        <span>Çevrimdışı Oyuna Devam Et</span>
+      </a>
+      <button class="btn-offline-retry" onclick="window.location.reload()">
+        <span>🔄</span>
+        <span>Bağlantıyı Yeniden Dene</span>
+      </button>
+    </div>
+
+    <div class="offline-feature-box">
+      <div><span>💾</span> <strong>Otomatik Kayıt:</strong> Çevrimdışıyken kazandığınız puanlar cihazınızda saklanır.</div>
+      <div><span>🔄</span> <strong>Arka Plan Senkronizasyonu:</strong> İnternet geldiğinde skorlarınız otomatik olarak sunucuya aktarılır.</div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+  </script>
+</body>
+</html>

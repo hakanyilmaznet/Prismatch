@@ -1,14 +1,17 @@
 {
-  "name": "Prismatch - Color Memory Game",
+  "id": "/",
+  "name": "Prismatch - Renk Hafıza Oyunu",
   "short_name": "Prismatch",
-  "description": "Fast-paced brain training and color memory puzzle game.",
+  "description": "Hızlı, odak ve görsel renk hafızasını güçlendiren ödüllü bulmaca oyunu.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#081017",
   "theme_color": "#081017",
   "orientation": "portrait-primary",
-  "lang": "en",
+  "lang": "tr",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/logo.svg",
@@ -27,6 +30,36 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Hemen Oyna",
+      "short_name": "Oyna",
+      "description": "Tek oyunculu hızlı renk hafıza turu başlat",
+      "url": "/play.php",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Günlük Meydan Okuma",
+      "short_name": "Günlük",
+      "description": "Günün ortak meydan okumasında küresel sıralamaya gir",
+      "url": "/play.php?daily=1",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Çok Oyunculu Odalar",
+      "short_name": "Odalar",
+      "description": "Arkadaşlarınla canlı çok oyunculu odada yarış",
+      "url": "/rooms.php",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Liderlik Tablosu",
+      "short_name": "Sıralama",
+      "description": "Günün en yüksek skorlarını ve küresel sıralamayı gör",
+      "url": "/daily_leaderboard.php",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
     }
   ],
   "categories": ["games", "puzzle", "education"]

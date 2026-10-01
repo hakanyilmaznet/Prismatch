@@ -64,6 +64,8 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
   </div>
 </div>
 <script src="js/app.js"></script>
+<script src="js/offline-store.js"></script>
+<script src="js/pwa.js"></script>
 <script>
 (function(){
   const footer = document.querySelector('.pm-footer');

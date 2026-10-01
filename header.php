@@ -160,6 +160,7 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
     filter: var(--pm-icon-filter);
   }
   .btn.primary .bi-icon, .btn-primary .bi-icon { filter: none; }
+  .pm-pwa-install,
   .pm-theme-toggle {
     padding: 8px 12px;
     border-radius: 999px;
@@ -167,6 +168,7 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
     align-items: center;
     justify-content: center;
     min-height: 38px;
+    gap: 6px;
   }
 
   /* Redesigned Language Selector */
@@ -559,6 +561,13 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
     </ul>
 
     <div class="header-actions">
+      <button class="btn btn-outline-secondary btn-sm pm-pwa-install" type="button" id="pwaInstallBtn"
+              style="display:none;"
+              title="<?= htmlspecialchars(tt('pwa_install_btn', 'Install App')) ?>"
+              aria-label="<?= htmlspecialchars(tt('pwa_install_btn', 'Install App')) ?>">
+        <img class="bi-icon" src="bootstrap-icons/download.svg" alt="" aria-hidden="true" width="16" height="16" />
+        <span class="d-none d-sm-inline" style="font-size:12px;font-weight:700;"><?= htmlspecialchars(tt('pwa_install', 'Install')) ?></span>
+      </button>
       <button class="btn btn-outline-secondary btn-sm pm-theme-toggle" type="button" id="themeToggle"
               aria-label="<?= htmlspecialchars(tt('theme_toggle', 'Toggle theme')) ?>"
               data-icon-light="bootstrap-icons/brightness-high-fill.svg"
