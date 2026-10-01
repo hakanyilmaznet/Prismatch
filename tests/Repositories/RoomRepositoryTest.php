@@ -233,14 +233,57 @@ class RoomRepositoryTest extends BaseTestCase {
         $this->assertTrue(true);
     }
 
-    public function testSetStatus(): void {
-        $pdo = $this->createMockPdo([
-            'UPDATE rooms SET status = :status' => [],
-        ]);
+    public function testSetStatusActive(): void {
+        $capturedParams = null;
+        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt->method('execute')->willReturnCallback(function ($params) use (&$capturedParams) {
+            $capturedParams = $params;
+            return true;
+        });
+
+        $pdo = $this->createMock(\PDO::class);
+        $pdo->method('prepare')->willReturnCallback(function ($sql) use ($stmt) {
+            if (stripos($sql, "status = 'active'") !== false) {
+                return $stmt;
+            }
+            return $this->createMockStatement([]);
+        });
 
         $repo = new RoomRepository($pdo);
-        $repo->setStatus('r-uuid-1', 'finished', 10);
-        $this->assertTrue(true);
+        $repo->setStatus('r-uuid-1', 'active');
+
+        $this->assertNotNull($capturedParams);
+        $this->assertArrayHasKey(':started_at', $capturedParams);
+        $this->assertArrayHasKey(':updated_at', $capturedParams);
+        $this->assertArrayHasKey(':rid', $capturedParams);
+        $this->assertSame('r-uuid-1', $capturedParams[':rid']);
+    }
+
+    public function testSetStatusFinished(): void {
+        $capturedParams = null;
+        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt->method('execute')->willReturnCallback(function ($params) use (&$capturedParams) {
+            $capturedParams = $params;
+            return true;
+        });
+
+        $pdo = $this->createMock(\PDO::class);
+        $pdo->method('prepare')->willReturnCallback(function ($sql) use ($stmt) {
+            if (stripos($sql, "status = 'finished'") !== false) {
+                return $stmt;
+            }
+            return $this->createMockStatement([]);
+        });
+
+        $repo = new RoomRepository($pdo);
+        $repo->setStatus('r-uuid-1', 'finished', 15);
+
+        $this->assertNotNull($capturedParams);
+        $this->assertArrayHasKey(':finished_at', $capturedParams);
+        $this->assertArrayHasKey(':fr', $capturedParams);
+        $this->assertArrayHasKey(':updated_at', $capturedParams);
+        $this->assertArrayHasKey(':rid', $capturedParams);
+        $this->assertSame(15, $capturedParams[':fr']);
     }
 
     public function testLogEvent(): void {

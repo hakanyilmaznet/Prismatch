@@ -270,21 +270,30 @@ class RoomRepository implements RoomRepositoryInterface {
             $stmt = $this->pdo->prepare("
                 UPDATE rooms
                 SET status = 'active',
-                    started_at = COALESCE(started_at, :now),
-                    updated_at = :now
+                    started_at = COALESCE(started_at, :started_at),
+                    updated_at = :updated_at
                 WHERE id = :rid
             ");
-            $stmt->execute([':now' => $now, ':rid' => $roomId]);
+            $stmt->execute([
+                ':started_at' => $now,
+                ':updated_at' => $now,
+                ':rid' => $roomId,
+            ]);
         } elseif ($status === 'finished') {
             $stmt = $this->pdo->prepare("
                 UPDATE rooms
                 SET status = 'finished',
-                    finished_at = COALESCE(finished_at, :now),
+                    finished_at = COALESCE(finished_at, :finished_at),
                     finished_round = COALESCE(:fr, current_round),
-                    updated_at = :now
+                    updated_at = :updated_at
                 WHERE id = :rid
             ");
-            $stmt->execute([':now' => $now, ':fr' => $finishedRound, ':rid' => $roomId]);
+            $stmt->execute([
+                ':finished_at' => $now,
+                ':fr' => $finishedRound,
+                ':updated_at' => $now,
+                ':rid' => $roomId,
+            ]);
         } else {
             $stmt = $this->pdo->prepare("UPDATE rooms SET status = :s, updated_at = :now WHERE id = :rid");
             $stmt->execute([':s' => $status, ':now' => $now, ':rid' => $roomId]);
