@@ -34,6 +34,15 @@ class Database {
         return self::$instance;
     }
 
+    public static function setConnection(?PDO $pdo): void {
+        self::$instance = $pdo;
+    }
+
+    public static function resetConnection(): void {
+        self::$instance = null;
+        self::$schemaInitialized = false;
+    }
+
     public static function generateUuid(): string {
         $data = random_bytes(16);
         $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);

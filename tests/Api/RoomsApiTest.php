@@ -1,0 +1,403 @@
+<?php
+declare(strict_types=1);
+
+namespace Tests\Api;
+
+use Tests\Support\ApiTestCase;
+
+class RoomsApiTest extends ApiTestCase {
+    private array $sampleRoomSeed = [
+        'id' => 'r-api-room-1',
+        'guid' => 'guid-api-room-1',
+        'name' => 'API Test Arena',
+        'owner_id' => 'u-owner-api',
+        'owner_email' => 'owner@test.com',
+        'status' => 'waiting',
+        'rounds_total' => 25,
+        'current_round' => 0,
+        'max_players' => 25,
+        'is_private' => 0,
+        'game_mode' => 'elimination',
+        'created_at' => '2026-10-01 12:00:00',
+        'updated_at' => '2026-10-01 12:00:00',
+    ];
+
+    private array $samplePlayerSeed = [
+        'id' => 'rp-api-1',
+        'room_id' => 'r-api-room-1',
+        'user_id' => 'u-owner-api',
+        'email' => 'owner@test.com',
+        'status' => 'active',
+        'score' => 0,
+        'correct' => 0,
+        'is_online' => 1,
+        'joined_at' => '2026-10-01 12:00:00',
+        'last_active' => '2026-10-01 12:00:00',
+    ];
+
+    public function testRoomsCreateUnauthorized(): void {
+        $res = $this->callApi('api/rooms_create.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['name' => 'Test Room'],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('login_required', $res['json']['error']);
+    }
+
+    public function testRoomsCreateMissingName(): void {
+        $res = $this->callApi('api/rooms_create.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => ['name' => ''],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('name_required', $res['json']['error']);
+    }
+
+    public function testRoomsCreateSuccess(): void {
+        $res = $this->callApi('api/rooms_create.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => [
+                'name' => 'Championship Arena',
+                'game_mode' => 'points',
+                'is_private' => false,
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertNotEmpty($res['json']['guid']);
+        $this->assertSame('points', $res['json']['game_mode']);
+        $this->assertFalse($res['json']['is_private']);
+    }
+
+    public function testRoomsJoinUnauthorized(): void {
+        $res = $this->callApi('api/rooms_join.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['guid' => 'guid-123'],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('login_required', $res['json']['error']);
+    }
+
+    public function testRoomsJoinMissingGuid(): void {
+        $res = $this->callApi('api/rooms_join.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => [],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsJoinSuccess(): void {
+        $res = $this->callApi('api/rooms_join.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-joiner',
+                'user_email' => 'joiner@test.com',
+            ],
+            'body' => ['guid' => 'guid-api-room-1'],
+            'seeds' => [
+                'rooms' => [$this->sampleRoomSeed],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertArrayHasKey('room', $res['json']);
+        $this->assertArrayHasKey('players', $res['json']);
+    }
+
+    public function testRoomsStateUnauthorized(): void {
+        $res = $this->callApi('api/rooms_state.php', [
+            'method' => 'GET',
+            'session' => [],
+            'get' => ['guid' => 'guid-123'],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('login_required', $res['json']['error']);
+    }
+
+    public function testRoomsStateMissingGuid(): void {
+        $res = $this->callApi('api/rooms_state.php', [
+            'method' => 'GET',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'get' => [],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsStateSuccess(): void {
+        $res = $this->callApi('api/rooms_state.php', [
+            'method' => 'GET',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+            ],
+            'get' => ['guid' => 'guid-api-room-1'],
+            'seeds' => [
+                'rooms' => [$this->sampleRoomSeed],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertSame('guid-api-room-1', $res['json']['room']['guid']);
+        $this->assertCount(1, $res['json']['players']);
+    }
+
+    public function testRoomsAnswerUnauthorized(): void {
+        $res = $this->callApi('api/rooms_answer.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['guid' => 'g-1', 'round' => 1],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('login_required', $res['json']['error']);
+    }
+
+    public function testRoomsAnswerMissingGuidOrRound(): void {
+        $res = $this->callApi('api/rooms_answer.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => ['guid' => ''],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsNextRoundUnauthorized(): void {
+        $res = $this->callApi('api/rooms_next_round.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['guid' => 'g-1'],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+    }
+
+    public function testRoomsNextRoundMissingGuid(): void {
+        $res = $this->callApi('api/rooms_next_round.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => [],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsRoundEndUnauthorized(): void {
+        $res = $this->callApi('api/rooms_round_end.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['guid' => 'g-1', 'round' => 1],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertSame('login_required', $res['json']['error']);
+    }
+
+    public function testRoomsRoundEndMissingGuid(): void {
+        $res = $this->callApi('api/rooms_round_end.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => [],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsRestartUnauthorized(): void {
+        $res = $this->callApi('api/rooms_restart.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['guid' => 'g-1'],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+    }
+
+    public function testRoomsRestartMissingGuid(): void {
+        $res = $this->callApi('api/rooms_restart.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => [],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsLeaveUnauthorized(): void {
+        $res = $this->callApi('api/rooms_leave.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['guid' => 'g-1'],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+    }
+
+    public function testRoomsLeaveMissingGuid(): void {
+        $res = $this->callApi('api/rooms_leave.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => [],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsLeaveSuccess(): void {
+        $res = $this->callApi('api/rooms_leave.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+            ],
+            'body' => ['guid' => 'guid-api-room-1'],
+            'seeds' => [
+                'rooms' => [$this->sampleRoomSeed],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertFalse($res['json']['spectator']);
+    }
+
+    public function testRoomsTickMissingGuid(): void {
+        $res = $this->callApi('api/rooms_tick.php', [
+            'method' => 'GET',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'get' => [],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsTickSuccess(): void {
+        $res = $this->callApi('api/rooms_tick.php', [
+            'method' => 'GET',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+            ],
+            'get' => ['guid' => 'guid-api-room-1'],
+            'seeds' => [
+                'rooms' => [$this->sampleRoomSeed],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertSame('waiting', $res['json']['status']);
+    }
+
+    public function testRoomsPlayerStatsMissingGuid(): void {
+        $res = $this->callApi('api/rooms_player_stats.php', [
+            'method' => 'GET',
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'get' => [],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsPlayerStatsSuccess(): void {
+        $res = $this->callApi('api/rooms_player_stats.php', [
+            'method' => 'GET',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+            ],
+            'get' => ['guid' => 'guid-api-room-1'],
+            'seeds' => [
+                'rooms' => [$this->sampleRoomSeed],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertArrayHasKey('summary', $res['json']);
+        $this->assertArrayHasKey('stats', $res['json']);
+    }
+}

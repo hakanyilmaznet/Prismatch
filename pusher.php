@@ -46,6 +46,9 @@ function pusher_clean_data(array $data): array {
 }
 
 function pusher_trigger(string $channel, string $event, array $data, ?string $socketId = null): bool {
+  if (defined('PUSHER_DISABLE') && PUSHER_DISABLE) {
+    return true;
+  }
   if (!defined('PUSHER_KEY') || !defined('PUSHER_APP_ID') || !defined('PUSHER_SECRET') || !PUSHER_KEY || !PUSHER_APP_ID || !PUSHER_SECRET) {
     return false;
   }

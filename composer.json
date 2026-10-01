@@ -5,6 +5,7 @@
     "phpstan/phpstan": "^1.11"
   },
   "scripts": {
-    "phpstan": "phpstan analyse -c phpstan.neon"
+    "phpstan": "phpstan analyse -c phpstan.neon",
+    "test": "php run_tests.php"
   }
 }
