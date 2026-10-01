@@ -5,6 +5,7 @@ namespace Prismatch\Repositories;
 
 use PDO;
 use Prismatch\Core\Database;
+use Prismatch\Core\Logger;
 use Prismatch\Contracts\RoomRepositoryInterface;
 
 class RoomRepository implements RoomRepositoryInterface {
@@ -344,7 +345,7 @@ class RoomRepository implements RoomRepositoryInterface {
 
             return $deletedCount;
         } catch (\Throwable $e) {
-            Logger::error('cleanupInactiveRooms:error', ['msg' => $e->getMessage()]);
+            Logger::error('RoomRepository', 'cleanupInactiveRooms failed: ' . $e->getMessage(), [], $e);
             return 0;
         }
     }

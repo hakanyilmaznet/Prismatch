@@ -4,7 +4,7 @@
  * network-first navigation with offline fallback, and background sync.
  */
 
-const CACHE_NAME = 'prismatch-pwa-v2';
+const CACHE_NAME = 'prismatch-pwa-v3';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -86,7 +86,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 2. HTML Navigation Requests: Network-First with Cache Fallback and Offline Page
-  if (request.mode === 'navigate') {
+  const isHtmlNav = request.mode === 'navigate' || (request.headers.get('accept') && request.headers.get('accept').includes('text/html'));
+  if (isHtmlNav) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -111,9 +112,9 @@ self.addEventListener('fetch', (event) => {
           const offlinePage = await caches.match('/offline.html');
           if (offlinePage) return offlinePage;
 
-          return new Response('Offline - Prismatch', {
+          return new Response('<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>Offline - Prismatch</h1><p>Lütfen internet bağlantınızı kontrol ediniz.</p></body></html>', {
             status: 503,
-            headers: { 'Content-Type': 'text/plain' }
+            headers: { 'Content-Type': 'text/html; charset=utf-8' }
           });
         })
     );
@@ -139,7 +140,7 @@ self.addEventListener('fetch', (event) => {
             }
             return networkResponse;
           })
-          .catch(() => cachedResponse);
+          .catch(() => cachedResponse || new Response('', { status: 404 }));
 
         // Return cached immediately if available, otherwise wait for network
         return cachedResponse || networkFetch;
@@ -158,7 +159,11 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(request))
+      .catch(async () => {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        return new Response(null, { status: 504, statusText: 'Gateway Timeout' });
+      })
   );
 });
 
