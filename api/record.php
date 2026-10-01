@@ -67,6 +67,9 @@ try {
   $data['country'] = get_request_country();
   $data['language'] = get_request_language();
 
+  $gameMode = (string)($data['game_mode'] ?? $data['gameMode'] ?? 'elimination');
+  $data['game_mode'] = in_array($gameMode, ['elimination', 'points', 'flags'], true) ? $gameMode : 'elimination';
+
   // 3) minimal payload sanity (debug amaçlı)
   if ($DEBUG) {
     if (!array_key_exists('reachedLevel', $data) || !array_key_exists('won', $data)) {
@@ -89,6 +92,3 @@ try {
   // beklenmeyen
   fail(500, 'unexpected', 'Internal error', $e);
 }
-
-
-

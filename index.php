@@ -801,11 +801,15 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
         <div class="pm-hero-chips">
           <div class="pm-chip">
             <span>⚡</span>
-            <span><?= htmlspecialchars(tt('home_stat_speed', '60sn Hızlı Turlar')) ?></span>
+            <span><?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme')) ?></span>
           </div>
           <div class="pm-chip">
             <span>🎯</span>
-            <span><?= htmlspecialchars(tt('home_stat_focus', 'Keskin Renk Algısı')) ?></span>
+            <span><?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?></span>
+          </div>
+          <div class="pm-chip">
+            <span>🚩</span>
+            <span><?= htmlspecialchars(tt('rooms_mode_flags_short', 'Bayrak Modu')) ?></span>
           </div>
           <div class="pm-chip">
             <span>🏆</span>

@@ -213,6 +213,41 @@ class SchemaManager {
             $pdo->exec("ALTER TABLE rooms ADD INDEX idx_rooms_game_mode (game_mode)");
         } catch (\Throwable $e) {}
 
+        // Ensure game_mode column exists in games (single player) table
+        try {
+            $pdo->exec("ALTER TABLE games ADD COLUMN game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination'");
+            $pdo->exec("ALTER TABLE games ADD INDEX idx_games_game_mode (game_mode)");
+        } catch (\Throwable $e) {}
+
+        // Ensure target_color / picked_color are large enough for flag paths (e.g. flags/tr.png)
+        try {
+            $pdo->exec("ALTER TABLE rounds MODIFY COLUMN target_color VARCHAR(128) NOT NULL");
+            $pdo->exec("ALTER TABLE rounds MODIFY COLUMN picked_color VARCHAR(128) NULL");
+        } catch (\Throwable $e) {}
+
+        // Ensure game_mode column exists in daily_scores table
+        try {
+            $pdo->exec("ALTER TABLE daily_scores ADD COLUMN game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination'");
+            $pdo->exec("ALTER TABLE daily_scores ADD INDEX idx_daily_game_mode (game_mode)");
+        } catch (\Throwable $e) {}
+
+        // Update unique constraints on daily_scores to include game_mode so players can play each mode once per day
+        try {
+            $pdo->exec("ALTER TABLE daily_scores DROP INDEX uq_daily_user");
+            $pdo->exec("ALTER TABLE daily_scores ADD UNIQUE KEY uq_daily_user (day_utc, user_id, game_mode)");
+        } catch (\Throwable $e) {}
+
+        try {
+            $pdo->exec("ALTER TABLE daily_scores DROP INDEX uq_daily_anon");
+            $pdo->exec("ALTER TABLE daily_scores ADD UNIQUE KEY uq_daily_anon (day_utc, anon_id, game_mode)");
+        } catch (\Throwable $e) {}
+
+        // Ensure target_color / picked_color are large enough in daily_rounds
+        try {
+            $pdo->exec("ALTER TABLE daily_rounds MODIFY COLUMN target_color VARCHAR(128) NOT NULL");
+            $pdo->exec("ALTER TABLE daily_rounds MODIFY COLUMN picked_color VARCHAR(128) NOT NULL");
+        } catch (\Throwable $e) {}
+
         // Migrate any legacy @local.player emails to @prismatch
         try {
             $pdo->exec("UPDATE IGNORE users SET email = REPLACE(email, '@local.player', '@prismatch') WHERE email LIKE '%@local.player'");

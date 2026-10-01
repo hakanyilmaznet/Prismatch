@@ -20,11 +20,14 @@ try {
   $data = json_decode($raw ?: '[]', true);
   if (!is_array($data)) $data = [];
 
+  $gameMode = (string)($data['game_mode'] ?? $data['gameMode'] ?? 'elimination');
+  $cleanMode = in_array($gameMode, ['elimination', 'points', 'flags'], true) ? $gameMode : 'elimination';
+
   // Use server UTC date to prevent client manipulation
   $challengeDate = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d');
 
-  // Enforce single attempt (no overwrite):
-  if (has_played_daily($userId, $challengeDate)) {
+  // Enforce single attempt per game mode per day (no overwrite):
+  if (has_played_daily($userId, $challengeDate, $cleanMode)) {
     echo json_encode(['ok'=>false,'error'=>'already_played']);
     exit;
   }
@@ -32,10 +35,13 @@ try {
   $country = request_country(); // Cloudflare preferred
   $lang    = get_request_language();
 
+  $maxLevelLimit = ($cleanMode === 'points' || $cleanMode === 'flags') ? 25 : 50;
+
   $payload = [
     'challenge_date' => $challengeDate,
     'user_id'        => $userId,
     'email'          => $email,
+    'game_mode'      => $cleanMode,
     'reached_level'  => (int)($data['reached_level'] ?? $data['reachedLevel'] ?? 0),
     'total_correct'  => (int)($data['total_correct'] ?? $data['correct'] ?? 0),
     'duration_ms'    => (int)($data['duration_ms'] ?? $data['durationMs'] ?? 0),
@@ -44,7 +50,7 @@ try {
     'rounds'         => $data['rounds'] ?? [],
   ];
 
-  $payload['reached_level'] = max(1, min(50, (int)$payload['reached_level']));
+  $payload['reached_level'] = max(1, min($maxLevelLimit, (int)$payload['reached_level']));
   $payload['total_correct'] = max(0, (int)$payload['total_correct']);
   $payload['duration_ms'] = max(0, (int)$payload['duration_ms']);
 
@@ -52,11 +58,14 @@ try {
 
   upsert_daily_score($payload);
 
-  echo json_encode(['ok'=>true, 'score'=>$payload['score'], 'country'=>$country, 'flag'=>country_flag_icon_url($country)]);
+  echo json_encode([
+    'ok' => true,
+    'score' => $payload['score'],
+    'country' => $country,
+    'game_mode' => $cleanMode,
+    'flag' => country_flag_icon_url($country)
+  ]);
 } catch (Throwable $e) {
   http_response_code(500);
   echo json_encode(['ok'=>false,'error'=>'internal','detail'=>$e->getMessage()]);
 }
-
-
-

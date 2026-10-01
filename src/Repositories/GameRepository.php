@@ -33,6 +33,8 @@ class GameRepository implements GameRepositoryInterface {
         $won = !empty($payload['won']) ? 1 : 0;
         $language = isset($payload['language']) ? substr((string)$payload['language'], 0, 16) : null;
         $country = isset($payload['country']) ? strtoupper(substr((string)$payload['country'], 0, 8)) : null;
+        $gameMode = (string)($payload['game_mode'] ?? $payload['gameMode'] ?? 'elimination');
+        $cleanMode = in_array($gameMode, ['elimination', 'points', 'flags'], true) ? $gameMode : 'elimination';
 
         // Auto-infer from rounds if not explicitly provided at top-level
         if ($reachedLevel === 0 && !empty($payload['rounds']) && is_array($payload['rounds'])) {
@@ -62,10 +64,10 @@ class GameRepository implements GameRepositoryInterface {
             $stmt = $this->pdo->prepare("
                 INSERT INTO games (
                     id, user_id, email, created_at, finished_at,
-                    duration_ms, reached_level, total_correct, score, won, language, country
+                    duration_ms, reached_level, total_correct, score, won, language, country, game_mode
                 ) VALUES (
                     :id, :user_id, :email, :created_at, :finished_at,
-                    :duration_ms, :reached_level, :total_correct, :score, :won, :language, :country
+                    :duration_ms, :reached_level, :total_correct, :score, :won, :language, :country, :game_mode
                 )
             ");
             $stmt->execute([
@@ -81,6 +83,7 @@ class GameRepository implements GameRepositoryInterface {
                 ':won' => $won,
                 ':language' => $language,
                 ':country' => $country,
+                ':game_mode' => $cleanMode,
             ]);
 
             // Save rounds
@@ -158,7 +161,7 @@ class GameRepository implements GameRepositoryInterface {
 
     public function listGamesByUser(string $userId, int $limit = 50): array {
         $stmt = $this->pdo->prepare("
-            SELECT id, email, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country
+            SELECT id, email, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country, game_mode
             FROM games
             WHERE user_id = :uid
               AND NOT (
@@ -176,7 +179,7 @@ class GameRepository implements GameRepositoryInterface {
 
     public function getGameDetails(string $gameId, string $userId): ?array {
         $stmt = $this->pdo->prepare("
-            SELECT id, email, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country
+            SELECT id, email, created_at, finished_at, duration_ms, reached_level, total_correct, score, won, language, country, game_mode
             FROM games
             WHERE id = :gid AND user_id = :uid
             LIMIT 1

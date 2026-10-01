@@ -17,13 +17,24 @@ try {
     exit;
   }
 
-  $played = has_played_daily($userId, $day);
+  $mode = (string)($_GET['mode'] ?? 'elimination');
+  $cleanMode = in_array($mode, ['elimination', 'points', 'flags'], true) ? $mode : 'elimination';
 
-  echo json_encode(['ok'=>true,'played'=>$played,'day'=>$day]);
+  $played = has_played_daily($userId, $day, $cleanMode);
+  $modesStatus = [
+    'elimination' => has_played_daily($userId, $day, 'elimination'),
+    'points'      => has_played_daily($userId, $day, 'points'),
+    'flags'       => has_played_daily($userId, $day, 'flags'),
+  ];
+
+  echo json_encode([
+    'ok' => true,
+    'played' => $played,
+    'day' => $day,
+    'mode' => $cleanMode,
+    'modes' => $modesStatus
+  ]);
 } catch (Throwable $e) {
   http_response_code(500);
   echo json_encode(['ok'=>false,'error'=>'Internal error','detail'=>$e->getMessage()]);
 }
-
-
-

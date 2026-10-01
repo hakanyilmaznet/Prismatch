@@ -81,6 +81,7 @@ foreach ($rows as $g) {
     'date_label' => fmt_dt($created, $lang),
     'duration_label' => seconds_to_mmss($durationSec),
     'score' => $score,
+    'game_mode' => (string)(isset($g['game_mode']) ? $g['game_mode'] : 'elimination'),
     'reached_level' => (int)(isset($g['reached_level']) ? $g['reached_level'] : 0),
     'total_correct' => (int)(isset($g['total_correct']) ? $g['total_correct'] : 0),
     'won' => $won,
@@ -160,6 +161,7 @@ foreach ($rows as $g) {
               <tr>
                 <th>#</th>
                 <th><?= h(TT('th_date','Date')) ?></th>
+                <th><?= h(TT('th_mode','Mode')) ?></th>
                 <th><?= h(TT('th_score','Score')) ?></th>
                 <th><?= h(TT('th_level','Level')) ?></th>
                 <th><?= h(TT('th_correct','Correct')) ?></th>
@@ -173,6 +175,15 @@ foreach ($rows as $g) {
               <tr>
                 <td><?= (int)$g['index'] ?></td>
                 <td><?= h($g['date_label']) ?></td>
+                <td>
+                  <?php if ($g['game_mode'] === 'flags'): ?>
+                    <span class="badge" style="background:rgba(13,202,240,0.18); color:#0dcaf0; font-weight:700;">🚩 <?= h(TT('rooms_mode_flags_short','Bayrak')) ?></span>
+                  <?php elseif ($g['game_mode'] === 'points'): ?>
+                    <span class="badge" style="background:rgba(255,211,107,0.18); color:#eab308; font-weight:700;">🎯 <?= h(TT('rooms_mode_points_short','Puan')) ?></span>
+                  <?php else: ?>
+                    <span class="badge" style="background:rgba(255,107,91,0.18); color:#ff6b5b; font-weight:700;">⚡ <?= h(TT('rooms_mode_elim_short','Eleme')) ?></span>
+                  <?php endif; ?>
+                </td>
                 <td><?= h(fmt_num($g['score'], $lang, 0)) ?></td>
                 <td><?= h(fmt_num($g['reached_level'], $lang, 0)) ?></td>
                 <td><?= h(fmt_num($g['total_correct'], $lang, 0)) ?></td>

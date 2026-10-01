@@ -128,7 +128,10 @@ $countryFilter = isset($_GET['country']) ? $_GET['country'] : '';
 $countryFilter = strtoupper(trim((string)$countryFilter));
 if ($countryFilter !== '' && !preg_match('/^[A-Z]{2}$/', $countryFilter)) $countryFilter = '';
 
-$rows = daily_leaderboard($challengeDate, $countryFilter ?: null, 100);
+$modeFilter = isset($_GET['mode']) ? (string)$_GET['mode'] : 'all';
+$modeFilter = in_array($modeFilter, ['all', 'elimination', 'points', 'flags'], true) ? $modeFilter : 'all';
+
+$rows = daily_leaderboard($challengeDate, $countryFilter ?: null, 100, $modeFilter === 'all' ? null : $modeFilter);
 
 // Viewer country and user info
 $viewerCountry = function_exists('cf_country') ? cf_country() : null;
@@ -1261,6 +1264,67 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
       background: rgba(255, 107, 91, 0.08);
       transform: translateY(-2px);
     }
+    .pm-mode-tabs-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .pm-mode-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: inherit;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+    .pm-mode-tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+    .pm-mode-tab.active {
+      background: linear-gradient(135deg, rgba(255, 107, 91, 0.2), rgba(255, 178, 75, 0.2));
+      border-color: #ff6b5b;
+      color: #ff6b5b;
+      box-shadow: 0 4px 14px rgba(255, 107, 91, 0.2);
+    }
+    [data-bs-theme="light"] .pm-mode-tab {
+      border-color: rgba(0, 0, 0, 0.1);
+      background: rgba(0, 0, 0, 0.03);
+    }
+    [data-bs-theme="light"] .pm-mode-tab:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .pm-mode-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pm-mode-pill-elim {
+      background: rgba(255, 107, 91, 0.15);
+      color: #ff6b5b;
+    }
+    .pm-mode-pill-points {
+      background: rgba(255, 211, 107, 0.15);
+      color: #eab308;
+    }
+    .pm-mode-pill-flags {
+      background: rgba(13, 202, 240, 0.15);
+      color: #0dcaf0;
+    }
   </style>
 </head>
 <body class="pm-has-fixed-header">
@@ -1305,6 +1369,25 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
       </div>
     </div>
 
+    <!-- GAME MODE TABS -->
+    <div class="pm-mode-tabs-wrap">
+      <?php
+        $baseQuery = '?d=' . urlencode($challengeDate) . ($countryFilter !== '' ? '&country=' . urlencode($countryFilter) : '');
+      ?>
+      <a href="<?= $baseQuery ?>&mode=all" class="pm-mode-tab <?= $modeFilter === 'all' ? 'active' : '' ?>">
+        🌟 <?= h(tt('daily_mode_tab_all', 'Tüm Modlar')) ?>
+      </a>
+      <a href="<?= $baseQuery ?>&mode=elimination" class="pm-mode-tab <?= $modeFilter === 'elimination' ? 'active' : '' ?>">
+        ⚡ <?= h(tt('rooms_mode_elim_title', 'Eleme')) ?>
+      </a>
+      <a href="<?= $baseQuery ?>&mode=points" class="pm-mode-tab <?= $modeFilter === 'points' ? 'active' : '' ?>">
+        🎯 <?= h(tt('rooms_mode_points_title', 'Puan')) ?>
+      </a>
+      <a href="<?= $baseQuery ?>&mode=flags" class="pm-mode-tab <?= $modeFilter === 'flags' ? 'active' : '' ?>">
+        🚩 <?= h(tt('rooms_mode_flags_title', 'Bayrak')) ?>
+      </a>
+    </div>
+
     <!-- CONTROLS TOOLBAR -->
     <div class="pm-toolbar-card">
       <!-- Date Stepper -->
@@ -1312,9 +1395,12 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
         <?php if ($countryFilter !== ''): ?>
           <input type="hidden" name="country" value="<?= h($countryFilter) ?>" />
         <?php endif; ?>
+        <?php if ($modeFilter !== 'all'): ?>
+          <input type="hidden" name="mode" value="<?= h($modeFilter) ?>" />
+        <?php endif; ?>
 
         <!-- Prev Day -->
-        <a href="?d=<?= h($prevDate) ?><?= $countryFilter !== '' ? '&country=' . h($countryFilter) : '' ?>" class="pm-btn-icon-nav" title="<?= h(tt('prev_day', 'Önceki Gün')) ?>">
+        <a href="?d=<?= h($prevDate) ?><?= $countryFilter !== '' ? '&country=' . h($countryFilter) : '' ?><?= $modeFilter !== 'all' ? '&mode=' . h($modeFilter) : '' ?>" class="pm-btn-icon-nav" title="<?= h(tt('prev_day', 'Önceki Gün')) ?>">
           <img src="bootstrap-icons/chevron-left.svg" alt="←" />
         </a>
 
@@ -1325,12 +1411,12 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
         </div>
 
         <!-- Next Day -->
-        <a href="?d=<?= h($nextDate) ?><?= $countryFilter !== '' ? '&country=' . h($countryFilter) : '' ?>" class="pm-btn-icon-nav <?= ($isToday || $isFuture) ? 'disabled' : '' ?>" title="<?= h(tt('next_day', 'Sonraki Gün')) ?>">
+        <a href="?d=<?= h($nextDate) ?><?= $countryFilter !== '' ? '&country=' . h($countryFilter) : '' ?><?= $modeFilter !== 'all' ? '&mode=' . h($modeFilter) : '' ?>" class="pm-btn-icon-nav <?= ($isToday || $isFuture) ? 'disabled' : '' ?>" title="<?= h(tt('next_day', 'Sonraki Gün')) ?>">
           <img src="bootstrap-icons/chevron-right.svg" alt="→" />
         </a>
 
         <!-- Today Shortcut -->
-        <a href="?d=<?= h($todayUtc) ?><?= $countryFilter !== '' ? '&country=' . h($countryFilter) : '' ?>" class="pm-btn-today <?= $isToday ? 'active' : '' ?>">
+        <a href="?d=<?= h($todayUtc) ?><?= $countryFilter !== '' ? '&country=' . h($countryFilter) : '' ?><?= $modeFilter !== 'all' ? '&mode=' . h($modeFilter) : '' ?>" class="pm-btn-today <?= $isToday ? 'active' : '' ?>">
           <span class="pm-live-dot" style="width:6px;height:6px;"></span>
           <?= h(tt('today', 'Bugün')) ?>
         </a>
@@ -1494,6 +1580,7 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
                 <th style="width: 60px;">#</th>
                 <th><?= h(tt('th_country', 'Ülke')) ?></th>
                 <th><?= h(tt('th_player', 'Oyuncu')) ?></th>
+                <th style="width: 110px;"><?= h(tt('th_mode', 'Mod')) ?></th>
                 <th style="text-align: right;"><?= h(tt('th_score', 'Skor')) ?></th>
                 <th style="text-align: center; width: 120px;"><?= h(tt('hud_stage', 'Aşama')) ?></th>
                 <th style="text-align: right; width: 120px;"><?= h(tt('th_duration', 'Süre')) ?></th>
@@ -1509,6 +1596,7 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
                   $isViewer = true;
                 }
                 $rank = $i + 1;
+                $rowMode = $r['game_mode'] ?? 'elimination';
               ?>
               <tr class="<?= $isViewer ? 'isCurrentViewer' : '' ?>">
                 <td>
@@ -1540,6 +1628,15 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
                       <span class="pm-badge-you"><?= h(tt('badge_you', 'Sen')) ?></span>
                     <?php endif; ?>
                   </div>
+                </td>
+                <td>
+                  <?php if ($rowMode === 'flags'): ?>
+                    <span class="pm-mode-badge-pill pm-mode-pill-flags">🚩 <?= h(tt('rooms_mode_flags_short', 'Bayrak')) ?></span>
+                  <?php elseif ($rowMode === 'points'): ?>
+                    <span class="pm-mode-badge-pill pm-mode-pill-points">🎯 <?= h(tt('rooms_mode_points_short', 'Puan')) ?></span>
+                  <?php else: ?>
+                    <span class="pm-mode-badge-pill pm-mode-pill-elim">⚡ <?= h(tt('rooms_mode_elim_short', 'Eleme')) ?></span>
+                  <?php endif; ?>
                 </td>
                 <td class="pm-score-cell">
                   <?= number_format((int)($r['score'] ?? 0)) ?>

@@ -177,9 +177,31 @@ function daily_target_show_ms_for_level(int $level): int {
 }
 
 function compute_daily_score(array $payload): int {
+    $gameMode = (string)($payload['game_mode'] ?? $payload['gameMode'] ?? 'elimination');
+    $rounds = is_array($payload['rounds'] ?? null) ? $payload['rounds'] : [];
+
+    if ($gameMode === 'points' || $gameMode === 'flags') {
+        $totalScore = 0;
+        foreach ($rounds as $r) {
+            if (!is_array($r)) continue;
+            $responseMs = (int)($r['responseMs'] ?? $r['response_ms'] ?? 0);
+            $responseMs = max(0, $responseMs);
+            $isCorrect = !empty($r['isCorrect']) || !empty($r['is_correct']);
+            $picked = $r['pickedColor'] ?? $r['picked_color'] ?? null;
+
+            if ($isCorrect) {
+                $scoreDelta = max(50, 1000 - (int)floor($responseMs / 10));
+                $totalScore += $scoreDelta;
+            } elseif ($picked !== null && $picked !== '') {
+                $pointsPenalty = max(50, 1000 - (int)floor($responseMs / 10));
+                $totalScore = max(0, $totalScore - $pointsPenalty);
+            }
+        }
+        return $totalScore;
+    }
+
     $reached = (int)($payload['reached_level'] ?? $payload['reachedLevel'] ?? 0);
     $reached = max(1, min(25, $reached));
-    $rounds = is_array($payload['rounds'] ?? null) ? $payload['rounds'] : [];
     $sumRatio = 0.0;
     $count = 0;
 
@@ -213,16 +235,16 @@ function upsert_daily_score(array $row): void {
     );
 }
 
-function daily_leaderboard(string $challengeDate, ?string $country = null, int $limit = 50): array {
-    return (new DailyRepository())->getLeaderboard($challengeDate, $limit, $country);
+function daily_leaderboard(string $challengeDate, ?string $country = null, int $limit = 50, ?string $gameMode = null): array {
+    return (new DailyRepository())->getLeaderboard($challengeDate, $limit, $country, $gameMode);
 }
 
-function get_daily_challenge_status(?string $userId, ?string $anonId, ?string $dayUtc = null): array {
-    return (new DailyRepository())->getStatus($userId, $anonId, $dayUtc);
+function get_daily_challenge_status(?string $userId, ?string $anonId, ?string $dayUtc = null, string $gameMode = 'elimination'): array {
+    return (new DailyRepository())->getStatus($userId, $anonId, $dayUtc, $gameMode);
 }
 
-function has_played_daily(string $userId, string $dayUtc): bool {
-    $status = (new DailyRepository())->getStatus($userId, null, $dayUtc);
+function has_played_daily(string $userId, string $dayUtc, string $gameMode = 'elimination'): bool {
+    $status = (new DailyRepository())->getStatus($userId, null, $dayUtc, $gameMode);
     return !empty($status['has_played']);
 }
 
@@ -230,8 +252,8 @@ function record_daily_challenge_score(?string $userId, ?string $userEmail, ?stri
     return (new DailyRepository())->recordScore($userId, $userEmail, $anonId, $data);
 }
 
-function get_daily_leaderboard(?string $dayUtc = null, int $limit = 100): array {
-    return (new DailyRepository())->getLeaderboard($dayUtc, $limit);
+function get_daily_leaderboard(?string $dayUtc = null, int $limit = 100, ?string $country = null, ?string $gameMode = null): array {
+    return (new DailyRepository())->getLeaderboard($dayUtc, $limit, $country, $gameMode);
 }
 
 // --- Multiplayer Rooms ---

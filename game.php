@@ -179,9 +179,19 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
         $finished = $game['finished_at'] ?? null;
         $country = (string)($game['country'] ?? '');
         $flagUrl = $country && function_exists('country_flag_icon_url') ? country_flag_icon_url($country) : '';
+        $gMode = (string)($game['game_mode'] ?? 'elimination');
       ?>
       <div class="grid2">
         <div><div class="k"><?= h(t_safe('th_date','Date')) ?></div><div class="v"><?= h(fmt_dt($created, $lang)) ?></div></div>
+        <div><div class="k"><?= h(t_safe('th_mode','Mode')) ?></div><div class="v">
+          <?php if ($gMode === 'flags'): ?>
+            <span class="badge" style="background:rgba(13,202,240,0.18); color:#0dcaf0; font-weight:700; padding:4px 10px; border-radius:999px;">🚩 <?= h(t_safe('rooms_mode_flags_short','Bayrak')) ?></span>
+          <?php elseif ($gMode === 'points'): ?>
+            <span class="badge" style="background:rgba(255,211,107,0.18); color:#eab308; font-weight:700; padding:4px 10px; border-radius:999px;">🎯 <?= h(t_safe('rooms_mode_points_short','Puan')) ?></span>
+          <?php else: ?>
+            <span class="badge" style="background:rgba(255,107,91,0.18); color:#ff6b5b; font-weight:700; padding:4px 10px; border-radius:999px;">⚡ <?= h(t_safe('rooms_mode_elim_short','Eleme')) ?></span>
+          <?php endif; ?>
+        </div></div>
         <div><div class="k"><?= h(t_safe('th_duration','Duration')) ?></div><div class="v"><?= h($durationLabel) ?></div></div>
         <div><div class="k"><?= h(t_safe('th_score','Score')) ?></div><div class="v"><?= h(fmt_num($score, $lang, 0)) ?></div></div>
         <div><div class="k"><?= h(t_safe('th_level','Level')) ?></div><div class="v"><?= h(fmt_num($reachedLevel, $lang, 0)) ?></div></div>
@@ -219,12 +229,17 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
               if (is_array($tmp)) $gridArr = $tmp;
             }
             $ok = (int)$r['is_correct'] === 1;
+            $isFlagTarget = str_starts_with((string)($r['target_color'] ?? ''), 'flags/');
           ?>
             <tr>
               <td class="fw-bold fs-6"><?= h(fmt_num((int)$r['level'], $lang, 0)) ?></td>
               <td>
                 <?php if (!empty($r['target_color'])): ?>
-                  <span class="sw"><span class="dot" style="background:<?= h($r['target_color']) ?>"></span><span><?= h($r['target_color']) ?></span></span>
+                  <?php if ($isFlagTarget): ?>
+                    <span class="sw"><img src="<?= h($r['target_color']) ?>" style="width:26px;height:17px;object-fit:cover;border-radius:3px;border:1px solid rgba(255,255,255,0.2);" alt="" /></span>
+                  <?php else: ?>
+                    <span class="sw"><span class="dot" style="background:<?= h($r['target_color']) ?>"></span><span><?= h($r['target_color']) ?></span></span>
+                  <?php endif; ?>
                 <?php else: ?>
                   <span class="muted">-</span>
                 <?php endif; ?>
@@ -233,7 +248,11 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
                 <?php if ($gridArr): ?>
                   <div class="grid-swatches">
                     <?php foreach ($gridArr as $c): ?>
-                      <span class="dot-grid" title="<?= h($c) ?>" style="background:<?= h($c) ?>"></span>
+                      <?php if (str_starts_with((string)$c, 'flags/')): ?>
+                        <img src="<?= h($c) ?>" class="dot-grid" style="object-fit:cover;border-radius:3px;" alt="" />
+                      <?php else: ?>
+                        <span class="dot-grid" title="<?= h($c) ?>" style="background:<?= h($c) ?>"></span>
+                      <?php endif; ?>
                     <?php endforeach; ?>
                   </div>
                 <?php else: ?>
@@ -242,7 +261,11 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
               </td>
               <td>
                 <?php if (!empty($r['picked_color'])): ?>
-                  <span class="sw"><span class="dot" style="background:<?= h($r['picked_color']) ?>"></span><span><?= h($r['picked_color']) ?></span></span>
+                  <?php if (str_starts_with((string)$r['picked_color'], 'flags/')): ?>
+                    <span class="sw"><img src="<?= h($r['picked_color']) ?>" style="width:26px;height:17px;object-fit:cover;border-radius:3px;border:1px solid rgba(255,255,255,0.2);" alt="" /></span>
+                  <?php else: ?>
+                    <span class="sw"><span class="dot" style="background:<?= h($r['picked_color']) ?>"></span><span><?= h($r['picked_color']) ?></span></span>
+                  <?php endif; ?>
                 <?php else: ?>
                   <span class="muted">-</span>
                 <?php endif; ?>
@@ -263,13 +286,9 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
     if (document.cookie.includes('tz=')) return;
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (!tz) return;
-      fetch('api/set_timezone.php', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({timezone: tz}),
-        credentials: 'same-origin'
-      }).then(() => location.reload()).catch(()=>{});
+      if (tz) {
+        fetch('api/set_timezone.php?tz=' + encodeURIComponent(tz)).catch(()=>{});
+      }
     } catch(e){}
   }
   setTimezoneIfNeeded();
