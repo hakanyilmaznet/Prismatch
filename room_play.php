@@ -379,6 +379,101 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     .feedback-toast.correct { background: linear-gradient(135deg, #10b981, #059669); }
     .feedback-toast.wrong { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+    /* Answer Overlay Popup */
+    .answerOverlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(61,214,160,0.15), transparent 45%), rgba(8,16,23,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 42000;
+      backdrop-filter: blur(10px);
+    }
+    .answerOverlay[hidden] { display: none; }
+    .answerCard {
+      width: min(520px, 92vw);
+      border-radius: 28px;
+      padding: 24px 22px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.2);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(255,255,255,0.16), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      box-shadow: 0 32px 80px rgba(0,0,0,0.55);
+      position: relative;
+      overflow: hidden;
+    }
+    .answerCard.success {
+      border-color: rgba(46, 204, 113, 0.6);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(46, 204, 113, 0.18), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    }
+    .answerCard.error {
+      border-color: rgba(255,77,77,0.7);
+      background:
+        radial-gradient(240px 240px at 15% 15%, rgba(255,77,77,0.18), transparent 60%),
+        linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    }
+    .answerCard::after {
+      content: "";
+      position: absolute;
+      inset: -40% -20% auto auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255,208,138,0.35), transparent 70%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .answerIconWrap {
+      width: 120px;
+      height: 120px;
+      border-radius: 32px;
+      margin: 0 auto 14px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), 0 16px 36px rgba(0,0,0,0.35);
+    }
+    .answerIcon {
+      width: 78px;
+      height: 78px;
+      animation: popIn 320ms ease;
+    }
+    .answerMessage {
+      font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
+      font-size: clamp(18px, 3.8vw, 22px);
+      font-weight: 700;
+      line-height: 1.4;
+      margin: 6px 0 2px 0;
+      color: #fff;
+    }
+    .answerSub {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.7);
+      margin: 0;
+    }
+    .answerCard.success .answerIcon { animation: popIn 320ms ease, floaty 4s ease-in-out infinite; }
+    .answerCard.error .answerIcon { animation: popIn 320ms ease, shake 420ms ease; }
+    @keyframes popIn { from { transform: scale(0.75); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
     .btn-action {
       background: linear-gradient(135deg, #ff6b5b, #ff8c42);
       border: none;
@@ -1033,6 +1128,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     </div>
   </div>
 
+  <!-- Answer Message Popup -->
+  <div id="answerOverlay" class="answerOverlay" hidden>
+    <div id="answerCard" class="answerCard" role="dialog" aria-modal="true" aria-label="<?= htmlspecialchars(tt('answer_popup', 'Answer')) ?>">
+      <div class="answerIconWrap">
+        <img id="answerIcon" class="answerIcon" src="success-checkmark.svg" alt="" aria-hidden="true" />
+      </div>
+      <div id="answerText" class="answerMessage">-</div>
+      <p id="answerSub" class="answerSub"><?= htmlspecialchars(tt('answer_sub', 'Keep going!')) ?></p>
+    </div>
+  </div>
+
   <!-- Feedback Toast -->
   <div id="feedbackToast" class="feedback-toast">
     <span id="toastIcon"></span>
@@ -1151,6 +1257,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       colResult: <?= json_encode(tt('room_col_result', 'Sonuç & Puan')) ?>,
       colCorrect: <?= json_encode(tt('room_col_correct', 'Doğru')) ?>,
       statTimeoutBadge: <?= json_encode(tt('room_stat_timeout_badge', 'Süre Doldu')) ?>,
+      answerSub: <?= json_encode(tt('answer_sub', 'Keep going!')) ?>,
     };
 
     function escapeHtml(s) {
@@ -1358,6 +1465,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     const feedbackToast = document.getElementById('feedbackToast');
     const toastIcon = document.getElementById('toastIcon');
     const toastText = document.getElementById('toastText');
+    const answerOverlay = document.getElementById('answerOverlay');
+    const answerCard = document.getElementById('answerCard');
+    const answerIcon = document.getElementById('answerIcon');
+    const answerText = document.getElementById('answerText');
+    const answerSub = document.getElementById('answerSub');
+    let answerPopupTimer = null;
+    let answerPopupResolve = null;
+
+    const RIGHT_MESSAGES = <?= json_encode($rightAnswerMessages) ?>;
+    const WRONG_MESSAGES = <?= json_encode($wrongAnswerMessages) ?>;
 
     // Web Audio Sound Engine
     let audioCtx = null;
@@ -1385,6 +1502,62 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       toastText.textContent = text;
       feedbackToast.className = 'feedback-toast show ' + (isCorrect ? 'correct' : 'wrong');
       setTimeout(() => { feedbackToast.classList.remove('show'); }, 2200);
+    }
+
+    function pickRandomMessage(list) {
+      if (!list || !list.length) return '';
+      const idx = Math.floor(Math.random() * list.length);
+      return list[idx] || '';
+    }
+
+    function hideAnswerPopup() {
+      if (answerPopupTimer) {
+        clearTimeout(answerPopupTimer);
+        answerPopupTimer = null;
+      }
+      if (answerPopupResolve) {
+        answerPopupResolve();
+        answerPopupResolve = null;
+      }
+      if (answerOverlay) {
+        answerOverlay.hidden = true;
+      }
+    }
+
+    function showAnswerPopup(type, customText = '', customSub = '') {
+      if (!answerOverlay || !answerCard || !answerIcon || !answerText) return Promise.resolve();
+      if (answerPopupTimer) clearTimeout(answerPopupTimer);
+      if (answerPopupResolve) {
+        answerPopupResolve();
+        answerPopupResolve = null;
+      }
+
+      const isRight = type === 'right';
+      const msg = customText || pickRandomMessage(isRight ? RIGHT_MESSAGES : WRONG_MESSAGES) || (isRight ? STR.correct : STR.wrong);
+      answerText.textContent = msg;
+      answerIcon.src = isRight ? 'success-checkmark.svg' : 'error-x.svg';
+      answerCard.classList.toggle('success', isRight);
+      answerCard.classList.toggle('error', !isRight);
+      if (answerSub) {
+        answerSub.textContent = customSub || STR.answerSub;
+      }
+      answerOverlay.hidden = false;
+
+      return new Promise((resolve) => {
+        answerPopupResolve = resolve;
+        answerPopupTimer = setTimeout(() => {
+          answerOverlay.hidden = true;
+          if (answerPopupResolve) answerPopupResolve();
+          answerPopupResolve = null;
+          answerPopupTimer = null;
+        }, 1500);
+      });
+    }
+
+    function updateAnswerPopupSub(subText) {
+      if (answerSub && answerOverlay && !answerOverlay.hidden) {
+        answerSub.textContent = subText;
+      }
     }
 
     function renderPlayers(players) {
@@ -1642,15 +1815,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         playTone(660, 0.1, 'triangle');
         setTimeout(() => playTone(880, 0.12, 'triangle'), 100);
         showToast(STR.correct, true);
+        showAnswerPopup('right', '', STR.answerSub);
       } else {
         btn.classList.add('wrong');
         playTone(220, 0.2, 'sawtooth');
         if (state.gameMode === 'elimination') {
           showToast(STR.wrong, false);
           state.eliminated = true;
+          showAnswerPopup('wrong', '', STR.eliminated);
         } else {
           showToast(STR.wrongPenalty || STR.wrong, false);
           state.eliminated = false;
+          showAnswerPopup('wrong', '', STR.wrongPenalty || STR.wrong);
         }
       }
 
@@ -1698,8 +1874,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           hudScore.textContent = String(state.score);
           if (data.score_delta < 0) {
             showToast(`${data.score_delta} ${STR.score || 'pts'}`, false);
+            updateAnswerPopupSub(`${data.score_delta} ${STR.pts || 'pts'}`);
           } else if (data.score_delta > 0) {
             showToast(`+${data.score_delta} ${STR.score || 'pts'}`, true);
+            updateAnswerPopupSub(`+${data.score_delta} ${STR.pts || 'pts'}`);
           }
         }
 
@@ -1739,9 +1917,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       if (state.gameMode === 'elimination') {
         state.eliminated = true;
         showToast(STR.timeUp, false);
+        showAnswerPopup('wrong', STR.timeUp, STR.eliminated);
       } else {
         state.eliminated = false;
         showToast(STR.timeUpZeroPoints || STR.timeUp, false);
+        showAnswerPopup('wrong', STR.timeUpZeroPoints || STR.timeUp, '0 ' + (STR.pts || 'pts'));
       }
 
       RoomLogger.warn('Answer', `Player timed out on round ${state.round}`);
@@ -1885,6 +2065,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       RoomLogger.info('GameState', `applyRoundData: Starting round ${data.round}`, data);
 
+      hideAnswerPopup();
+
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       if (state.countdownInterval) {
         clearInterval(state.countdownInterval);
@@ -1939,6 +2121,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     async function renderFinalVictory(players) {
       state.phase = 'finished';
+      hideAnswerPopup();
       if (state.countdownInterval) { clearInterval(state.countdownInterval); clearTimeout(state.countdownInterval); state.countdownInterval = null; }
       if (state.activeTimer) clearInterval(state.activeTimer);
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
@@ -2359,6 +2542,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     function resetToLobby(players) {
+      hideAnswerPopup();
       if (state.countdownInterval) { clearInterval(state.countdownInterval); clearTimeout(state.countdownInterval); state.countdownInterval = null; }
       if (state.activeTimer) clearInterval(state.activeTimer);
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
