@@ -39,6 +39,48 @@ try {
 }
 
 $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/style.css') : time();
+
+$faqItems = [
+  [
+    'q' => tt('faq_q1', 'Prismatch nedir?'),
+    'a' => tt('faq_a1', 'Prismatch, ekranda kısa bir süre gösterilen hedef rengi veya ülke bayrağını zihninizde tutarak renk ızgarası içinden doğru tonu en hızlı şekilde seçtiğiniz, odak ve görsel hafızayı güçlendiren ücretsiz bir bulmaca oyunudur.'),
+  ],
+  [
+    'q' => tt('faq_q2', 'Prismatch nasıl oynanır?'),
+    'a' => tt('faq_a2', 'Her turun başında hedef bir renk veya bayrak gösterilir. Geri sayım bittiğinde benzer tonlardan oluşan bir ızgara açılır. Doğru rengi ne kadar hızlı bulursanız o kadar yüksek puan kazanırsınız.'),
+  ],
+  [
+    'q' => tt('faq_q3', 'Prismatch oynamak ücretsiz mi?'),
+    'a' => tt('faq_a3', 'Evet! Prismatch web tarayıcınız üzerinden tamamen ücretsiz oynanabilir. İster misafir olarak anında oynayabilir, isterseniz Google hesabınızla giriş yaparak skorlarınızı ve rekorlarınızı liderlik tablosuna kaydedebilirsiniz.'),
+  ],
+  [
+    'q' => tt('faq_q4', 'Çok oyunculu odalar (Multiplayer) nasıl çalışır?'),
+    'a' => tt('faq_a4', 'Çok oyunculu modda kendi odanızı kurabilir veya açık odalara katılabilirsiniz. Tüm oyuncular aynı anda aynı soruları çözer, puan ve eleme dinamikleriyle gerçek zamanlı olarak yarışırlar.'),
+  ],
+  [
+    'q' => tt('faq_q5', 'Günlük Meydan Okuma (Daily Challenge) nedir?'),
+    'a' => tt('faq_a5', 'Günde bir kez oynanabilen özel bir yarışmadır. Tüm dünyadaki oyuncular aynı soru kombinasyonuyla yarışır ve günün en iyileri küresel Günlük Liderlik Tablosunda yerini alır.'),
+  ],
+];
+
+$howToData = [
+  'name' => tt('home_how_section_title', 'Prismatch Nasıl Oynanır?'),
+  'description' => tt('home_how_section_desc', '3 basit adımda renk hafızanızı test edin ve geliştirin.'),
+  'steps' => [
+    [
+      'name' => tt('home_step_1_title', '1. Hedef Rengi Gör'),
+      'text' => tt('home_step_1_desc', 'Her tur başında ekranda birkaç saniyeliğine beliren hedef rengin tonunu ve parlaklığını dikkatlice inceleyin.'),
+    ],
+    [
+      'name' => tt('home_step_2_title', '2. Zihninde Tut'),
+      'text' => tt('home_step_2_desc', 'Hedef renk kaybolduğunda ve seçenekler gelene kadar rengin zihninizdeki canlılığını koruyun.'),
+    ],
+    [
+      'name' => tt('home_step_3_title', '3. Doğru Tonu Yakala'),
+      'text' => tt('home_step_3_desc', 'Birbirine benzeyen renk seçenekleri arasından doğru tonu seçin. Hızlı seçim ekstra bonus puan kazandırır.'),
+    ],
+  ],
+];
 ?>
 <!doctype html>
 <html lang="<?= htmlspecialchars($lang) ?>" dir="<?= htmlspecialchars($dir) ?>">
@@ -69,6 +111,8 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
     'robots' => 'index,follow',
     'lang' => $lang,
     'site_name' => tt('app_name', 'Prismatch'),
+    'faq' => $faqItems,
+    'howTo' => $howToData,
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
 
@@ -697,6 +741,15 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
       flex-shrink: 0;
     }
 
+    /* FAQ Section */
+    .pm-faq-item[open] {
+      border-color: rgba(255, 107, 91, 0.4) !important;
+      background: var(--pm-bg-elevated, rgba(255, 255, 255, 0.09)) !important;
+    }
+    .pm-faq-item[open] .pm-faq-icon {
+      transform: rotate(180deg);
+    }
+
     /* Leaderboard Podium Teaser */
     .pm-podium-card {
       background: linear-gradient(135deg, rgba(255, 209, 102, 0.12), rgba(255, 107, 91, 0.08)), var(--pm-bg-card, #121826);
@@ -1020,7 +1073,29 @@ $cssVersion = is_file(__DIR__ . '/css/style.css') ? filemtime(__DIR__ . '/css/st
       </div>
     </section>
 
-    <!-- 6. BOTTOM CALL-TO-ACTION BANNER -->
+    <!-- 6. FREQUENTLY ASKED QUESTIONS (FAQ) -->
+    <section class="pm-section pm-faq-section" aria-labelledby="faqSectionTitle">
+      <div class="pm-section-head">
+        <div class="pm-section-pill">💡 <?= htmlspecialchars(tt('faq_badge', 'Rehber & Bilgi')) ?></div>
+        <h2 id="faqSectionTitle" class="pm-section-title"><?= htmlspecialchars(tt('faq_title', 'Sıkça Sorulan Sorular')) ?></h2>
+        <p class="pm-section-desc"><?= htmlspecialchars(tt('faq_desc', 'Prismatch, oyun modları ve kurallar hakkında merak edilenler.')) ?></p>
+      </div>
+      <div class="pm-faq-list" style="display:flex; flex-direction:column; gap:14px; max-width:860px; margin:0 auto; width:100%;">
+        <?php foreach ($faqItems as $idx => $faq): ?>
+          <details class="pm-faq-item" style="background:var(--pm-bg-card, rgba(255,255,255,0.06)); border:1px solid var(--pm-border, rgba(255,255,255,0.1)); border-radius:16px; padding:18px 22px; cursor:pointer; transition:all 0.2s ease;">
+            <summary style="font-weight:700; font-size:16px; list-style:none; display:flex; justify-content:space-between; align-items:center; user-select:none; gap:12px;">
+              <span>❓ <?= htmlspecialchars($faq['q']) ?></span>
+              <span class="pm-faq-icon" style="opacity:0.6; font-size:13px; transition:transform 0.2s ease;">▼</span>
+            </summary>
+            <div style="margin-top:12px; font-size:14.5px; line-height:1.65; color:var(--pm-text-muted, #94a3b8); border-top:1px solid rgba(255,255,255,0.08); padding-top:12px; cursor:text;">
+              <?= htmlspecialchars($faq['a']) ?>
+            </div>
+          </details>
+        <?php endforeach; ?>
+      </div>
+    </section>
+
+    <!-- 7. BOTTOM CALL-TO-ACTION BANNER -->
     <section class="pm-cta-banner">
       <h2 class="pm-cta-title"><?= htmlspecialchars(tt('home_cta_banner_title', 'Renk Hafızana Güveniyor musun?')) ?></h2>
       <p class="pm-cta-desc"><?= htmlspecialchars(tt('home_cta_banner_desc', 'Hemen ücretsiz oynamaya başla veya oturum açarak başarılarını ve rekorlarını kalıcı hale getir.')) ?></p>

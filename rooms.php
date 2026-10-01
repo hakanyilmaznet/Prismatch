@@ -50,12 +50,8 @@ function room_winner_name(string $roomId): ?string {
     return user_display_name_from_row(['email' => $email]);
 }
 
-if (!$userEmail || !$userId) {
-    header('Location: login.php?next=' . rawurlencode('rooms.php'));
-    exit;
-}
-
-$rooms = list_user_rooms((string)$userId, 100);
+$isLoggedIn = !empty($userEmail) && !empty($userId);
+$rooms = $isLoggedIn ? list_user_rooms((string)$userId, 100) : [];
 $publicRooms = list_public_rooms(30);
 $seoTitle = tt('rooms_title', 'Multiplayer Rooms');
 $seoDescription = tt('rooms_desc', 'Create or join multiplayer rooms to compete live in real time.');
@@ -88,6 +84,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     'robots' => 'index,follow',
     'lang' => $lang,
     'site_name' => tt('app_name', 'Prismatch'),
+    'breadcrumbs' => [
+      ['name' => tt('nav_home', 'Home'), 'url' => '/'],
+      ['name' => tt('rooms_title', 'Multiplayer Rooms'), 'url' => '/rooms.php'],
+    ],
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>
@@ -153,6 +153,20 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       </div>
     </div>
 
+    <?php if (!$isLoggedIn): ?>
+    <div class="card-modern text-center py-4 px-3 mb-4">
+      <div class="fs-1 mb-2">🎮</div>
+      <h2 class="h5 fw-bold mb-2"><?= htmlspecialchars(tt('rooms_guest_banner_title', 'Çok Oyunculu Odalara Katılın!')) ?></h2>
+      <p class="text-secondary small mb-3 mx-auto" style="max-width:540px;">
+        <?= htmlspecialchars(tt('rooms_guest_banner_desc', 'Arkadaşlarınızla canlı yarışmak veya yeni bir oda kurmak için Google ile oturum açın.')) ?>
+      </p>
+      <div>
+        <a href="login.php?next=<?= rawurlencode('rooms.php') ?>" class="btn btn-action px-4 py-2">
+          <?= htmlspecialchars(tt('home_cta_login', 'Login with Google')) ?>
+        </a>
+      </div>
+    </div>
+    <?php else: ?>
     <!-- Create Room Card -->
     <div class="card-modern">
       <h2 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
@@ -257,6 +271,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         </div>
       </div>
     </div>
+    <?php endif; ?>
 
     <!-- Active Public Rooms Card -->
     <?php if (!empty($publicRooms)): ?>

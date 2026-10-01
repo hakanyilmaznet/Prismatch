@@ -204,6 +204,10 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
     'robots' => 'index,follow',
     'lang' => $lang,
     'site_name' => t('app_name'),
+    'breadcrumbs' => [
+      ['name' => tt('nav_home', 'Home'), 'url' => '/'],
+      ['name' => t('daily_leaderboard_title'), 'url' => '/daily_leaderboard.php'],
+    ],
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>

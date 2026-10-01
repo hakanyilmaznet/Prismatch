@@ -150,6 +150,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     'robots' => 'index,follow',
     'lang' => $lang,
     'site_name' => L('app'),
+    'breadcrumbs' => [
+      ['name' => 'Home', 'url' => '/'],
+      ['name' => L('title'), 'url' => '/privacy.php'],
+    ],
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
   <style>

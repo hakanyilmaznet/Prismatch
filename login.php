@@ -71,6 +71,7 @@ $seoTitle = t('home_cta_login') . ' - ' . t('app_name');
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <style>
     body {

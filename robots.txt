@@ -1,7 +1,25 @@
 User-agent: *
 Allow: /
+Allow: /css/
+Allow: /js/
+Allow: /bootstrap-icons/
+Allow: /flags/
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.svg$
+Allow: /*.png$
+Allow: /*.ico$
+Allow: /*.webmanifest$
+
+# Private, dynamic, and auth-only endpoints
+Disallow: /api/
+Disallow: /logs/
+Disallow: /callback.php
+Disallow: /clear_db.php
+Disallow: /room_play.php
 Disallow: /game.php
 Disallow: /games.php
 Disallow: /login.php
+Disallow: /logout.php
 
 Sitemap: https://www.prismatch.online/sitemap.xml

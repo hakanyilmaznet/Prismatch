@@ -502,8 +502,8 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
 </style>
 
 <nav class="pm-header navbar">
-  <a class="pm-brand" href="index.php">
-    <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>" width="40" height="40" />
+  <a class="pm-brand" href="/">
+    <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>" width="40" height="40" fetchpriority="high" />
     <span class="pm-name"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></span>
   </a>
   <button class="navbar-toggler" type="button" id="pmNavToggle" aria-controls="pmNav" aria-expanded="false" aria-label="Toggle navigation">

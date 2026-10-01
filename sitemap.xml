@@ -1,39 +1,186 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://www.prismatch.online/</loc>
-    <lastmod>2026-02-02</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.prismatch.online/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://www.prismatch.online/?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.prismatch.online/?lang=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.prismatch.online/?lang=es" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.prismatch.online/?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.prismatch.online/?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.prismatch.online/?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.prismatch.online/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.prismatch.online/?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://www.prismatch.online/?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="yue" href="https://www.prismatch.online/?lang=yue" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.prismatch.online/?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="wuu" href="https://www.prismatch.online/?lang=wuu" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.prismatch.online/?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.prismatch.online/?lang=de" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://www.prismatch.online/?lang=id" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.prismatch.online/?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://www.prismatch.online/?lang=fa" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.prismatch.online/?lang=it" />
   </url>
   <url>
     <loc>https://www.prismatch.online/play.php</loc>
-    <lastmod>2026-02-02</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/play.php" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.prismatch.online/play.php?lang=en" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://www.prismatch.online/play.php?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.prismatch.online/play.php?lang=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.prismatch.online/play.php?lang=es" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.prismatch.online/play.php?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.prismatch.online/play.php?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.prismatch.online/play.php?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.prismatch.online/play.php?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.prismatch.online/play.php?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://www.prismatch.online/play.php?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="yue" href="https://www.prismatch.online/play.php?lang=yue" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.prismatch.online/play.php?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="wuu" href="https://www.prismatch.online/play.php?lang=wuu" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.prismatch.online/play.php?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.prismatch.online/play.php?lang=de" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://www.prismatch.online/play.php?lang=id" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.prismatch.online/play.php?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://www.prismatch.online/play.php?lang=fa" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.prismatch.online/play.php?lang=it" />
   </url>
   <url>
     <loc>https://www.prismatch.online/play.php?daily=1</loc>
-    <lastmod>2026-02-02</lastmod>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/play.php?daily=1" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.prismatch.online/play.php?daily=1&amp;lang=en" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://www.prismatch.online/play.php?daily=1&amp;lang=tr" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.prismatch.online/play.php?daily=1&amp;lang=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.prismatch.online/play.php?daily=1&amp;lang=es" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.prismatch.online/play.php?daily=1&amp;lang=hi" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.prismatch.online/play.php?daily=1&amp;lang=pt" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.prismatch.online/play.php?daily=1&amp;lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.prismatch.online/play.php?daily=1&amp;lang=ru" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.prismatch.online/play.php?daily=1&amp;lang=ja" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://www.prismatch.online/play.php?daily=1&amp;lang=vi" />
+    <xhtml:link rel="alternate" hreflang="yue" href="https://www.prismatch.online/play.php?daily=1&amp;lang=yue" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.prismatch.online/play.php?daily=1&amp;lang=ar" />
+    <xhtml:link rel="alternate" hreflang="wuu" href="https://www.prismatch.online/play.php?daily=1&amp;lang=wuu" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.prismatch.online/play.php?daily=1&amp;lang=ko" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.prismatch.online/play.php?daily=1&amp;lang=de" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://www.prismatch.online/play.php?daily=1&amp;lang=id" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.prismatch.online/play.php?daily=1&amp;lang=fr" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://www.prismatch.online/play.php?daily=1&amp;lang=fa" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.prismatch.online/play.php?daily=1&amp;lang=it" />
+  </url>
+  <url>
+    <loc>https://www.prismatch.online/rooms.php</loc>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/rooms.php" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.prismatch.online/rooms.php?lang=en" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://www.prismatch.online/rooms.php?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.prismatch.online/rooms.php?lang=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.prismatch.online/rooms.php?lang=es" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.prismatch.online/rooms.php?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.prismatch.online/rooms.php?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.prismatch.online/rooms.php?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.prismatch.online/rooms.php?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.prismatch.online/rooms.php?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://www.prismatch.online/rooms.php?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="yue" href="https://www.prismatch.online/rooms.php?lang=yue" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.prismatch.online/rooms.php?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="wuu" href="https://www.prismatch.online/rooms.php?lang=wuu" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.prismatch.online/rooms.php?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.prismatch.online/rooms.php?lang=de" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://www.prismatch.online/rooms.php?lang=id" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.prismatch.online/rooms.php?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://www.prismatch.online/rooms.php?lang=fa" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.prismatch.online/rooms.php?lang=it" />
   </url>
   <url>
     <loc>https://www.prismatch.online/daily_leaderboard.php</loc>
-    <lastmod>2026-02-02</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/daily_leaderboard.php" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.prismatch.online/daily_leaderboard.php?lang=en" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://www.prismatch.online/daily_leaderboard.php?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.prismatch.online/daily_leaderboard.php?lang=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.prismatch.online/daily_leaderboard.php?lang=es" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.prismatch.online/daily_leaderboard.php?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.prismatch.online/daily_leaderboard.php?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.prismatch.online/daily_leaderboard.php?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.prismatch.online/daily_leaderboard.php?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.prismatch.online/daily_leaderboard.php?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://www.prismatch.online/daily_leaderboard.php?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="yue" href="https://www.prismatch.online/daily_leaderboard.php?lang=yue" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.prismatch.online/daily_leaderboard.php?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="wuu" href="https://www.prismatch.online/daily_leaderboard.php?lang=wuu" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.prismatch.online/daily_leaderboard.php?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.prismatch.online/daily_leaderboard.php?lang=de" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://www.prismatch.online/daily_leaderboard.php?lang=id" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.prismatch.online/daily_leaderboard.php?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://www.prismatch.online/daily_leaderboard.php?lang=fa" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.prismatch.online/daily_leaderboard.php?lang=it" />
   </url>
   <url>
     <loc>https://www.prismatch.online/privacy.php</loc>
-    <lastmod>2026-01-30</lastmod>
-    <changefreq>yearly</changefreq>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/privacy.php" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.prismatch.online/privacy.php?lang=en" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://www.prismatch.online/privacy.php?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.prismatch.online/privacy.php?lang=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.prismatch.online/privacy.php?lang=es" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.prismatch.online/privacy.php?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.prismatch.online/privacy.php?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.prismatch.online/privacy.php?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.prismatch.online/privacy.php?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.prismatch.online/privacy.php?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://www.prismatch.online/privacy.php?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="yue" href="https://www.prismatch.online/privacy.php?lang=yue" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.prismatch.online/privacy.php?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="wuu" href="https://www.prismatch.online/privacy.php?lang=wuu" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.prismatch.online/privacy.php?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.prismatch.online/privacy.php?lang=de" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://www.prismatch.online/privacy.php?lang=id" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.prismatch.online/privacy.php?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://www.prismatch.online/privacy.php?lang=fa" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.prismatch.online/privacy.php?lang=it" />
   </url>
   <url>
     <loc>https://www.prismatch.online/terms.php</loc>
-    <lastmod>2026-01-30</lastmod>
-    <changefreq>yearly</changefreq>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/terms.php" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.prismatch.online/terms.php?lang=en" />
+    <xhtml:link rel="alternate" hreflang="tr" href="https://www.prismatch.online/terms.php?lang=tr" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://www.prismatch.online/terms.php?lang=zh-CN" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.prismatch.online/terms.php?lang=es" />
+    <xhtml:link rel="alternate" hreflang="hi" href="https://www.prismatch.online/terms.php?lang=hi" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.prismatch.online/terms.php?lang=pt" />
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.prismatch.online/terms.php?lang=bn" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://www.prismatch.online/terms.php?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://www.prismatch.online/terms.php?lang=ja" />
+    <xhtml:link rel="alternate" hreflang="vi" href="https://www.prismatch.online/terms.php?lang=vi" />
+    <xhtml:link rel="alternate" hreflang="yue" href="https://www.prismatch.online/terms.php?lang=yue" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.prismatch.online/terms.php?lang=ar" />
+    <xhtml:link rel="alternate" hreflang="wuu" href="https://www.prismatch.online/terms.php?lang=wuu" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://www.prismatch.online/terms.php?lang=ko" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.prismatch.online/terms.php?lang=de" />
+    <xhtml:link rel="alternate" hreflang="id" href="https://www.prismatch.online/terms.php?lang=id" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.prismatch.online/terms.php?lang=fr" />
+    <xhtml:link rel="alternate" hreflang="fa" href="https://www.prismatch.online/terms.php?lang=fa" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.prismatch.online/terms.php?lang=it" />
   </url>
 </urlset>

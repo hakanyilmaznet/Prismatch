@@ -26,13 +26,7 @@ $dir  = function_exists('lang_dir') ? lang_dir($lang) : 'ltr';
 
 $userId = $_SESSION['user_id'] ?? null;
 $userEmail = $_SESSION['user_email'] ?? null;
-
-// Require user login before playing
-if (!$userId || !$userEmail) {
-  $next = 'play.php' . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
-  header('Location: login.php?next=' . rawurlencode($next));
-  exit;
-}
+$isLoggedIn = !empty($userId) && !empty($userEmail);
 
 $userDisplay = $_SESSION['user_name'] ?? ($userId ? user_display_name($userId) : null);
 $isDailyMode = isset($_GET['daily']) && $_GET['daily'] !== '0';
@@ -111,6 +105,10 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     'robots' => 'index,follow',
     'lang' => $lang,
     'site_name' => tt('app_name', 'Prismatch'),
+    'breadcrumbs' => [
+      ['name' => tt('nav_home', 'Home'), 'url' => '/'],
+      ['name' => $isDailyMode ? tt('daily_title', 'Daily Challenge') : tt('play_title', 'Play Game'), 'url' => $isDailyMode ? '/play.php?daily=1' : '/play.php'],
+    ],
   ]) ?>
   <?= seo_alternate_links($seoLangs, seo_current_url()) ?>
 
@@ -793,9 +791,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
       <div id="center" class="center">
         <img class="logo" src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>" />
-        <div class="title">
+        <h1 class="title">
           <?= htmlspecialchars($isDailyMode ? tt('daily_title', 'Daily Challenge') : tt('play_title', 'Ready to play?')) ?>
-        </div>
+        </h1>
         <div class="subtitle" id="lobbySubtitle">
           <?= htmlspecialchars($isDailyMode ? tt('daily_mode_intro', 'Günün meydan okuma modunu seç ve küresel liderlik tablosunda yerini al!') : tt('play_subtitle', 'Remember the shown color, then pick it from the grid.')) ?>
         </div>
