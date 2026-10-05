@@ -50,12 +50,24 @@ $faqItems = [
     'a' => tt('faq_a2', 'Her turun başında hedef bir renk veya bayrak gösterilir. Geri sayım bittiğinde benzer tonlardan oluşan bir ızgara açılır. Doğru rengi ne kadar hızlı bulursanız o kadar yüksek puan kazanırsınız.'),
   ],
   [
+    'q' => tt('faq_q_teams', 'Takım Savaşı (Devs vs QAs) modu nasıl çalışır?'),
+    'a' => tt('faq_a_teams', 'Takım Savaşı modunda oyuncular lobide 🔴 Kırmızı (Devs) ve 🔵 Mavi (QAs) takımlarına ayrılır. Her oyuncunun topladığı puan doğrudan takımının ortak havuzuna eklenir. Oyun ekranındaki canlı halat çekme (tug-of-war) barı anlık skoru gösterir ve maç sonunda en çok puanı toplayan takım zaferi kazanır!'),
+  ],
+  [
+    'q' => tt('faq_q_sabotage', 'Jokerler ve Mürekkep Sabotajı nasıl kullanılır?'),
+    'a' => tt('faq_a_sabotage', 'Çok oyunculu odalarda her oyuncunun tur başında iki kartı bulunur: 50/50 jokeri iki yanlış seçeneği eler; Mürekkep Sabotajı ise seçtiğiniz rakibin ekranına 3 saniye boyunca temizlemesi gereken mürekkep lekeleri fırlatarak dikkatini dağıtır!'),
+  ],
+  [
+    'q' => tt('faq_q_awards', "Maçın En'leri rozetleri (Hız Şeytanı, Aşırı Düşünen vb.) nedir?"),
+    'a' => tt('faq_a_awards', 'Maç bittiğinde sadece birinciye değil, farklı oyun stillerine göre mizahi ödüller dağıtılır: Işık hızında karar veren "Hız Şeytanı ⚡", son ana kadar bekleyen "Aşırı Düşünen 🧘", seri yakalayan "Alev Alan 🔥" ve maçın yıldızı "👑 Maçın MVP\'si" unvanını alır.'),
+  ],
+  [
     'q' => tt('faq_q3', 'Prismatch oynamak ücretsiz mi?'),
     'a' => tt('faq_a3', 'Evet! Prismatch web tarayıcınız üzerinden tamamen ücretsiz oynanabilir. İster misafir olarak anında oynayabilir, isterseniz Google hesabınızla giriş yaparak skorlarınızı ve rekorlarınızı liderlik tablosuna kaydedebilirsiniz.'),
   ],
   [
     'q' => tt('faq_q4', 'Çok oyunculu odalar (Multiplayer) nasıl çalışır?'),
-    'a' => tt('faq_a4', 'Çok oyunculu modda kendi odanızı kurabilir veya açık odalara katılabilirsiniz. Tüm oyuncular aynı anda aynı soruları çözer, puan ve eleme dinamikleriyle gerçek zamanlı olarak yarışırlar.'),
+    'a' => tt('faq_a4', 'Çok oyunculu modda kendi genel veya gizli odanızı kurabilir ya da açık odalara katılabilirsiniz. Arkadaşlarınıza davet linki gönderip Takım Savaşı, Eleme veya Puan modunda canlı yarışabilirsiniz.'),
   ],
   [
     'q' => tt('faq_q5', 'Günlük Meydan Okuma (Daily Challenge) nedir?'),
@@ -811,6 +823,277 @@ $howToData = [
       margin: 0;
       line-height: 1.55;
     }
+    /* ==========================================================================
+       NEW SQUAD BATTLE & MULTIPLAYER FUN SHOWCASE STYLES
+       ========================================================================== */
+    .pm-btn-rooms-glow {
+      background: linear-gradient(135deg, #f43f5e, #fb7185 50%, #38bdf8) !important;
+      color: #ffffff !important;
+      border: none !important;
+      box-shadow: 0 8px 30px rgba(244, 63, 94, 0.45) !important;
+      padding: 13px 26px !important;
+      font-size: 16px !important;
+      font-weight: 800 !important;
+      border-radius: 999px !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+    }
+    .pm-btn-rooms-glow:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 14px 40px rgba(244, 63, 94, 0.65) !important;
+      color: #fff !important;
+    }
+
+    .pm-features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    @media (min-width: 768px) {
+      .pm-features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .pm-fun-card {
+      background: var(--pm-bg-card, #121826);
+      border: 1px solid var(--pm-border, rgba(255, 255, 255, 0.12));
+      border-radius: 24px;
+      padding: 26px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    }
+    .pm-fun-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+    }
+    .pm-fun-card.card-teams {
+      background: linear-gradient(145deg, rgba(244, 63, 94, 0.12), rgba(56, 189, 248, 0.08)), var(--pm-bg-card, #121826);
+      border-color: rgba(244, 63, 94, 0.35);
+    }
+    .pm-fun-card.card-teams:hover {
+      border-color: rgba(244, 63, 94, 0.7);
+      box-shadow: 0 20px 48px rgba(244, 63, 94, 0.25);
+    }
+    .pm-fun-card.card-sabotage {
+      background: linear-gradient(145deg, rgba(168, 85, 247, 0.14), rgba(236, 72, 153, 0.08)), var(--pm-bg-card, #121826);
+      border-color: rgba(168, 85, 247, 0.35);
+    }
+    .pm-fun-card.card-sabotage:hover {
+      border-color: rgba(168, 85, 247, 0.7);
+      box-shadow: 0 20px 48px rgba(168, 85, 247, 0.25);
+    }
+    .pm-fun-card.card-reactions {
+      background: linear-gradient(145deg, rgba(245, 158, 11, 0.12), rgba(239, 68, 68, 0.08)), var(--pm-bg-card, #121826);
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .pm-fun-card.card-reactions:hover {
+      border-color: rgba(245, 158, 11, 0.7);
+      box-shadow: 0 20px 48px rgba(245, 158, 11, 0.25);
+    }
+    .pm-fun-card.card-awards {
+      background: linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.08)), var(--pm-bg-card, #121826);
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+    .pm-fun-card.card-awards:hover {
+      border-color: rgba(16, 185, 129, 0.7);
+      box-shadow: 0 20px 48px rgba(16, 185, 129, 0.25);
+    }
+
+    .pm-card-top-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .pill-teams { background: rgba(244, 63, 94, 0.18); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .pill-sabotage { background: rgba(168, 85, 247, 0.18); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .pill-reactions { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .pill-awards { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    .pm-fun-title {
+      font-family: var(--pm-font-display, "Baloo 2", sans-serif);
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 6px 0;
+      line-height: 1.25;
+    }
+    .pm-fun-desc {
+      font-size: 14px;
+      color: var(--pm-text-muted, #94a3b8);
+      line-height: 1.55;
+      margin: 0 0 14px 0;
+    }
+
+    /* Tug of war interactive mini visual */
+    .pm-tug-visual {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--pm-border, rgba(255, 255, 255, 0.1));
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .pm-tug-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .pm-tug-bar {
+      height: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+    }
+    .pm-tug-red {
+      width: 55%;
+      height: 100%;
+      background: linear-gradient(90deg, #f43f5e, #fb7185);
+      animation: tugPulseRed 3.6s infinite ease-in-out;
+    }
+    .pm-tug-blue {
+      width: 45%;
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #0284c7);
+      animation: tugPulseBlue 3.6s infinite ease-in-out;
+    }
+    @keyframes tugPulseRed {
+      0%, 100% { width: 55%; }
+      50% { width: 64%; }
+    }
+    @keyframes tugPulseBlue {
+      0%, 100% { width: 45%; }
+      50% { width: 36%; }
+    }
+
+    /* Sabotage visual */
+    .pm-sabotage-visual {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--pm-border, rgba(255, 255, 255, 0.1));
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .pm-powerup-mini-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* Reactions visual with clickable preview pills */
+    .pm-reactions-visual {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--pm-border, rgba(255, 255, 255, 0.1));
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .pm-reaction-pill-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 6px 12px;
+      color: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .pm-reaction-pill-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px) scale(1.04);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+    .pm-reaction-pill-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Awards mini cards */
+    .pm-awards-visual {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--pm-border, rgba(255, 255, 255, 0.1));
+      border-radius: 16px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .pm-award-mini-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    /* Floating feedback toast for homepage */
+    .pm-home-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px);
+      background: rgba(18, 24, 38, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      padding: 10px 22px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pm-home-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
   </style>
 </head>
 <body class="pm-has-fixed-header">
@@ -821,25 +1104,24 @@ $howToData = [
     <section class="pm-hero-section">
       <div>
         <div class="pm-hero-eyebrow">
-          <span>✨</span>
-          <span><?= htmlspecialchars(tt('home_hero_tag', 'Bilişsel Hız & Renk Hafıza Arenası')) ?></span>
+          <span>🔥</span>
+          <span><?= htmlspecialchars(tt('home_hero_new_tag', 'YENİ: Takım Savaşı · Mürekkep Sabotajı · Canlı Tepkiler')) ?></span>
         </div>
         <h1 class="pm-hero-title">
-          <?= htmlspecialchars(tt('home_hero_title_part1', 'Remember the Colors,')) ?> <span class="prism-shimmer"><?= htmlspecialchars(tt('home_hero_title_part2', 'Race the Clock!')) ?></span>
+          <?= htmlspecialchars(tt('home_hero_title_part1', 'Remember the Colors,')) ?> <span class="prism-shimmer"><?= htmlspecialchars(tt('home_hero_title_squad', 'Battle Your Squad!')) ?></span>
         </h1>
         <p class="pm-hero-desc">
-          <?= htmlspecialchars(tt('home_hero_subtitle', 'Görsel hafızanı ve reflekslerini test et. Gösterilen hedef rengi aklında tut, grid içinden doğru tonu yakala ve skor tablosunun zirvesine çık!')) ?>
+          <?= htmlspecialchars(tt('home_hero_subtitle_fun', 'Kahve molalarını, ekip toplantılarını ve arkadaş buluşmalarını yüksek tempolu bir rekabete dönüştürün. Hedef rengi aklında tut, rakibin ekranına mürekkep fırlat, takımını zafere taşı!')) ?>
         </p>
 
         <div class="pm-hero-actions">
-          <a class="pm-btn-play" href="play.php">
-            <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" style="width:20px;height:20px;" />
-            <span><?= htmlspecialchars(tt('home_hero_play_btn', 'Hemen Oyna')) ?></span>
+          <a class="pm-btn-rooms-glow" href="rooms.php">
+            <span class="pulse-dot" style="background:#fff; box-shadow:0 0 0 0 rgba(255,255,255,0.7)"></span>
+            <span>⚔️ <?= htmlspecialchars(tt('home_hero_rooms_btn_featured', 'Oda Kur & Takımını Topla')) ?></span>
           </a>
-          <a class="pm-btn-secondary" href="rooms.php">
-            <span class="pulse-dot"></span>
-            <img class="bi-icon" src="bootstrap-icons/people-fill.svg" alt="" aria-hidden="true" style="width:18px;height:18px;" />
-            <span><?= htmlspecialchars(tt('home_hero_rooms_btn', 'Çok Oyunculu')) ?></span>
+          <a class="pm-btn-secondary" href="play.php">
+            <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" style="width:18px;height:18px;" />
+            <span><?= htmlspecialchars(tt('home_hero_play_btn_solo', 'Tek Başına Oyna')) ?></span>
           </a>
           <a class="pm-btn-secondary" href="play.php?daily=1">
             <img class="bi-icon" src="bootstrap-icons/calendar2-check.svg" alt="" aria-hidden="true" style="width:18px;height:18px;" />
@@ -852,21 +1134,25 @@ $howToData = [
         </div>
 
         <div class="pm-hero-chips">
-          <div class="pm-chip">
-            <span>⚡</span>
-            <span><?= htmlspecialchars(tt('rooms_mode_elim_short', 'Eleme')) ?></span>
+          <div class="pm-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fb7185;">
+            <span>⚔️</span>
+            <span><?= htmlspecialchars(tt('rooms_mode_teams_short', 'Takım Savaşı (Devs vs QAs)')) ?></span>
           </div>
-          <div class="pm-chip">
-            <span>🎯</span>
-            <span><?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?></span>
+          <div class="pm-chip" style="border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
+            <span>🦑</span>
+            <span><?= htmlspecialchars(tt('home_chip_sabotage', 'Mürekkep Sabotajı')) ?></span>
+          </div>
+          <div class="pm-chip" style="border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+            <span>🐞</span>
+            <span><?= htmlspecialchars(tt('home_chip_banter', 'Canlı "Bug var!" Tepkileri')) ?></span>
+          </div>
+          <div class="pm-chip" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+            <span>👑</span>
+            <span><?= htmlspecialchars(tt('home_chip_mvp', 'Maçın MVP\'si & Rozetler')) ?></span>
           </div>
           <div class="pm-chip">
             <span>🚩</span>
             <span><?= htmlspecialchars(tt('rooms_mode_flags_short', 'Bayrak Modu')) ?></span>
-          </div>
-          <div class="pm-chip">
-            <span>🏆</span>
-            <span><?= htmlspecialchars(tt('home_stat_ranking', 'Küresel Sıralama')) ?></span>
           </div>
         </div>
       </div>
@@ -908,7 +1194,136 @@ $howToData = [
       </div>
     </section>
 
-    <!-- 2. GAME MODES SHOWCASE -->
+    <!-- 2. FEATURE SPOTLIGHT: SQUAD BATTLE & MULTIPLAYER FUN -->
+    <section>
+      <div class="pm-section-head">
+        <div class="pm-card-top-pill pill-teams" style="margin-bottom:12px;">
+          <span>🔥</span> <?= htmlspecialchars(tt('home_spotlight_badge', 'OFİS & EKİP EĞLENCESİ')) ?>
+        </div>
+        <h2 class="pm-section-title"><?= htmlspecialchars(tt('home_spotlight_title', 'Kahve Molasını Arenaya Dönüştürün!')) ?></h2>
+        <p class="pm-section-sub"><?= htmlspecialchars(tt('home_spotlight_sub', 'Monoton toplantı aralarını, sprint kutlamalarını ve arkadaş buluşmalarını kahkaha dolu canlı bir rekabete çevirin.')) ?></p>
+      </div>
+
+      <div class="pm-features-grid">
+        <!-- Feature 1: Squad Battle / Devs vs QAs -->
+        <div class="pm-fun-card card-teams">
+          <div>
+            <div class="pm-card-top-pill pill-teams">
+              <span>⚔️</span> <?= htmlspecialchars(tt('home_feat_teams_pill', 'Takım Savaşı: Devs vs QAs')) ?>
+            </div>
+            <h3 class="pm-fun-title"><?= htmlspecialchars(tt('home_feat_teams_title', '🔴 Kırmızı vs 🔵 Mavi Takım')) ?></h3>
+            <p class="pm-fun-desc"><?= htmlspecialchars(tt('home_feat_teams_desc', 'Ekibini ikiye böl, takımını seç! Bireysel puanların ortak takım havuzuna aktığı bu modda kıyasıya halat çekin, kazanan takım kutlamasını yapın.')) ?></p>
+            
+            <div class="pm-tug-visual">
+              <div class="pm-tug-labels">
+                <span style="color:#f43f5e">🔴 Devs: 4.850 pts</span>
+                <span style="color:#38bdf8">QAs: 5.120 pts 🔵</span>
+              </div>
+              <div class="pm-tug-bar">
+                <div class="pm-tug-red"></div>
+                <div class="pm-tug-blue"></div>
+              </div>
+            </div>
+          </div>
+          <a class="pm-btn-secondary" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box; border-color:rgba(244,63,94,0.4);">
+            <span>⚔️ <?= htmlspecialchars(tt('home_feat_teams_btn', 'Takım Savaşı Başlat')) ?> →</span>
+          </a>
+        </div>
+
+        <!-- Feature 2: Ink Sabotage & 50/50 -->
+        <div class="pm-fun-card card-sabotage">
+          <div>
+            <div class="pm-card-top-pill pill-sabotage">
+              <span>🦑</span> <?= htmlspecialchars(tt('home_feat_sabotage_pill', 'Jokerler & Sabotaj Kartları')) ?>
+            </div>
+            <h3 class="pm-fun-title"><?= htmlspecialchars(tt('home_feat_sabotage_title', 'Ekranı Mürekkeple Kapla!')) ?></h3>
+            <p class="pm-fun-desc"><?= htmlspecialchars(tt('home_feat_sabotage_desc', 'Liderliği kimseye kaptırma! Öndeki rakibin ekranına 3 saniye mürekkep fırlatarak dikkatini dağıt veya 50/50 jokeriyle iki yanlış rengi anında haritadan sil.')) ?></p>
+            
+            <div class="pm-sabotage-visual">
+              <div class="pm-powerup-mini-badge" style="border-color:rgba(168,85,247,0.4); color:#c084fc;">
+                <span>🎯</span>
+                <span>50/50 Jokeri</span>
+              </div>
+              <span style="font-size:18px; opacity:0.4;">⚡</span>
+              <div class="pm-powerup-mini-badge" style="border-color:rgba(236,72,153,0.4); color:#f472b6;">
+                <span>🦑</span>
+                <span>Mürekkep Fırlat</span>
+              </div>
+            </div>
+          </div>
+          <a class="pm-btn-secondary" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box; border-color:rgba(168,85,247,0.4);">
+            <span>🦑 <?= htmlspecialchars(tt('home_feat_sabotage_btn', 'Sabotajları Keşfet')) ?> →</span>
+          </a>
+        </div>
+
+        <!-- Feature 3: Live Audio & Banter -->
+        <div class="pm-fun-card card-reactions">
+          <div>
+            <div class="pm-card-top-pill pill-reactions">
+              <span>🔥</span> <?= htmlspecialchars(tt('home_feat_reactions_pill', 'Sesli Tepkiler & Çevik Sloganlar')) ?>
+            </div>
+            <h3 class="pm-fun-title"><?= htmlspecialchars(tt('home_feat_reactions_title', '"Bug var! 🐞" & "PO Haklı! 👑"')) ?></h3>
+            <p class="pm-fun-desc"><?= htmlspecialchars(tt('home_feat_reactions_desc', 'Oyun sırasında uçuşan canlı emojiler ve retro synth sesleriyle odayı karnavala çevirin. Aşağıdaki butonlara tıklayarak canlı tepkileri test edin:')) ?></p>
+            
+            <div class="pm-reactions-visual">
+              <button type="button" class="pm-reaction-pill-btn" data-sound="bug" data-emoji="🐞" data-text="Bug var! 🐞">
+                <span>🐞 Bug var!</span>
+              </button>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="po" data-emoji="👑" data-text="PO Haklı! 👑">
+                <span>👑 PO Haklı!</span>
+              </button>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="fire" data-emoji="🔥" data-text="Alev! 🔥">
+                <span>🔥</span>
+              </button>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="laugh" data-emoji="😂" data-text="Haha! 😂">
+                <span>😂</span>
+              </button>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="party" data-emoji="🎉" data-text="GG! 🏆">
+                <span>🏆 GG!</span>
+              </button>
+            </div>
+          </div>
+          <a class="pm-btn-secondary" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box; border-color:rgba(245,158,11,0.4);">
+            <span>💬 <?= htmlspecialchars(tt('home_feat_reactions_btn', 'Canlı Odalara Katıl')) ?> →</span>
+          </a>
+        </div>
+
+        <!-- Feature 4: Humorous Accolades & MVP -->
+        <div class="pm-fun-card card-awards">
+          <div>
+            <div class="pm-card-top-pill pill-awards">
+              <span>🏅</span> <?= htmlspecialchars(tt('home_feat_awards_pill', 'Mizahi Rozetler & Podyum')) ?>
+            </div>
+            <h3 class="pm-fun-title"><?= htmlspecialchars(tt('home_feat_awards_title', "Maçın En'leri & MVP Unvanı")) ?></h3>
+            <p class="pm-fun-desc"><?= htmlspecialchars(tt('home_feat_awards_desc', 'Sadece birinci değil; en hızlı karar veren, en çok hesap yapan filozof veya son anda tutturan cambaz da maç sonunda kendi unvanıyla onurlandırılır.')) ?></p>
+            
+            <div class="pm-awards-visual">
+              <div class="pm-award-mini-chip">
+                <span>⚡</span>
+                <span>Hız Şeytanı</span>
+              </div>
+              <div class="pm-award-mini-chip">
+                <span>🧘</span>
+                <span>Aşırı Düşünen</span>
+              </div>
+              <div class="pm-award-mini-chip">
+                <span>🐢</span>
+                <span>Son Saniye</span>
+              </div>
+              <div class="pm-award-mini-chip">
+                <span>👑</span>
+                <span>Maçın MVP'si</span>
+              </div>
+            </div>
+          </div>
+          <a class="pm-btn-secondary" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box; border-color:rgba(16,185,129,0.4);">
+            <span>🏅 <?= htmlspecialchars(tt('home_feat_awards_btn', 'Rozetleri İncele')) ?> →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. GAME MODES SHOWCASE -->
     <section>
       <div class="pm-section-head">
         <h2 class="pm-section-title"><?= htmlspecialchars(tt('home_modes_section_title', 'Heyecan Dolu Oyun Modları')) ?></h2>
@@ -916,49 +1331,79 @@ $howToData = [
       </div>
 
       <div class="pm-cards-grid">
-        <!-- Solo Blitz Mode -->
-        <div class="pm-mode-card pm-mode-solo">
+        <!-- Mode 1: Squad Battle -->
+        <div class="pm-mode-card pm-mode-multi" style="border-color: rgba(244, 63, 94, 0.4);">
           <div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
-              <div class="pm-mode-icon">⚡</div>
-              <span class="pm-mode-pill pm-pill-solo"><?= htmlspecialchars(tt('badge_popular', 'POPULAR')) ?></span>
+              <div class="pm-mode-icon" style="background: linear-gradient(135deg, rgba(244,63,94,0.2), rgba(56,189,248,0.2));">⚔️</div>
+              <span class="pm-mode-pill pm-pill-multi" style="background: linear-gradient(90deg, #f43f5e, #38bdf8); color:#fff; border:none;"><?= htmlspecialchars(tt('badge_teams_pop', 'TAKIM SAVAŞI')) ?></span>
             </div>
-            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('home_mode_solo_title', 'Tek Oyunculu Hızlı Tur')) ?></h3>
-            <p class="pm-mode-desc"><?= htmlspecialchars(tt('home_mode_solo_desc', '60 saniyelik mikro turlar. Aşamalar ilerledikçe renk tonları birbirine yaklaşır ve süren kısalır. Kendi rekorunu egale et.')) ?></p>
+            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('rooms_mode_teams_title', 'Takım Savaşı (Devs vs QAs)')) ?></h3>
+            <p class="pm-mode-desc"><?= htmlspecialchars(tt('rooms_mode_teams_desc', '🔴 Kırmızı vs 🔵 Mavi Takım! Bireysel puanlar takım havuzuna yazılır, en çok puanı toplayan takım kazanır.')) ?></p>
           </div>
-          <a class="pm-btn-play" href="play.php" style="justify-content:center; width:100%; box-sizing:border-box;">
-            <span><?= htmlspecialchars(tt('home_mode_solo_btn', 'Hemen Başla')) ?> →</span>
+          <a class="pm-btn-rooms-glow" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box; padding:10px 18px !important; font-size:14px !important;">
+            <span>⚔️ <?= htmlspecialchars(tt('home_mode_teams_btn', 'Takım Odası Kur')) ?> →</span>
           </a>
         </div>
 
-        <!-- Live Multiplayer Rooms -->
-        <div class="pm-mode-card pm-mode-multi">
+        <!-- Mode 2: Elimination -->
+        <div class="pm-mode-card pm-mode-multi" style="border-color: rgba(239, 68, 68, 0.35);">
           <div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
-              <div class="pm-mode-icon">👥</div>
-              <span class="pm-mode-pill pm-pill-multi"><?= htmlspecialchars(tt('badge_live_race', 'LIVE BATTLE')) ?></span>
+              <div class="pm-mode-icon" style="background: rgba(239,68,68,0.15);">💀</div>
+              <span class="pm-mode-pill pm-pill-multi" style="background: rgba(239,68,68,0.2); color:#f87171; border: 1px solid rgba(239,68,68,0.3);"><?= htmlspecialchars(tt('badge_elim_short', 'ELEME')) ?></span>
             </div>
-            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('home_mode_multi_title', 'Canlı Çok Oyunculu Odalar')) ?></h3>
-            <p class="pm-mode-desc"><?= htmlspecialchars(tt('home_mode_multi_desc', 'Arkadaşlarınla genel veya özel odalar kur. Aynı renk diziliminde gerçek zamanlı yarış, son ayakta kalan kazanır!')) ?></p>
+            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('rooms_mode_elim_title', 'Hayatta Kalma (Eleme)')) ?></h3>
+            <p class="pm-mode-desc"><?= htmlspecialchars(tt('rooms_mode_elim_desc', 'Hata kabul etmez! Yanlış rengi seçen oyuncu anında elenir. Son ayakta kalan kupayı kaldırır.')) ?></p>
           </div>
           <a class="pm-btn-secondary" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box;">
-            <span><?= htmlspecialchars(tt('home_mode_multi_btn', 'Odalara Git')) ?> →</span>
+            <span>💀 <?= htmlspecialchars(tt('home_mode_elim_btn', 'Eleme Odası Aç')) ?> →</span>
           </a>
         </div>
 
-        <!-- Daily Challenge -->
-        <div class="pm-mode-card pm-mode-daily">
+        <!-- Mode 3: Points Race -->
+        <div class="pm-mode-card pm-mode-multi" style="border-color: rgba(245, 158, 11, 0.35);">
           <div>
             <div style="display:flex; align-items:center; justify-content:space-between;">
-              <div class="pm-mode-icon">🎯</div>
-              <span class="pm-mode-pill pm-pill-daily"><?= htmlspecialchars(tt('badge_daily_once', '1 TRY / DAY')) ?></span>
+              <div class="pm-mode-icon" style="background: rgba(245,158,11,0.15);">⚡</div>
+              <span class="pm-mode-pill pm-pill-multi" style="background: rgba(245,158,11,0.2); color:#fbbf24; border: 1px solid rgba(245,158,11,0.3);"><?= htmlspecialchars(tt('badge_points_race', 'PUAN YARIŞI')) ?></span>
             </div>
-            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('home_mode_daily_title', 'Günlük Meydan Okuma')) ?></h3>
-            <p class="pm-mode-desc"><?= htmlspecialchars(tt('home_mode_daily_desc', 'Her gün tüm dünyadaki oyuncular için tek bir deneme hakkı. Aynı renk serisinde yarış ve küresel podyumda yerini al.')) ?></p>
+            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('rooms_mode_points_title', 'Puan Maratonu')) ?></h3>
+            <p class="pm-mode-desc"><?= htmlspecialchars(tt('rooms_mode_points_desc', 'Kimse elenmez! 25 tur boyunca ardışık kombo serileri ve hızlı seçimlerle en yüksek puanı toplayan kazanır.')) ?></p>
           </div>
-          <a class="pm-btn-secondary" href="play.php?daily=1" style="justify-content:center; width:100%; box-sizing:border-box;">
-            <span><?= htmlspecialchars(tt('home_mode_daily_btn', 'Günün Turuna Katıl')) ?> →</span>
+          <a class="pm-btn-secondary" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box;">
+            <span>⚡ <?= htmlspecialchars(tt('home_mode_points_btn', 'Maraton Başlat')) ?> →</span>
           </a>
+        </div>
+
+        <!-- Mode 4: Flags Memory -->
+        <div class="pm-mode-card pm-mode-multi" style="border-color: rgba(56, 189, 248, 0.35);">
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div class="pm-mode-icon" style="background: rgba(56,189,248,0.15);">🚩</div>
+              <span class="pm-mode-pill pm-pill-multi" style="background: rgba(56,189,248,0.2); color:#38bdf8; border: 1px solid rgba(56,189,248,0.3);"><?= htmlspecialchars(tt('badge_flags_world', '250+ BAYRAK')) ?></span>
+            </div>
+            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('rooms_mode_flags_title', 'Dünya Bayrakları Hafızası')) ?></h3>
+            <p class="pm-mode-desc"><?= htmlspecialchars(tt('rooms_mode_flags_desc', 'Renklerin ötesine geçin! Ekranda beliren dünya bayraklarını zihninizde tutun, coğrafya bilginizi test edin.')) ?></p>
+          </div>
+          <a class="pm-btn-secondary" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box;">
+            <span>🚩 <?= htmlspecialchars(tt('home_mode_flags_btn', 'Bayraklarla Yarış')) ?> →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Solo & Daily Teaser Bar -->
+      <div style="margin-top:20px; background:var(--pm-bg-elevated, rgba(255,255,255,0.04)); border:1px dashed var(--pm-border, rgba(255,255,255,0.14)); border-radius:18px; padding:16px 20px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:22px;">🎯</span>
+          <div>
+            <strong style="font-size:14.5px;"><?= htmlspecialchars(tt('home_solo_teaser_title', 'Tek Başına Pratik Yapmak veya Günün Turnuvasına Katılmak mı İstiyorsun?')) ?></strong>
+            <div style="font-size:13px; color:var(--pm-text-muted);"><?= htmlspecialchars(tt('home_solo_teaser_desc', '60 saniyelik Hızlı Tur veya günde 1 deneme hakkı olan küresel Günlük Meydan Okuma seni bekliyor.')) ?></div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <a class="pm-btn-secondary" href="play.php" style="padding:8px 16px; font-size:13.5px;">⚡ <?= htmlspecialchars(tt('home_hero_play_btn_solo', 'Tek Başına Oyna')) ?></a>
+          <a class="pm-btn-secondary" href="play.php?daily=1" style="padding:8px 16px; font-size:13.5px;">🎯 <?= htmlspecialchars(tt('home_hero_daily_btn', 'Günlük Turnuva')) ?></a>
         </div>
       </div>
     </section>
@@ -1097,12 +1542,19 @@ $howToData = [
 
     <!-- 7. BOTTOM CALL-TO-ACTION BANNER -->
     <section class="pm-cta-banner">
-      <h2 class="pm-cta-title"><?= htmlspecialchars(tt('home_cta_banner_title', 'Renk Hafızana Güveniyor musun?')) ?></h2>
-      <p class="pm-cta-desc"><?= htmlspecialchars(tt('home_cta_banner_desc', 'Hemen ücretsiz oynamaya başla veya oturum açarak başarılarını ve rekorlarını kalıcı hale getir.')) ?></p>
+      <div class="pm-card-top-pill pill-teams" style="margin-bottom:4px;">
+        <span>🚀</span> <?= htmlspecialchars(tt('home_cta_badge_squad', 'EKİBİNİ TOPLA')) ?>
+      </div>
+      <h2 class="pm-cta-title"><?= htmlspecialchars(tt('home_cta_banner_title_squad', 'Ekibini Topla, Takımını Seç ve Arenaya Çık!')) ?></h2>
+      <p class="pm-cta-desc"><?= htmlspecialchars(tt('home_cta_banner_desc_squad', 'İster tek başına rekor kır, ister arkadaşlarınla Devs vs QAs savaşı başlat. Prismatch tamamen ücretsiz ve tarayıcında anında hazır!')) ?></p>
       <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:8px;">
-        <a class="pm-btn-play" href="play.php">
-          <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" style="width:20px;height:20px;" />
-          <span><?= htmlspecialchars(tt('home_cta_banner_play', 'Ücretsiz Oyna')) ?></span>
+        <a class="pm-btn-rooms-glow" href="rooms.php">
+          <span class="pulse-dot" style="background:#fff; box-shadow:0 0 0 0 rgba(255,255,255,0.7)"></span>
+          <span>⚔️ <?= htmlspecialchars(tt('home_hero_rooms_btn_featured', 'Oda Kur & Takımını Topla')) ?></span>
+        </a>
+        <a class="pm-btn-secondary" href="play.php">
+          <img class="bi-icon" src="bootstrap-icons/play-fill.svg" alt="" aria-hidden="true" style="width:18px;height:18px;" />
+          <span><?= htmlspecialchars(tt('home_hero_play_btn_solo', 'Tek Başına Oyna')) ?></span>
         </a>
         <?php if (!empty($userEmail)): ?>
           <a class="pm-btn-secondary" href="games.php">
@@ -1518,9 +1970,60 @@ $howToData = [
       addTimeout(initRound, 1400);
     }
 
+    // Wire up homepage reaction buttons for interactive fun
+    const reactionToast = document.getElementById('pmHomeToast');
+    let toastTimer = null;
+    function showHomeToast(msg) {
+      if (!reactionToast) return;
+      const msgEl = reactionToast.querySelector('.toast-msg');
+      if (msgEl) msgEl.textContent = msg;
+      reactionToast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        reactionToast.classList.remove('show');
+      }, 2600);
+    }
+
+    document.querySelectorAll('.pm-reaction-pill-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        ensureAudio();
+        const sound = btn.dataset.sound;
+        const emoji = btn.dataset.emoji || '🔥';
+        const text = btn.dataset.text || '';
+        
+        if (sound === 'bug') {
+          playTone(420, 0.08, 'sawtooth', 0.08);
+          setTimeout(() => playTone(320, 0.12, 'sawtooth', 0.08), 70);
+        } else if (sound === 'po') {
+          playTone(523, 0.08, 'sine', 0.08);
+          setTimeout(() => playTone(659, 0.1, 'triangle', 0.08), 80);
+          setTimeout(() => playTone(784, 0.14, 'triangle', 0.09), 160);
+        } else if (sound === 'fire') {
+          playTone(350, 0.06, 'square', 0.06);
+          setTimeout(() => playTone(500, 0.1, 'square', 0.06), 50);
+        } else if (sound === 'laugh') {
+          playTone(600, 0.06, 'triangle', 0.07);
+          setTimeout(() => playTone(750, 0.06, 'triangle', 0.07), 60);
+          setTimeout(() => playTone(600, 0.06, 'triangle', 0.07), 120);
+        } else if (sound === 'party') {
+          playTone(587, 0.08, 'triangle', 0.08);
+          setTimeout(() => playTone(880, 0.16, 'triangle', 0.09), 90);
+        }
+
+        showHomeToast(`${emoji} "${text}" — Canlı çok oyunculu odalarda tüm ekibin ekranında patlar!`);
+      });
+    });
+
     // Start game
     initRound();
   })();
   </script>
+
+  <!-- Interactive Demo Feedback Toast -->
+  <div id="pmHomeToast" class="pm-home-toast" role="status" aria-live="polite">
+    <span class="toast-icon">⚡</span>
+    <span class="toast-msg"></span>
+  </div>
 </body>
 </html>
