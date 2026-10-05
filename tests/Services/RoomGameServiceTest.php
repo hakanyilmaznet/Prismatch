@@ -256,4 +256,108 @@ class RoomGameServiceTest extends BaseTestCase {
         $this->assertTrue($resActive['ok']);
         $this->assertTrue($resActive['spectator']);
     }
+
+    public function testGetRoomAwards(): void {
+        $players = [
+            [
+                'id' => 'rp-1',
+                'room_id' => 'r-srv-1',
+                'user_id' => 'u-fast',
+                'email' => 'fast@test.com',
+                'status' => 'active',
+                'score' => 200,
+                'correct' => 2,
+            ],
+            [
+                'id' => 'rp-2',
+                'room_id' => 'r-srv-1',
+                'user_id' => 'u-slow',
+                'email' => 'slow@test.com',
+                'status' => 'active',
+                'score' => 50,
+                'correct' => 1,
+            ],
+        ];
+
+        $events = [
+            [
+                'user_id' => 'u-fast',
+                'event_type' => 'answer',
+                'payload_json' => json_encode(['correct' => true, 'response_ms' => 400]),
+                'round_index' => 1,
+            ],
+            [
+                'user_id' => 'u-fast',
+                'event_type' => 'answer',
+                'payload_json' => json_encode(['correct' => true, 'response_ms' => 450]),
+                'round_index' => 2,
+            ],
+            [
+                'user_id' => 'u-slow',
+                'event_type' => 'answer',
+                'payload_json' => json_encode(['correct' => false, 'response_ms' => 1800]),
+                'round_index' => 1,
+            ],
+            [
+                'user_id' => 'u-slow',
+                'event_type' => 'answer',
+                'payload_json' => json_encode(['correct' => true, 'response_ms' => 2200]),
+                'round_index' => 2,
+            ],
+        ];
+
+        $pdo = $this->createMockPdo([
+            'FROM room_players' => $players,
+            'FROM room_events' => $events,
+        ]);
+
+        $service = new RoomGameService($pdo);
+        $awards = $service->getRoomAwards('r-srv-1');
+
+        $this->assertNotEmpty($awards);
+        $awardIds = array_column($awards, 'id');
+        $this->assertContains('speed_demon', $awardIds);
+        $this->assertContains('overthinker', $awardIds);
+        $this->assertContains('streak_master', $awardIds);
+        $this->assertContains('sniper', $awardIds);
+    }
+
+    public function testUsePowerupValidations(): void {
+        // Invalid powerup type
+        $service = new RoomGameService($this->createMockPdo());
+        $resInvalid = $service->usePowerup('g-srv-1', 'u-owner-1', 'owner@test.com', 'Owner', 'nuke');
+        $this->assertFalse($resInvalid['ok']);
+        $this->assertSame('invalid_powerup', $resInvalid['error']);
+
+        // Room not found
+        $serviceNotFound = new RoomGameService($this->createMockPdo(['WHERE guid = :guid' => []]));
+        $resNotFound = $serviceNotFound->usePowerup('ghost', 'u-owner-1', 'owner@test.com', 'Owner', 'fifty_fifty');
+        $this->assertFalse($resNotFound['ok']);
+        $this->assertSame('room_not_found', $resNotFound['error']);
+
+        // Room not active
+        $serviceNotActive = new RoomGameService($this->createMockPdo(['WHERE guid = :guid' => [$this->sampleRoom]]));
+        $resNotActive = $serviceNotActive->usePowerup('g-srv-1', 'u-owner-1', 'owner@test.com', 'Owner', 'fifty_fifty');
+        $this->assertFalse($resNotActive['ok']);
+        $this->assertSame('room_not_active', $resNotActive['error']);
+
+        // Active room with success
+        $activeRoom = $this->sampleRoom;
+        $activeRoom['status'] = 'active';
+        $activeRoom['current_round'] = 2;
+
+        $pdo = $this->createMockPdo([
+            'WHERE guid = :guid' => [$activeRoom],
+            'FROM room_players' => [$this->samplePlayer1, $this->samplePlayer2],
+            'SELECT COUNT(*) FROM room_events' => [['COUNT(*)' => 0]],
+            'INSERT INTO room_events' => [],
+        ]);
+        $serviceActive = new RoomGameService($pdo);
+        $resSuccess = $serviceActive->usePowerup('g-srv-1', 'u-owner-1', 'owner@test.com', 'Owner', 'ink_splat');
+        $this->assertTrue($resSuccess['ok']);
+        $this->assertSame('ink_splat', $resSuccess['payload']['type']);
+        $this->assertSame('u-player-2', $resSuccess['payload']['target_user_id']);
+    }
 }
+
+

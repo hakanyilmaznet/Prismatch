@@ -1171,6 +1171,321 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       0% { transform: rotate(-8deg); }
       100% { transform: rotate(8deg); }
     }
+
+    /* Streak Multiplier & Flame Glow */
+    .streak-chip {
+      background: linear-gradient(135deg, rgba(255, 107, 91, 0.22), rgba(255, 176, 32, 0.22)) !important;
+      border-color: rgba(255, 107, 91, 0.5) !important;
+      animation: streakPulse 1.2s infinite alternate ease-in-out;
+    }
+    @keyframes streakPulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255, 107, 91, 0.4)); }
+      100% { transform: scale(1.04); filter: drop-shadow(0 0 8px rgba(255, 176, 32, 0.7)); }
+    }
+    .stage-on-fire {
+      border-color: rgba(255, 107, 91, 0.8) !important;
+      animation: fireAura 1.4s infinite alternate ease-in-out !important;
+    }
+    @keyframes fireAura {
+      0% { box-shadow: 0 0 25px rgba(255, 107, 91, 0.35), inset 0 0 20px rgba(255, 176, 32, 0.15); }
+      100% { box-shadow: 0 0 50px rgba(255, 107, 91, 0.65), inset 0 0 35px rgba(255, 176, 32, 0.35); }
+    }
+    .screen-shake {
+      animation: stageShake 0.4s ease-in-out;
+    }
+    @keyframes stageShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px) rotate(-0.8deg); }
+      40% { transform: translateX(8px) rotate(0.8deg); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+
+    /* End-Game Awards / Accolades */
+    .victory-awards-section {
+      width: 100%;
+      margin: 20px 0 10px;
+    }
+    .awards-title {
+      font-family: "Baloo 2", sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffb020;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .awards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      width: 100%;
+    }
+    .award-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--arena-border);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      text-align: left;
+    }
+    .award-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 176, 32, 0.5);
+    }
+    .award-card.is-me {
+      background: linear-gradient(135deg, rgba(255, 107, 91, 0.16), rgba(255, 176, 32, 0.14));
+      border-color: rgba(255, 176, 32, 0.55);
+    }
+    .award-icon {
+      font-size: 32px;
+      line-height: 1;
+      flex-shrink: 0;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+    .award-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+    .award-name {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #ffb020;
+    }
+    .award-winner {
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .award-stat {
+      font-size: 12px;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+    .award-desc {
+      font-size: 11px;
+      color: var(--arena-muted);
+      line-height: 1.3;
+      margin-top: 2px;
+    }
+
+    /* Step 3: Power-ups & Sabotage Bar */
+    .powerup-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 8px auto 10px;
+      max-width: 480px;
+      width: 100%;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .powerup-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--arena-border);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 14px;
+      min-height: 44px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    [data-bs-theme="light"] .powerup-btn {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    .powerup-btn:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    }
+    .powerup-btn:active:not(:disabled) {
+      transform: translateY(0) scale(0.97);
+    }
+    .powerup-btn:disabled, .powerup-btn.is-used {
+      opacity: 0.35;
+      cursor: not-allowed;
+      filter: grayscale(1);
+      pointer-events: none;
+      box-shadow: none;
+    }
+    .powerup-btn.btn-5050 {
+      border-color: rgba(56, 189, 248, 0.45);
+    }
+    .powerup-btn.btn-ink {
+      border-color: rgba(168, 85, 247, 0.45);
+    }
+    .powerup-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #ff6b5b, #ffb020);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .powerup-btn.is-used .powerup-badge {
+      background: #64748b;
+    }
+
+    /* 50/50 Dimmed Tiles */
+    .choice-cell.fifty-fifty-dimmed {
+      opacity: 0.12 !important;
+      pointer-events: none !important;
+      filter: grayscale(90%) blur(1.5px) !important;
+      transform: scale(0.92) !important;
+      transition: all 0.35s ease !important;
+    }
+
+    /* Sabotage Ink Splat Overlay */
+    .ink-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: auto;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease;
+    }
+    .ink-overlay.is-clearing {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .ink-alert-banner {
+      background: linear-gradient(135deg, #7e22ce, #c026d3);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 16px rgba(192, 38, 211, 0.5);
+      margin-bottom: 20px;
+      animation: alertBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-align: center;
+      max-width: 90%;
+      user-select: none;
+      z-index: 10001;
+    }
+    @keyframes alertBounce {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .ink-splat-blot {
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      cursor: pointer;
+      fill: #140424;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
+      animation: splatPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      user-select: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .ink-splat-blot:hover {
+      transform: scale(1.08);
+      filter: drop-shadow(0 8px 18px rgba(168, 85, 247, 0.5));
+    }
+    .ink-splat-blot.blot-popped {
+      animation: blotDisappear 0.2s ease forwards;
+    }
+    @keyframes splatPop {
+      0% { transform: scale(0.2) rotate(15deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 0.94; }
+    }
+    @keyframes blotDisappear {
+      0% { transform: scale(1); opacity: 0.94; }
+      100% { transform: scale(1.3); opacity: 0; }
+    }
+
+    /* Sabotage Target Selection Modal */
+    .sabotage-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      z-index: 9990;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .sabotage-modal-card {
+      background: var(--arena-bg, #0b1120);
+      border: 1px solid rgba(168, 85, 247, 0.45);
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(168, 85, 247, 0.2);
+      text-align: center;
+      animation: alertBounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .sabotage-targets-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .sabotage-target-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--arena-border);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 44px;
+      transition: all 0.2s ease;
+    }
+    .sabotage-target-btn:hover {
+      background: rgba(168, 85, 247, 0.2);
+      border-color: rgba(168, 85, 247, 0.6);
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body class="pm-has-fixed-header">
@@ -1187,6 +1502,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <span class="hud-label"><?= htmlspecialchars(tt('hud_score', 'Score')) ?></span>
         <span id="hudScore" class="hud-val">0</span>
       </div>
+      <div class="hud-chip streak-chip d-none" id="hudStreakChip">
+        <span class="hud-label"><?= htmlspecialchars(tt('hud_streak', 'Kombo')) ?></span>
+        <span id="hudStreakVal" class="hud-val text-warning">🔥 0x</span>
+      </div>
       <div class="hud-chip">
         <span class="hud-label"><?= htmlspecialchars(tt('hud_time', 'Time')) ?></span>
         <span id="hudTimer" class="hud-val">-</span>
@@ -1200,6 +1519,20 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           <span>🚪</span> <span class="d-none d-sm-inline"><?= htmlspecialchars(tt('room_leave_btn', 'Odadan Ayrıl')) ?></span>
         </button>
       </div>
+    </div>
+
+    <!-- Step 3: Power-ups & Sabotage Bar (Active match only) -->
+    <div id="powerupBar" class="powerup-bar d-none" aria-label="Joker ve Sabotaj Kartları">
+      <button type="button" id="powerup5050Btn" class="powerup-btn btn-5050" title="<?= htmlspecialchars(tt('powerup_5050_title', '50/50 Joker: Yanlış şıkların yarısını eler')) ?>">
+        <span>🎯</span>
+        <span>50/50</span>
+        <span id="badge5050" class="powerup-badge">1</span>
+      </button>
+      <button type="button" id="powerupInkBtn" class="powerup-btn btn-ink" title="<?= htmlspecialchars(tt('powerup_ink_title', 'Mürekkep Sabotajı: Rakibin ekranını karala!')) ?>">
+        <span>🦑</span>
+        <span>Mürekkep</span>
+        <span id="badgeInk" class="powerup-badge">1</span>
+      </button>
     </div>
 
     <!-- Main Live Game Stage -->
@@ -1320,6 +1653,19 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     <span id="toastText"></span>
   </div>
 
+  <!-- Sabotage Target Selection Modal -->
+  <div id="sabotageModal" class="sabotage-modal-backdrop d-none" aria-modal="true" role="dialog">
+    <div class="sabotage-modal-card">
+      <div class="fs-1">🦑</div>
+      <h3 class="fs-5 fw-bold text-white mt-1"><?= htmlspecialchars(tt('sabotage_modal_title', 'Mürekkep Kime Gitsin?')) ?></h3>
+      <p class="small text-secondary mb-2"><?= htmlspecialchars(tt('sabotage_modal_desc', 'Seçtiğin rakibin ekranı 3 saniye mürekkeple kaplanacak!')) ?></p>
+      <div id="sabotageTargetsList" class="sabotage-targets-list"></div>
+      <button type="button" id="closeSabotageModalBtn" class="btn btn-outline-secondary btn-sm rounded-pill w-100 mt-1">
+        <?= htmlspecialchars(tt('close', 'Vazgeç')) ?>
+      </button>
+    </div>
+  </div>
+
   <?php if ($canViewLogs): ?>
   <!-- In-Game Debug / Log Panel Toggle & Drawer (yilmazmukerrem@gmail.com only) -->
   <div id="debugLogToggleBtn" class="debug-log-toggle" title="Debug / Hata Ayıklama">
@@ -1400,6 +1746,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       rank: <?= json_encode(tt('leaderboard_col_rank', 'Rank')) ?>,
       restartMatch: <?= json_encode(tt('room_restart_btn', 'Restart Match')) ?>,
       backToLobby: <?= json_encode(tt('room_back_to_lobby', 'Back to Lobby')) ?>,
+      awardsTitle: <?= json_encode(tt('room_awards_title', "Maçın En'leri & Takım Rozetleri")) ?>,
+      streakCombo: <?= json_encode(tt('room_streak_combo', "Seri Kombo!")) ?>,
+      streakBroken: <?= json_encode(tt('room_streak_broken', "Kombo Kırıldı!")) ?>,
       restarting: <?= json_encode(tt('room_restarting', 'Restarting...')) ?>,
       roomRestarted: <?= json_encode(tt('room_restarted', 'The match was restarted by the host!')) ?>,
       waitingDesc: <?= json_encode(tt('room_waiting_desc', 'Waiting for players to gather. The room host can launch round 1 whenever ready!')) ?>,
@@ -1621,6 +1970,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       players: [],
       presenceMemberIds: new Set(),
       myRoundStats: [],
+      streak: 0,
+      maxStreak: 0,
+      powerups: {
+        fifty_fifty_used: false,
+        ink_used: false,
+      },
     };
 
     function isPlayerOnline(p) {
@@ -1637,11 +1992,23 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     const hudScore = document.getElementById('hudScore');
     const hudTimer = document.getElementById('hudTimer');
     const hudStatus = document.getElementById('hudStatus');
+    const hudStreakChip = document.getElementById('hudStreakChip');
+    const hudStreakVal = document.getElementById('hudStreakVal');
     const stageContent = document.getElementById('stageContent');
     const playerList = document.getElementById('playerList');
     const hostControls = document.getElementById('hostControls');
     const startMatchBtn = document.getElementById('startMatchBtn');
     const feedbackToast = document.getElementById('feedbackToast');
+
+    function updateStreakUI(streak) {
+      if (!hudStreakChip || !hudStreakVal) return;
+      if (streak >= 2) {
+        hudStreakChip.classList.remove('d-none');
+        hudStreakVal.innerHTML = `🔥 ${streak}x`;
+      } else {
+        hudStreakChip.classList.add('d-none');
+      }
+    }
     const toastIcon = document.getElementById('toastIcon');
     const toastText = document.getElementById('toastText');
 
@@ -1777,6 +2144,49 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             });
             break;
           }
+          case 'ink_splat': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(360, now);
+            osc.frequency.exponentialRampToValueAtTime(70, now + 0.3);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.35);
+            break;
+          }
+          case 'ink_pop': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(540, now);
+            osc.frequency.exponentialRampToValueAtTime(920, now + 0.08);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.1);
+            break;
+          }
+          case 'fifty_fifty': {
+            [587, 740, 880].forEach((freq, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+              gain.gain.setValueAtTime(0.08, now + idx * 0.07);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.07 + 0.28);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now + idx * 0.07);
+              osc.stop(now + idx * 0.07 + 0.28);
+            });
+            break;
+          }
           case 'banter':
           default: {
             [660, 880].forEach((freq, idx) => {
@@ -1855,11 +2265,248 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
     }
 
-    function showToast(text, isCorrect) {
-      toastIcon.textContent = isCorrect ? '✅' : '❌';
+    function showToast(text, isCorrect = null) {
+      if (isCorrect === true) {
+        toastIcon.textContent = '✅';
+        feedbackToast.className = 'feedback-toast show correct';
+      } else if (isCorrect === false) {
+        toastIcon.textContent = '❌';
+        feedbackToast.className = 'feedback-toast show wrong';
+      } else {
+        toastIcon.textContent = '⚡';
+        feedbackToast.className = 'feedback-toast show';
+      }
       toastText.textContent = text;
-      feedbackToast.className = 'feedback-toast show ' + (isCorrect ? 'correct' : 'wrong');
       setTimeout(() => { feedbackToast.classList.remove('show'); }, 2200);
+    }
+
+    function updatePowerupUI() {
+      const bar = document.getElementById('powerupBar');
+      const btn5050 = document.getElementById('powerup5050Btn');
+      const badge5050 = document.getElementById('badge5050');
+      const btnInk = document.getElementById('powerupInkBtn');
+      const badgeInk = document.getElementById('badgeInk');
+
+      if (!bar || !btn5050 || !btnInk) return;
+
+      const isGameActive = state.phase === 'question' || state.phase === 'show' || state.phase === 'countdown';
+      if (!isGameActive || state.eliminated) {
+        bar.classList.add('d-none');
+        return;
+      }
+
+      bar.classList.remove('d-none');
+
+      if (state.powerups.fifty_fifty_used) {
+        btn5050.disabled = true;
+        btn5050.classList.add('is-used');
+        if (badge5050) badge5050.textContent = '0';
+      } else {
+        btn5050.disabled = false;
+        btn5050.classList.remove('is-used');
+        if (badge5050) badge5050.textContent = '1';
+      }
+
+      if (state.powerups.ink_used) {
+        btnInk.disabled = true;
+        btnInk.classList.add('is-used');
+        if (badgeInk) badgeInk.textContent = '0';
+      } else {
+        btnInk.disabled = false;
+        btnInk.classList.remove('is-used');
+        if (badgeInk) badgeInk.textContent = '1';
+      }
+    }
+
+    function useFiftyFifty() {
+      if (state.powerups.fifty_fifty_used) return;
+      if (state.phase !== 'question' || state.eliminated || state.answered) {
+        showToast('50/50 yalnızca seçenekler ekrandayken kullanılabilir!');
+        return;
+      }
+      const gridEl = document.getElementById('choiceGrid');
+      if (!gridEl) return;
+      const buttons = Array.from(gridEl.querySelectorAll('.choice-cell'));
+      const wrongButtons = buttons.filter(btn => btn.dataset.item !== state.targetColor);
+      if (wrongButtons.length <= 1) return;
+
+      const shuffled = wrongButtons.sort(() => 0.5 - Math.random());
+      const toDim = shuffled.slice(0, Math.floor(wrongButtons.length / 2));
+      toDim.forEach(btn => {
+        btn.classList.add('fifty-fifty-dimmed');
+      });
+
+      state.powerups.fifty_fifty_used = true;
+      updatePowerupUI();
+      playReactionSound('fifty_fifty');
+      showToast('🎯 50/50 Joker Aktif! Yanlış şıklar elendi.');
+
+      fetch('api/rooms_powerup.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ guid: GUID, type: 'fifty_fifty' })
+      }).catch(e => RoomLogger.warn('Powerup', '50/50 report error', e));
+    }
+
+    function openSabotageModal() {
+      if (state.powerups.ink_used) return;
+      if (state.eliminated) return;
+
+      const rivals = (state.players || []).filter(p => 
+        p.email !== ME_EMAIL && 
+        String(p.user_id) !== String(ME_ID) && 
+        p.status !== 'eliminated'
+      );
+
+      if (rivals.length === 0) {
+        showToast('Sabote edilecek aktif rakip yok!');
+        return;
+      }
+
+      if (rivals.length === 1) {
+        const rivalName = rivals[0].user_name || rivals[0].email.split('@')[0];
+        fireInkSabotage(rivals[0].user_id, rivalName);
+        return;
+      }
+
+      const modal = document.getElementById('sabotageModal');
+      const list = document.getElementById('sabotageTargetsList');
+      if (!modal || !list) return;
+
+      const sortedRivals = [...rivals].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+      const leader = sortedRivals[0];
+      const leaderName = leader.user_name || leader.email.split('@')[0];
+
+      list.innerHTML = '';
+
+      // Leader option
+      const leadBtn = document.createElement('button');
+      leadBtn.type = 'button';
+      leadBtn.className = 'sabotage-target-btn';
+      leadBtn.innerHTML = `
+        <span>🥇 <strong>${escapeHtml(leaderName)}</strong> (Lider)</span>
+        <span class="badge bg-warning text-dark">${leader.score || 0} pts</span>
+      `;
+      leadBtn.onclick = () => {
+        modal.classList.add('d-none');
+        fireInkSabotage(leader.user_id, leaderName);
+      };
+      list.appendChild(leadBtn);
+
+      // Remaining rivals
+      sortedRivals.slice(1).forEach(r => {
+        const rName = r.user_name || r.email.split('@')[0];
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sabotage-target-btn';
+        btn.innerHTML = `
+          <span>🎯 ${escapeHtml(rName)}</span>
+          <span class="badge bg-secondary">${r.score || 0} pts</span>
+        `;
+        btn.onclick = () => {
+          modal.classList.add('d-none');
+          fireInkSabotage(r.user_id, rName);
+        };
+        list.appendChild(btn);
+      });
+
+      modal.classList.remove('d-none');
+    }
+
+    function fireInkSabotage(targetUserId, targetName) {
+      if (state.powerups.ink_used) return;
+      state.powerups.ink_used = true;
+      updatePowerupUI();
+
+      playReactionSound('ink_splat');
+      showToast(`🦑 ${targetName.split('@')[0]} hedeflendi! Mürekkep fırlatıldı!`);
+
+      fetch('api/rooms_powerup.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          guid: GUID,
+          type: 'ink_splat',
+          target_user_id: targetUserId
+        })
+      }).catch(e => RoomLogger.warn('Powerup', 'Ink sabotage report error', e));
+    }
+
+    function triggerInkSplatEffect(attackerName) {
+      playReactionSound('ink_splat');
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+      const existing = document.getElementById('inkOverlay');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.id = 'inkOverlay';
+      overlay.className = 'ink-overlay';
+
+      const banner = document.createElement('div');
+      banner.className = 'ink-alert-banner';
+      banner.innerHTML = `🦑 <strong>${escapeHtml(attackerName)}</strong> sana mürekkep fırlattı!<br><span style="font-size: 13px; font-weight: normal; opacity: 0.9;">Pikselleri açmak için lekelere tıkla!</span>`;
+      overlay.appendChild(banner);
+
+      const blotSvgPaths = [
+        'M48.7,11.2 C66.8,4.1 82.5,18.4 88.3,34.8 C94.2,51.6 89.1,72.4 75.3,83.7 C61.2,95.3 39.8,94.9 24.1,84.1 C9.2,73.8 2.1,54.7 6.4,37.2 C10.6,20.1 30.1,18.5 48.7,11.2 Z',
+        'M35.2,8.4 C52.1,-1.2 75.3,4.7 85.6,20.5 C95.9,36.4 91.2,60.1 79.4,74.6 C67.9,88.7 46.8,96.3 30.1,88.2 C13.7,80.3 3.5,60.8 7.4,43.2 C11.2,26.1 18.2,17.9 35.2,8.4 Z',
+        'M53.1,14.5 C68.4,9.2 84.6,22.1 89.2,37.8 C93.7,53.2 84.1,70.5 71.3,79.8 C58.2,89.4 38.6,87.6 25.4,77.3 C12.8,67.4 8.4,49.2 14.2,34.5 C20.1,19.3 37.4,19.8 53.1,14.5 Z'
+      ];
+
+      const blotCount = 4;
+      let remainingBlots = blotCount;
+
+      const coords = [
+        { left: '26%', top: '36%' },
+        { left: '72%', top: '40%' },
+        { left: '44%', top: '56%' },
+        { left: '62%', top: '72%' },
+      ];
+
+      coords.forEach((c, idx) => {
+        const blot = document.createElement('div');
+        blot.className = 'ink-splat-blot';
+        blot.style.left = c.left;
+        blot.style.top = c.top;
+        blot.style.transform = `translate(-50%, -50%) rotate(${idx * 75}deg) scale(${0.9 + Math.random() * 0.4})`;
+
+        const pathData = blotSvgPaths[idx % blotSvgPaths.length];
+        blot.innerHTML = `
+          <svg viewBox="0 0 100 100" width="100%" height="100%">
+            <path d="${pathData}" fill="#140424"></path>
+            <circle cx="20" cy="18" r="4" fill="#140424"></circle>
+            <circle cx="85" cy="80" r="5" fill="#140424"></circle>
+            <circle cx="15" cy="75" r="3.5" fill="#140424"></circle>
+          </svg>
+        `;
+
+        blot.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          playReactionSound('ink_pop');
+          blot.classList.add('blot-popped');
+          setTimeout(() => blot.remove(), 200);
+          remainingBlots--;
+          if (remainingBlots <= 0) {
+            clearInkOverlay();
+          }
+        });
+
+        overlay.appendChild(blot);
+      });
+
+      document.body.appendChild(overlay);
+
+      function clearInkOverlay() {
+        overlay.classList.add('is-clearing');
+        setTimeout(() => {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 400);
+      }
+
+      setTimeout(() => {
+        clearInkOverlay();
+      }, 2800);
     }
 
     function renderPlayers(players) {
@@ -2070,11 +2717,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         } else if (cols >= 4) {
           btn.style.borderRadius = '14px';
         }
+        btn.dataset.item = item;
         btn.disabled = state.eliminated;
         btn.onclick = () => onChoicePick(item, btn, cells);
         gridEl.appendChild(btn);
         cells.push(btn);
       });
+
+      updatePowerupUI();
 
       if (isFlag) {
         // Tüm bayraklar hazır, ızgarayı aynı anda pürüzsüzce görünür yap
@@ -2113,13 +2763,39 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       const responseMs = Math.round(performance.now() - state.questionStartTs);
 
       if (isCorrect) {
+        state.streak = (state.streak || 0) + 1;
+        if (state.streak > (state.maxStreak || 0)) state.maxStreak = state.streak;
         btn.classList.add('correct');
-        playTone(660, 0.1, 'triangle');
-        setTimeout(() => playTone(880, 0.12, 'triangle'), 100);
-        showToast(STR.correct, true);
+
+        const pitchMult = Math.min(5, state.streak);
+        playTone(660 + pitchMult * 40, 0.1, 'triangle');
+        setTimeout(() => playTone(880 + pitchMult * 50, 0.12, 'triangle'), 100);
+
+        updateStreakUI(state.streak);
+
+        if (state.streak >= 3) {
+          document.getElementById('arenaStage')?.classList.add('stage-on-fire');
+        }
+
+        let toastMsg = STR.correct;
+        if (state.streak >= 2) {
+          toastMsg += ` 🔥 ${state.streak}x ${STR.streakCombo || 'Kombo!'}`;
+        }
+        showToast(toastMsg, true);
       } else {
         btn.classList.add('wrong');
         playTone(220, 0.2, 'sawtooth');
+
+        if (state.streak >= 2) {
+          document.getElementById('arenaStage')?.classList.add('screen-shake');
+          setTimeout(() => document.getElementById('arenaStage')?.classList.remove('screen-shake'), 450);
+          showToast(`${STR.streakBroken || 'Kombo Kırıldı!'} (${state.streak}x) 💔`, false);
+        }
+
+        state.streak = 0;
+        updateStreakUI(0);
+        document.getElementById('arenaStage')?.classList.remove('stage-on-fire');
+
         if (state.gameMode === 'elimination') {
           showToast(STR.wrong, false);
           state.eliminated = true;
@@ -2174,13 +2850,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           if (data.score_delta < 0) {
             showToast(`${data.score_delta} ${STR.score || 'pts'}`, false);
           } else if (data.score_delta > 0) {
-            showToast(`+${data.score_delta} ${STR.score || 'pts'}`, true);
+            let ptsMsg = `+${data.score_delta} ${STR.score || 'pts'}`;
+            if (data.streak_bonus > 0) {
+              ptsMsg += ` (+${data.streak_bonus} 🔥)`;
+            }
+            showToast(ptsMsg, true);
           }
         }
 
         if (data.ok && data.finished && state.phase !== 'finished') {
           RoomLogger.info('GameState', 'Game finished after answer');
-          renderFinalVictory(data.players || []);
+          renderFinalVictory(data.players || [], data.awards || null);
         } else if (data.ok && (data.round_ended || data.all_answered)) {
           RoomLogger.info('GameState', 'All players answered! Immediately transitioning to leaderboard');
           renderLeaderboard(data.players || []);
@@ -2200,6 +2880,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.answered = true;
       cells.forEach(c => c.disabled = true);
       playTone(200, 0.25, 'sawtooth');
+
+      if (state.streak >= 2) {
+        document.getElementById('arenaStage')?.classList.add('screen-shake');
+        setTimeout(() => document.getElementById('arenaStage')?.classList.remove('screen-shake'), 450);
+        showToast(`${STR.streakBroken || 'Kombo Kırıldı!'} (${state.streak}x) 💔`, false);
+      }
+      state.streak = 0;
+      updateStreakUI(0);
+      document.getElementById('arenaStage')?.classList.remove('stage-on-fire');
 
       state.myRoundStats.push({
         round: state.round,
@@ -2237,7 +2926,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         RoomLogger.info('Answer', 'Timeout response received', data);
 
         if (data && data.ok && data.finished && state.phase !== 'finished') {
-          renderFinalVictory(data.players || []);
+          renderFinalVictory(data.players || [], data.awards || null);
         } else if (data && data.ok && (data.round_ended || data.all_answered)) {
           renderLeaderboard(data.players || []);
         }
@@ -2395,8 +3084,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       if (data.round === 1 || data.is_restart) {
         state.score = 0;
         state.myRoundStats = [];
+        state.powerups.fifty_fifty_used = false;
+        state.powerups.ink_used = false;
         hudScore.textContent = '0';
       }
+      updatePowerupUI();
 
       if (Array.isArray(data.players) && data.players.length > 0) {
         renderPlayers(data.players);
@@ -2411,8 +3103,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       runCountdown();
     }
 
-    async function renderFinalVictory(players) {
+    async function renderFinalVictory(players, awards = null) {
       state.phase = 'finished';
+      updatePowerupUI();
       if (state.countdownInterval) { clearInterval(state.countdownInterval); clearTimeout(state.countdownInterval); state.countdownInterval = null; }
       if (state.activeTimer) clearInterval(state.activeTimer);
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
@@ -2420,7 +3113,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       hudStatus.textContent = STR.finished;
       hudStatus.className = 'hud-val text-success';
 
-      RoomLogger.info('GameState', 'Rendering Final Victory screen');
+      RoomLogger.info('GameState', 'Rendering Final Victory screen', { awards_count: (awards || []).length });
 
       let list = Array.isArray(players) && players.length > 0 ? players : state.players;
 
@@ -2452,6 +3145,35 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       if (meRow) {
         state.score = Number(meRow.score) || 0;
         hudScore.textContent = String(state.score);
+      }
+
+      function renderAwardsHtml(awardList) {
+        if (!Array.isArray(awardList) || awardList.length === 0) return '';
+        return `
+          <div class="victory-awards-section">
+            <div class="awards-title">🏅 ${STR.awardsTitle || "Maçın En'leri & Takım Rozetleri"}</div>
+            <div class="awards-grid">
+              ${awardList.map(a => {
+                const isMe = a.email === ME_EMAIL || String(a.user_id) === String(ME_ID);
+                const winnerName = a.email ? a.email.split('@')[0] : (a.nickname || STR.player);
+                return `
+                  <div class="award-card ${isMe ? 'is-me' : ''}">
+                    <div class="award-icon">${a.icon}</div>
+                    <div class="award-content">
+                      <div class="award-name">${escapeHtml(a.title)}</div>
+                      <div class="award-winner">
+                        <span>${escapeHtml(winnerName)}</span>
+                        ${isMe ? `<span class="badge bg-warning text-dark fs-7 ms-1 py-0 px-1">${STR.you}</span>` : ''}
+                      </div>
+                      <div class="award-stat">${escapeHtml(a.stat)}</div>
+                      <div class="award-desc">${escapeHtml(a.desc)}</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
       }
 
       function renderPodiumCol(player, rankNum, cssClass) {
@@ -2513,6 +3235,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               ${renderPodiumCol(p1, 1, 'podium-col-1')}
               ${renderPodiumCol(p3, 3, 'podium-col-3')}
             </div>
+          </div>
+
+          <div id="victoryAwardsContainer">
+            ${renderAwardsHtml(awards)}
           </div>
 
           <div class="victory-standings">
@@ -2845,6 +3571,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.gridColors = [];
       state.gridPreloadPromise = null;
       state.myRoundStats = [];
+      state.powerups.fifty_fifty_used = false;
+      state.powerups.ink_used = false;
+      updatePowerupUI();
 
       hudRound.textContent = '-';
       hudScore.textContent = '0';
@@ -3126,7 +3855,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       channel.bind('room:finished', (data) => {
         RoomLogger.info('Pusher', 'Event room:finished received', data);
         if (data.game_mode) state.gameMode = data.game_mode;
-        renderFinalVictory(data.players || []);
+        renderFinalVictory(data.players || [], data.awards || null);
       });
 
       channel.bind('room:reaction', (data) => {
@@ -3135,7 +3864,45 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           spawnFloatingReaction(data.emoji || '🔥', data.user_name || '', data.sound || 'pop', data.text || null, false);
         }
       });
+
+      channel.bind('room:powerup', (data) => {
+        RoomLogger.info('Pusher', 'Event room:powerup received', data);
+        if (!data || !data.type) return;
+
+        if (data.type === 'ink_splat') {
+          if (String(data.target_user_id) === String(ME_ID) || data.target_email === ME_EMAIL) {
+            triggerInkSplatEffect(data.from_name || 'Bir rakip');
+          } else {
+            const victimName = data.target_name ? data.target_name.split('@')[0] : 'birine';
+            const attackerName = data.from_name ? data.from_name.split('@')[0] : 'Biri';
+            showToast(`🦑 ${attackerName}, ${victimName} oyuncusuna mürekkep fırlattı!`);
+            playReactionSound('ink_splat');
+          }
+        } else if (data.type === 'fifty_fifty') {
+          if (String(data.from_user_id) !== String(ME_ID)) {
+            const userName = data.from_name ? data.from_name.split('@')[0] : 'Rakip';
+            showToast(`🎯 ${userName} 50/50 jokerini kullandı!`);
+          }
+        }
+      });
     }
+
+    // Step 3 Power-up & Sabotage Controls
+    document.getElementById('powerup5050Btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      useFiftyFifty();
+    });
+
+    document.getElementById('powerupInkBtn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      openSabotageModal();
+    });
+
+    document.getElementById('closeSabotageModalBtn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      const modal = document.getElementById('sabotageModal');
+      if (modal) modal.classList.add('d-none');
+    });
 
     // Reaction UI Controls & Click Handlers
     updateReactionSoundUI();

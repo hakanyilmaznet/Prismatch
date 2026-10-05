@@ -456,4 +456,99 @@ class RoomsApiTest extends ApiTestCase {
         $this->assertSame('Captain Agile', $res['json']['payload']['user_name']);
         $this->assertSame('Let us go!', $res['json']['payload']['text']);
     }
+
+    public function testRoomsPowerupUnauthorized(): void {
+        $res = $this->callApi('api/rooms_powerup.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['guid' => 'guid-1', 'type' => 'fifty_fifty'],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('login_required', $res['json']['error']);
+    }
+
+    public function testRoomsPowerupBadRequest(): void {
+        $res = $this->callApi('api/rooms_powerup.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+            ],
+            'body' => ['guid' => ''],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsPowerupSuccessAndDuplicateBlock(): void {
+        $activeRoom = array_merge($this->sampleRoomSeed, [
+            'status' => 'active',
+            'current_round' => 2,
+        ]);
+        $opponentSeed = [
+            'id' => 'rp-api-2',
+            'room_id' => 'r-api-room-1',
+            'user_id' => 'u-player-2',
+            'email' => 'p2@test.com',
+            'status' => 'active',
+            'score' => 150,
+            'correct' => 1,
+            'is_online' => 1,
+            'joined_at' => '2026-10-01 12:00:00',
+            'last_active' => '2026-10-01 12:00:00',
+        ];
+
+        // 1. Successful fifty_fifty
+        $res = $this->callApi('api/rooms_powerup.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+                'user_name' => 'Host User',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'type' => 'fifty_fifty',
+            ],
+            'seeds' => [
+                'rooms' => [$activeRoom],
+                'room_players' => [$this->samplePlayerSeed, $opponentSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertSame('fifty_fifty', $res['json']['payload']['type']);
+
+        // 2. Successful ink_splat targeting rival
+        $resInk = $this->callApi('api/rooms_powerup.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+                'user_name' => 'Host User',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'type' => 'ink_splat',
+                'target_user_id' => 'u-player-2',
+            ],
+            'seeds' => [
+                'rooms' => [$activeRoom],
+                'room_players' => [$this->samplePlayerSeed, $opponentSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $resInk['status']);
+        $this->assertTrue($resInk['json']['ok']);
+        $this->assertSame('ink_splat', $resInk['json']['payload']['type']);
+        $this->assertSame('u-player-2', $resInk['json']['payload']['target_user_id']);
+    }
 }
+

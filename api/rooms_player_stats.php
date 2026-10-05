@@ -111,6 +111,9 @@ $avgMs = $answeredCount > 0 ? (int)round($totalMs / $answeredCount) : 0;
 $totalRounds = count($stats);
 $accuracyPercent = $totalRounds > 0 ? round(($correctCount / $totalRounds) * 100, 1) : 0;
 
+$roomService = new \Prismatch\Services\RoomGameService($pdo);
+$awards = $roomService->getRoomAwards($roomId);
+
 echo json_encode([
     'ok' => true,
     'guid' => $guid,
@@ -126,4 +129,5 @@ echo json_encode([
         'total_score_delta' => $totalScoreDelta,
     ],
     'stats' => $stats,
+    'awards' => $awards,
 ]);

@@ -478,9 +478,47 @@ class RoomGameService {
 
         $isCorrect = (!$isTimeout && $picked !== '' && $picked === $target);
         $scoreDelta = 0;
+        $streak = 0;
+        $streakMultiplier = 1.0;
+        $streakBonus = 0;
 
         if ($isCorrect) {
-            $scoreDelta = max(50, 1000 - (int)floor(max(0, $responseMs) / 10));
+            // Calculate consecutive correct streak up to this round
+            $streakStmt = $this->pdo->prepare("
+                SELECT payload_json
+                FROM room_events
+                WHERE room_id = :rid AND user_id = :uid AND event_type IN ('answer', 'eliminate', 'timeout')
+                ORDER BY round_index DESC
+                LIMIT 25
+            ");
+            $streakStmt->execute([':rid' => $roomId, ':uid' => $userId]);
+            $prevEvents = $streakStmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            $streak = 1;
+            foreach ($prevEvents as $pe) {
+                $pj = json_decode((string)$pe['payload_json'], true) ?: [];
+                if (!empty($pj['correct'])) {
+                    $streak++;
+                } else {
+                    break;
+                }
+            }
+
+            if ($streak >= 5) {
+                $streakMultiplier = 1.5;
+            } elseif ($streak === 4) {
+                $streakMultiplier = 1.4;
+            } elseif ($streak === 3) {
+                $streakMultiplier = 1.25;
+            } elseif ($streak === 2) {
+                $streakMultiplier = 1.1;
+            } else {
+                $streakMultiplier = 1.0;
+            }
+
+            $baseScore = max(50, 1000 - (int)floor(max(0, $responseMs) / 10));
+            $scoreDelta = (int)round($baseScore * $streakMultiplier);
+            $streakBonus = max(0, $scoreDelta - $baseScore);
+
             $this->roomRepo->addScore($roomId, $userId, $scoreDelta, 1);
             $this->roomRepo->logEvent($roomId, $round, $userId, $email, 'answer', [
                 'picked' => $picked,
@@ -488,8 +526,18 @@ class RoomGameService {
                 'response_ms' => $responseMs,
                 'correct' => true,
                 'score_delta' => $scoreDelta,
+                'base_score' => $baseScore,
+                'streak' => $streak,
+                'streak_multiplier' => $streakMultiplier,
+                'streak_bonus' => $streakBonus,
             ]);
-            Logger::room('processAnswer:correct', $guid, ['user_id' => $userId, 'score_delta' => $scoreDelta, 'round' => $round]);
+            Logger::room('processAnswer:correct', $guid, [
+                'user_id' => $userId,
+                'score_delta' => $scoreDelta,
+                'streak' => $streak,
+                'streak_multiplier' => $streakMultiplier,
+                'round' => $round
+            ]);
         } elseif ($isElimination) {
             $this->roomRepo->markEliminated($roomId, $userId, $round);
             $this->roomRepo->logEvent($roomId, $round, $userId, $email, $isTimeout ? 'timeout' : 'eliminate', [
@@ -586,6 +634,9 @@ class RoomGameService {
                     'ok' => true,
                     'correct' => $isCorrect,
                     'score_delta' => $scoreDelta,
+                    'streak' => $streak,
+                    'streak_multiplier' => $streakMultiplier,
+                    'streak_bonus' => $streakBonus,
                     'finished' => true,
                     'round_ended' => true,
                     'all_answered' => true,
@@ -606,6 +657,9 @@ class RoomGameService {
                 'ok' => true,
                 'correct' => $isCorrect,
                 'score_delta' => $scoreDelta,
+                'streak' => $streak,
+                'streak_multiplier' => $streakMultiplier,
+                'streak_bonus' => $streakBonus,
                 'round_ended' => true,
                 'all_answered' => true,
                 'players' => $freshPlayers,
@@ -628,6 +682,9 @@ class RoomGameService {
             'ok' => true,
             'correct' => $isCorrect,
             'score_delta' => $scoreDelta,
+            'streak' => $streak,
+            'streak_multiplier' => $streakMultiplier,
+            'streak_bonus' => $streakBonus,
             'round_ended' => false,
             'all_answered' => false,
             'answered_count' => $answeredCount,
@@ -695,12 +752,14 @@ class RoomGameService {
         $updRoom->execute([':r' => $round, ':now' => $now, ':rid' => $roomId]);
 
         $finalPlayers = $this->roomRepo->listPlayers($roomId);
+        $awards = $this->getRoomAwards($roomId);
 
         if (function_exists('pusher_trigger')) {
             pusher_trigger('presence-room-' . $guid, 'room:finished', [
                 'guid' => $guid,
                 'round' => $round,
                 'players' => $finalPlayers,
+                'awards' => $awards,
                 'winner' => $winner ? [
                     'user_id' => $winner['user_id'],
                     'email' => $winner['email'],
@@ -709,13 +768,14 @@ class RoomGameService {
             ]);
         }
 
-        Logger::room('finishGame:success', $guid, ['round' => $round, 'players_count' => count($finalPlayers)]);
+        Logger::room('finishGame:success', $guid, ['round' => $round, 'players_count' => count($finalPlayers), 'awards_count' => count($awards)]);
 
         return [
             'ok' => true,
             'finished' => true,
             'round' => $round,
             'players' => $finalPlayers,
+            'awards' => $awards,
         ];
     }
 
@@ -1015,5 +1075,361 @@ class RoomGameService {
 
         return ['ok' => true, 'payload' => $payload];
     }
+
+    /**
+     * Apply a powerup or sabotage action in a room.
+     *
+     * @param string $guid Room GUID
+     * @param string $userId Attacker user ID
+     * @param string $userEmail Attacker user email
+     * @param string $userName Attacker user display name
+     * @param string $type Powerup type ('fifty_fifty' or 'ink_splat')
+     * @param string|null $targetUserId Optional target user ID for sabotage
+     * @return array{ok: bool, error?: string, code?: int, payload?: array<string, mixed>}
+     */
+    public function usePowerup(
+        string $guid,
+        string $userId,
+        string $userEmail,
+        string $userName,
+        string $type,
+        ?string $targetUserId = null
+    ): array {
+        $allowed = ['fifty_fifty', 'ink_splat'];
+        if (!in_array($type, $allowed, true)) {
+            return ['ok' => false, 'code' => 400, 'error' => 'invalid_powerup'];
+        }
+
+        $room = $this->roomRepo->getRoomByGuid($guid);
+        if (!$room) {
+            return ['ok' => false, 'code' => 404, 'error' => 'room_not_found'];
+        }
+
+        if (($room['status'] ?? '') !== 'active') {
+            return ['ok' => false, 'code' => 400, 'error' => 'room_not_active'];
+        }
+
+        $roomId = (string)$room['id'];
+        $players = $this->roomRepo->listPlayers($roomId);
+
+        // Verify attacker is an active player
+        $attacker = null;
+        foreach ($players as $p) {
+            if ((string)$p['user_id'] === $userId || (string)($p['email'] ?? '') === $userEmail) {
+                $attacker = $p;
+                break;
+            }
+        }
+
+        if (!$attacker || ($attacker['status'] ?? '') === 'eliminated') {
+            return ['ok' => false, 'code' => 403, 'error' => 'player_not_active'];
+        }
+
+        // Check if user has already used this powerup in this room
+        $checkStmt = $this->pdo->prepare("
+            SELECT COUNT(*) FROM room_events
+            WHERE room_id = :rid AND user_id = :uid AND event_type = 'powerup' AND payload_json LIKE :pattern
+        ");
+        $checkStmt->execute([
+            ':rid' => $roomId,
+            ':uid' => $userId,
+            ':pattern' => '%"type":"' . $type . '"%',
+        ]);
+        if ((int)$checkStmt->fetchColumn() > 0) {
+            return ['ok' => false, 'code' => 400, 'error' => 'powerup_already_used'];
+        }
+
+        $targetPlayer = null;
+        $targetName = null;
+        if ($type === 'ink_splat') {
+            // Find target player
+            if ($targetUserId !== null && $targetUserId !== '' && $targetUserId !== $userId) {
+                foreach ($players as $p) {
+                    if ((string)$p['user_id'] === $targetUserId && ($p['status'] ?? '') !== 'eliminated') {
+                        $targetPlayer = $p;
+                        break;
+                    }
+                }
+            }
+
+            // If no specific target selected or target not found, pick the highest scoring rival
+            if (!$targetPlayer) {
+                $rivals = array_values(array_filter($players, function ($p) use ($userId, $userEmail) {
+                    return (string)$p['user_id'] !== $userId
+                        && (string)($p['email'] ?? '') !== $userEmail
+                        && ($p['status'] ?? '') !== 'eliminated';
+                }));
+                if (empty($rivals)) {
+                    return ['ok' => false, 'code' => 400, 'error' => 'no_target_available'];
+                }
+                usort($rivals, fn($a, $b) => ((int)($b['score'] ?? 0)) <=> ((int)($a['score'] ?? 0)));
+                $targetPlayer = $rivals[0];
+            }
+
+            if ($targetPlayer) {
+                $targetName = (string)($targetPlayer['user_name'] ?? '');
+                if ($targetName === '' && !empty($targetPlayer['email'])) {
+                    $parts = explode('@', (string)$targetPlayer['email']);
+                    $targetName = $parts[0] !== '' ? $parts[0] : (string)$targetPlayer['email'];
+                }
+                if ($targetName === '') {
+                    $targetName = 'Rakip';
+                }
+            }
+        }
+
+        // Record in room_events
+        $eventId = Database::generateUuid();
+        $payloadData = [
+            'type' => $type,
+            'from_user_id' => $userId,
+            'from_name' => $userName,
+            'from_email' => $userEmail,
+            'target_user_id' => $targetPlayer ? (string)$targetPlayer['user_id'] : null,
+            'target_name' => $targetName,
+            'target_email' => $targetPlayer ? (string)($targetPlayer['email'] ?? '') : null,
+            'round' => (int)($room['current_round'] ?? 1),
+            'ts' => (int)(microtime(true) * 1000),
+        ];
+
+        $ins = $this->pdo->prepare("
+            INSERT INTO room_events (id, room_id, round_index, user_id, email, event_type, payload_json, created_at)
+            VALUES (:id, :room_id, :round_index, :user_id, :email, 'powerup', :payload_json, :created_at)
+        ");
+        $ins->execute([
+            ':id' => $eventId,
+            ':room_id' => $roomId,
+            ':round_index' => (int)($room['current_round'] ?? 1),
+            ':user_id' => $userId,
+            ':email' => $userEmail,
+            ':payload_json' => json_encode($payloadData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ':created_at' => Database::nowUtc(),
+        ]);
+
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:powerup', $payloadData);
+        }
+
+        return ['ok' => true, 'payload' => $payloadData];
+    }
+
+    /**
+     * Compute funny and prestigious end-of-match awards for players in the room.
+     *
+     * @param string $roomId Room database ID
+     * @return array<int, array<string, mixed>> List of awarded badges
+     */
+    public function getRoomAwards(string $roomId): array {
+        $players = $this->roomRepo->listPlayers($roomId);
+        if (empty($players)) {
+            return [];
+        }
+
+        $stmt = $this->pdo->prepare("
+            SELECT user_id, event_type, payload_json, round_index
+            FROM room_events
+            WHERE room_id = :rid AND event_type IN ('answer', 'timeout', 'eliminate', 'powerup')
+            ORDER BY round_index ASC
+        ");
+        $stmt->execute([':rid' => $roomId]);
+        $events = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $userMetrics = [];
+        foreach ($players as $p) {
+            $uid = (string)$p['user_id'];
+            $userMetrics[$uid] = [
+                'user_id' => $uid,
+                'email' => (string)($p['email'] ?? ''),
+                'score' => (int)($p['score'] ?? 0),
+                'correct' => (int)($p['correct'] ?? 0),
+                'total_rounds' => 0,
+                'total_ms' => 0,
+                'fastest_ms' => null,
+                'slowest_ms' => null,
+                'current_streak' => 0,
+                'max_streak' => 0,
+                'wrong_fast_ms' => null,
+                'used_sabotage' => false,
+            ];
+        }
+
+        foreach ($events as $ev) {
+            $uid = (string)$ev['user_id'];
+            if (!isset($userMetrics[$uid])) continue;
+            $payload = json_decode((string)$ev['payload_json'], true) ?: [];
+
+            if (($ev['event_type'] ?? '') === 'powerup') {
+                if (($payload['type'] ?? '') === 'ink_splat') {
+                    $userMetrics[$uid]['used_sabotage'] = true;
+                }
+                continue;
+            }
+
+            $isCorrect = !empty($payload['correct']);
+            $ms = (int)($payload['response_ms'] ?? 0);
+
+            $userMetrics[$uid]['total_rounds']++;
+            if ($ms > 0) {
+                $userMetrics[$uid]['total_ms'] += $ms;
+                if ($userMetrics[$uid]['fastest_ms'] === null || $ms < $userMetrics[$uid]['fastest_ms']) {
+                    $userMetrics[$uid]['fastest_ms'] = $ms;
+                }
+                if ($userMetrics[$uid]['slowest_ms'] === null || $ms > $userMetrics[$uid]['slowest_ms']) {
+                    $userMetrics[$uid]['slowest_ms'] = $ms;
+                }
+            }
+
+            if ($isCorrect) {
+                $userMetrics[$uid]['current_streak']++;
+                if ($userMetrics[$uid]['current_streak'] > $userMetrics[$uid]['max_streak']) {
+                    $userMetrics[$uid]['max_streak'] = $userMetrics[$uid]['current_streak'];
+                }
+            } else {
+                $userMetrics[$uid]['current_streak'] = 0;
+                if ($ms > 0 && ($userMetrics[$uid]['wrong_fast_ms'] === null || $ms < $userMetrics[$uid]['wrong_fast_ms'])) {
+                    $userMetrics[$uid]['wrong_fast_ms'] = $ms;
+                }
+            }
+        }
+
+        $awards = [];
+
+        // 1. 🚀 Işık Hızı / Speed Demon (Lowest average ms)
+        $fastestPlayer = null;
+        $bestAvg = 999999;
+        foreach ($userMetrics as $uid => $m) {
+            if ($m['total_rounds'] > 0 && $m['total_ms'] > 0) {
+                $avg = $m['total_ms'] / $m['total_rounds'];
+                if ($avg < $bestAvg) {
+                    $bestAvg = $avg;
+                    $fastestPlayer = $m;
+                }
+            }
+        }
+        if ($fastestPlayer && $bestAvg < 999999) {
+            $awards[] = [
+                'id' => 'speed_demon',
+                'icon' => '⚡',
+                'title' => 'Işık Hızı / Speed Demon',
+                'user_id' => $fastestPlayer['user_id'],
+                'email' => $fastestPlayer['email'],
+                'stat' => (int)round($bestAvg) . 'ms ortalama',
+                'desc' => 'Düşünmeden tıkladı, fareyi alevlendirdi!',
+            ];
+        }
+
+        // 2. 🧐 Aşırı Düşünen / The Overthinker (Slowest average ms)
+        $slowestPlayer = null;
+        $worstAvg = 0;
+        foreach ($userMetrics as $uid => $m) {
+            if ($m['total_rounds'] > 0 && $m['total_ms'] > 0) {
+                $avg = $m['total_ms'] / $m['total_rounds'];
+                if ($avg > $worstAvg && ($fastestPlayer === null || $fastestPlayer['user_id'] !== $uid || count($userMetrics) === 1)) {
+                    $worstAvg = $avg;
+                    $slowestPlayer = $m;
+                }
+            }
+        }
+        if ($slowestPlayer && $worstAvg > 1000) {
+            $awards[] = [
+                'id' => 'overthinker',
+                'icon' => '🧐',
+                'title' => 'Aşırı Düşünen / Overthinker',
+                'user_id' => $slowestPlayer['user_id'],
+                'email' => $slowestPlayer['email'],
+                'stat' => (int)round($worstAvg) . 'ms ortalama',
+                'desc' => 'Son milisaniyeye kadar pikselleri inceledi!',
+            ];
+        }
+
+        // 3. 🔥 Alev Topu / Streak Master (Highest streak >= 2)
+        $streakPlayer = null;
+        $highestStreak = 1;
+        foreach ($userMetrics as $uid => $m) {
+            if ($m['max_streak'] > $highestStreak) {
+                $highestStreak = $m['max_streak'];
+                $streakPlayer = $m;
+            }
+        }
+        if ($streakPlayer && $highestStreak >= 2) {
+            $awards[] = [
+                'id' => 'streak_master',
+                'icon' => '🔥',
+                'title' => 'Alev Topu / Streak Master',
+                'user_id' => $streakPlayer['user_id'],
+                'email' => $streakPlayer['email'],
+                'stat' => $highestStreak . 'x Seri Kombo',
+                'desc' => 'Dur durak bilmedi, üst üste bildi!',
+            ];
+        }
+
+        // 4. 🎯 Keskin Nişancı / Sniper (Highest accuracy % with >= 2 rounds)
+        $sniperPlayer = null;
+        $bestAcc = 0;
+        foreach ($userMetrics as $uid => $m) {
+            if ($m['total_rounds'] >= 2) {
+                $acc = ($m['correct'] / $m['total_rounds']) * 100;
+                if ($acc > $bestAcc) {
+                    $bestAcc = $acc;
+                    $sniperPlayer = $m;
+                }
+            }
+        }
+        if ($sniperPlayer && $bestAcc >= 50) {
+            $awards[] = [
+                'id' => 'sniper',
+                'icon' => '🎯',
+                'title' => 'Keskin Nişancı / Sniper',
+                'user_id' => $sniperPlayer['user_id'],
+                'email' => $sniperPlayer['email'],
+                'stat' => '%' . (int)round($bestAcc) . ' İsabet',
+                'desc' => 'Gözünü hedeften hiç ayırmadı!',
+            ];
+        }
+
+        // 5. 🥔 Cesur Yürek / YOLO (Fastest wrong pick)
+        $yoloPlayer = null;
+        $fastestWrong = 999999;
+        foreach ($userMetrics as $uid => $m) {
+            if ($m['wrong_fast_ms'] !== null && $m['wrong_fast_ms'] < $fastestWrong) {
+                $fastestWrong = $m['wrong_fast_ms'];
+                $yoloPlayer = $m;
+            }
+        }
+        if ($yoloPlayer && $fastestWrong < 2000) {
+            $awards[] = [
+                'id' => 'yolo',
+                'icon' => '🥔',
+                'title' => 'Cesur Yürek / YOLO',
+                'user_id' => $yoloPlayer['user_id'],
+                'email' => $yoloPlayer['email'],
+                'stat' => $fastestWrong . 'ms (Hatalı)',
+                'desc' => 'Çok hızlıydı ama yanlış renge uçtu!',
+            ];
+        }
+
+        // 6. 🦑 Kaos Ajanı / Chaos Agent (Used ink splat sabotage)
+        $chaosPlayer = null;
+        foreach ($userMetrics as $uid => $m) {
+            if (!empty($m['used_sabotage'])) {
+                $chaosPlayer = $m;
+                break;
+            }
+        }
+        if ($chaosPlayer) {
+            $awards[] = [
+                'id' => 'chaos_agent',
+                'icon' => '🦑',
+                'title' => 'Kaos Ajanı / Chaos Agent',
+                'user_id' => $chaosPlayer['user_id'],
+                'email' => $chaosPlayer['email'],
+                'stat' => 'Mürekkep Sıçrattı',
+                'desc' => 'Ortalığı karıştırdı, dostluğu test etti!',
+            ];
+        }
+
+        return $awards;
+    }
 }
+
 
