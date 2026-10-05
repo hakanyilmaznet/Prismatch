@@ -31,6 +31,14 @@ if (!$room) {
     exit;
 }
 
+$userDisplay = (string)($_SESSION['user_name'] ?? '');
+if ($userDisplay === '' && $userId) {
+    $userDisplay = user_display_name((string)$userId);
+}
+if ($userDisplay === '') {
+    $userDisplay = user_display_name_from_row(['email' => $userEmail]);
+}
+
 $seoTitle = ($room['name'] ?: tt('room_play_title', 'Multiplayer Match')) . ' - ' . tt('app_name', 'Prismatch');
 $seoDescription = tt('room_play_desc', 'Compete live in real time against other players.');
 $seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
@@ -947,6 +955,222 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .debug-log-error { color: #f87171; }
     .debug-log-warn { color: #facc15; }
     .debug-log-info { color: #38bdf8; }
+
+    /* Live Reaction & Party Sound Bar */
+    .reaction-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--arena-panel);
+      border: 1px solid var(--arena-border);
+      border-radius: 18px;
+      padding: 8px 12px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .reaction-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .reaction-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .reaction-btn {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.15s ease, border-color 0.15s ease;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    [data-bs-theme="light"] .reaction-btn {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+    .reaction-btn:hover {
+      transform: scale(1.15) translateY(-2px);
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .reaction-btn:active {
+      transform: scale(0.92);
+    }
+    .reaction-btn.bounce {
+      animation: reactionBounce 0.35s ease;
+    }
+    @keyframes reactionBounce {
+      0% { transform: scale(0.9); }
+      50% { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+    .reaction-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--arena-border);
+      flex-shrink: 0;
+      margin: 0 4px;
+    }
+    .shout-pill {
+      min-height: 44px;
+      height: 44px;
+      padding: 0 12px;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--arena-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+      touch-action: manipulation;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    [data-bs-theme="light"] .shout-pill {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+    .shout-pill:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .shout-pill:active {
+      transform: scale(0.95);
+    }
+    .shout-pill.bounce {
+      animation: reactionBounce 0.35s ease;
+    }
+    .reaction-sound-btn {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--arena-border);
+      background: transparent;
+      color: var(--arena-muted);
+      font-size: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      padding: 0;
+      touch-action: manipulation;
+    }
+    .reaction-sound-btn:hover {
+      color: var(--arena-text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .reaction-sound-btn.is-muted {
+      color: #ef4444;
+      opacity: 0.8;
+    }
+
+    /* Floating Reactions Overlay (pointer-events-none) */
+    .reaction-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1060;
+      overflow: hidden;
+    }
+    .floating-reaction {
+      position: absolute;
+      bottom: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+      animation: floatReactionUp 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      will-change: transform, opacity;
+    }
+    .floating-reaction .floating-emoji {
+      font-size: 44px;
+      line-height: 1;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.4));
+      animation: emojiWobble 0.6s ease-in-out infinite alternate;
+    }
+    .floating-reaction .floating-sender {
+      background: rgba(15, 23, 42, 0.88);
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      white-space: nowrap;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .floating-reaction.is-self .floating-sender {
+      background: linear-gradient(135deg, #ff6b5b, #ffb020);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .floating-reaction .floating-text {
+      background: linear-gradient(135deg, rgba(32, 183, 125, 0.95), rgba(59, 130, 246, 0.95));
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+      white-space: nowrap;
+    }
+    @keyframes floatReactionUp {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 40px) scale(0.5);
+      }
+      15% {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--wobble-dx, 0px) * 0.4), 0) scale(1.2);
+      }
+      35% {
+        transform: translate(calc(-50% - var(--wobble-dx, 0px) * 0.7), -120px) scale(1);
+      }
+      70% {
+        opacity: 0.95;
+        transform: translate(calc(-50% + var(--wobble-dx, 0px)), -280px) scale(0.95);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% - var(--wobble-dx, 0px) * 0.5), -440px) scale(0.75);
+      }
+    }
+    @keyframes emojiWobble {
+      0% { transform: rotate(-8deg); }
+      100% { transform: rotate(8deg); }
+    }
   </style>
 </head>
 <body class="pm-has-fixed-header">
@@ -1029,6 +1253,55 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       </div>
     </main>
 
+    <!-- Live Team Reaction & Sound Effects Bar -->
+    <div id="reactionBar" class="reaction-bar" aria-label="Canlı Tepkiler">
+      <div class="reaction-group">
+        <button type="button" class="reaction-btn" data-emoji="🔥" data-sound="fire" title="Alev / Fire!">
+          <span class="reaction-icon">🔥</span>
+        </button>
+        <button type="button" class="reaction-btn" data-emoji="😂" data-sound="laugh" title="Gülme / Haha!">
+          <span class="reaction-icon">😂</span>
+        </button>
+        <button type="button" class="reaction-btn" data-emoji="😱" data-sound="shock" title="Şok / Olamaz!">
+          <span class="reaction-icon">😱</span>
+        </button>
+        <button type="button" class="reaction-btn" data-emoji="💩" data-sound="poop" title="Patates / Oops!">
+          <span class="reaction-icon">💩</span>
+        </button>
+        <button type="button" class="reaction-btn" data-emoji="🚀" data-sound="rocket" title="Roket / Haydi!">
+          <span class="reaction-icon">🚀</span>
+        </button>
+        <button type="button" class="reaction-btn" data-emoji="🎉" data-sound="party" title="Parti / GG!">
+          <span class="reaction-icon">🎉</span>
+        </button>
+      </div>
+
+      <div class="reaction-divider"></div>
+
+      <!-- Quick Banter Pills for Agile/Product Teams -->
+      <div class="reaction-group">
+        <button type="button" class="shout-pill" data-emoji="🐞" data-sound="banter" data-text="Bug var! 🐞">
+          <span>Bug var! 🐞</span>
+        </button>
+        <button type="button" class="shout-pill" data-emoji="👑" data-sound="banter" data-text="PO Haklı! 👑">
+          <span>PO Haklı! 👑</span>
+        </button>
+        <button type="button" class="shout-pill" data-emoji="⚡" data-sound="banter" data-text="Hadi! ⚡">
+          <span>Hadi! ⚡</span>
+        </button>
+        <button type="button" class="shout-pill" data-emoji="🏆" data-sound="party" data-text="GG! 🏆">
+          <span>GG! 🏆</span>
+        </button>
+      </div>
+
+      <div class="reaction-divider"></div>
+
+      <!-- Sound Mute/Unmute for Reactions -->
+      <button type="button" id="reactionSoundToggle" class="reaction-sound-btn" title="<?= htmlspecialchars(tt('room_reaction_sound_toggle', 'Tepki Seslerini Aç/Kapat')) ?>">
+        <span id="reactionSoundIcon">🔊</span>
+      </button>
+    </div>
+
     <!-- Player Roster & Presence -->
     <div class="players-bar">
       <div class="small fw-bold text-uppercase text-secondary me-2"><?= htmlspecialchars(tt('room_players', 'Players')) ?>:</div>
@@ -1037,6 +1310,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       </div>
     </div>
   </div>
+
+  <!-- Floating Reaction Overlay (pointer-events-none) -->
+  <div id="reactionOverlay" class="reaction-overlay" aria-hidden="true"></div>
 
   <!-- Feedback Toast -->
   <div id="feedbackToast" class="feedback-toast">
@@ -1070,6 +1346,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     const CAN_VIEW_LOGS = <?= json_encode($canViewLogs) ?>;
     const ME_EMAIL = <?= json_encode($userEmail) ?>;
     const ME_ID = <?= json_encode((string)$userId) ?>;
+    const ME_NAME = <?= json_encode($userDisplay) ?>;
     const GUID = <?= json_encode($guid) ?>;
     const PUSHER_KEY = <?= json_encode(defined('PUSHER_KEY') ? PUSHER_KEY : '') ?>;
     const PUSHER_CLUSTER = <?= json_encode(defined('PUSHER_CLUSTER') ? PUSHER_CLUSTER : 'eu') ?>;
@@ -1387,6 +1664,195 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         osc.start();
         osc.stop(audioCtx.currentTime + dur);
       } catch(e) {}
+    }
+
+    // Live Reaction Sound Engine (Synthesized, low-latency, zero-asset)
+    let reactionSoundsEnabled = localStorage.getItem('pm-reaction-sound') !== '0';
+
+    function updateReactionSoundUI() {
+      const icon = document.getElementById('reactionSoundIcon');
+      const btn = document.getElementById('reactionSoundToggle');
+      if (icon && btn) {
+        icon.textContent = reactionSoundsEnabled ? '🔊' : '🔇';
+        btn.classList.toggle('is-muted', !reactionSoundsEnabled);
+      }
+    }
+
+    function playReactionSound(soundType) {
+      if (!reactionSoundsEnabled) return;
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        audioCtx = audioCtx || new Ctx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+
+        switch (soundType) {
+          case 'fire': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.28);
+            gain.gain.setValueAtTime(0.09, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.32);
+            break;
+          }
+          case 'laugh': {
+            [0, 0.08, 0.16, 0.24].forEach((delay, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.value = (idx % 2 === 0) ? 587 : 784;
+              gain.gain.setValueAtTime(0.08, now + delay);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.06);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now + delay);
+              osc.stop(now + delay + 0.07);
+            });
+            break;
+          }
+          case 'shock': {
+            [550, 584].forEach(f => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sawtooth';
+              osc.frequency.setValueAtTime(f, now);
+              osc.frequency.exponentialRampToValueAtTime(f * 0.45, now + 0.35);
+              gain.gain.setValueAtTime(0.07, now);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now);
+              osc.stop(now + 0.35);
+            });
+            break;
+          }
+          case 'poop': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(320, now);
+            osc.frequency.exponentialRampToValueAtTime(65, now + 0.38);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.40);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.40);
+            break;
+          }
+          case 'rocket': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.exponentialRampToValueAtTime(1400, now + 0.35);
+            gain.gain.setValueAtTime(0.10, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.38);
+            break;
+          }
+          case 'party': {
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sine';
+              osc.frequency.value = freq;
+              const start = now + (idx * 0.06);
+              gain.gain.setValueAtTime(0.08, start);
+              gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.22);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(start);
+              osc.stop(start + 0.25);
+            });
+            break;
+          }
+          case 'banter':
+          default: {
+            [660, 880].forEach((freq, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.value = freq;
+              const start = now + (idx * 0.08);
+              gain.gain.setValueAtTime(0.07, start);
+              gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(start);
+              osc.stop(start + 0.14);
+            });
+            break;
+          }
+        }
+      } catch(e) {}
+    }
+
+    function spawnFloatingReaction(emoji, userName, sound = 'pop', text = null, isSelf = false) {
+      playReactionSound(sound);
+
+      const overlay = document.getElementById('reactionOverlay');
+      if (!overlay) return;
+
+      const bubble = document.createElement('div');
+      bubble.className = 'floating-reaction' + (isSelf ? ' is-self' : '');
+
+      const randomX = Math.floor(Math.random() * 76) + 12;
+      bubble.style.left = `${randomX}%`;
+
+      const wobble = (Math.random() * 40 - 20).toFixed(0);
+      bubble.style.setProperty('--wobble-dx', `${wobble}px`);
+
+      let html = `<span class="floating-emoji">${emoji}</span>`;
+      if (text) {
+        html += `<span class="floating-text">${escapeHtml(text)}</span>`;
+      }
+      if (userName) {
+        const displayName = isSelf ? (STR.you ? `${escapeHtml(userName)} ${STR.you}` : escapeHtml(userName)) : escapeHtml(userName);
+        html += `<span class="floating-sender">${displayName}</span>`;
+      }
+      bubble.innerHTML = html;
+      overlay.appendChild(bubble);
+
+      setTimeout(() => {
+        if (bubble.parentNode) {
+          bubble.parentNode.removeChild(bubble);
+        }
+      }, 2300);
+    }
+
+    let lastReactionTime = 0;
+    async function sendReaction(emoji, sound = 'pop', text = null) {
+      const now = Date.now();
+      if (now - lastReactionTime < 220) return;
+      lastReactionTime = now;
+
+      spawnFloatingReaction(emoji, ME_NAME, sound, text, true);
+
+      try {
+        await fetch('api/rooms_reaction.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            guid: GUID,
+            emoji: emoji,
+            sound: sound,
+            text: text
+          })
+        });
+      } catch (err) {
+        RoomLogger.warn('Reaction', 'Failed to broadcast reaction', err);
+      }
     }
 
     function showToast(text, isCorrect) {
@@ -2662,7 +3128,52 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         if (data.game_mode) state.gameMode = data.game_mode;
         renderFinalVictory(data.players || []);
       });
+
+      channel.bind('room:reaction', (data) => {
+        RoomLogger.info('Pusher', 'Event room:reaction received', data);
+        if (data && (String(data.user_id) !== String(ME_ID) && data.email !== ME_EMAIL)) {
+          spawnFloatingReaction(data.emoji || '🔥', data.user_name || '', data.sound || 'pop', data.text || null, false);
+        }
+      });
     }
+
+    // Reaction UI Controls & Click Handlers
+    updateReactionSoundUI();
+
+    document.querySelectorAll('.reaction-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emoji = btn.getAttribute('data-emoji') || '🔥';
+        const sound = btn.getAttribute('data-sound') || 'fire';
+        btn.classList.add('bounce');
+        setTimeout(() => btn.classList.remove('bounce'), 350);
+        sendReaction(emoji, sound, null);
+      });
+    });
+
+    document.querySelectorAll('.shout-pill').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emoji = btn.getAttribute('data-emoji') || '⚡';
+        const sound = btn.getAttribute('data-sound') || 'banter';
+        const text = btn.getAttribute('data-text') || '';
+        btn.classList.add('bounce');
+        setTimeout(() => btn.classList.remove('bounce'), 350);
+        sendReaction(emoji, sound, text);
+      });
+    });
+
+    document.getElementById('reactionSoundToggle')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      reactionSoundsEnabled = !reactionSoundsEnabled;
+      try {
+        localStorage.setItem('pm-reaction-sound', reactionSoundsEnabled ? '1' : '0');
+      } catch (err) {}
+      updateReactionSoundUI();
+      if (reactionSoundsEnabled) {
+        playReactionSound('banter');
+      }
+    });
 
     // Host Start Button Trigger
     startMatchBtn?.addEventListener('click', handleStartMatch);

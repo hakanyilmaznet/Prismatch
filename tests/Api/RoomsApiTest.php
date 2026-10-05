@@ -400,4 +400,60 @@ class RoomsApiTest extends ApiTestCase {
         $this->assertArrayHasKey('summary', $res['json']);
         $this->assertArrayHasKey('stats', $res['json']);
     }
+
+    public function testRoomsReactionUnauthorized(): void {
+        $res = $this->callApi('api/rooms_reaction.php', [
+            'method' => 'POST',
+            'session' => [],
+            'body' => ['guid' => 'guid-1', 'emoji' => '🔥'],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('login_required', $res['json']['error']);
+    }
+
+    public function testRoomsReactionBadRequest(): void {
+        $res = $this->callApi('api/rooms_reaction.php', [
+            'method' => 'POST',
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+            ],
+            'body' => ['guid' => ''],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertFalse($res['json']['ok']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsReactionSuccess(): void {
+        $res = $this->callApi('api/rooms_reaction.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+                'user_name' => 'Captain Agile',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'emoji' => '🚀',
+                'sound' => 'rocket',
+                'text' => 'Let us go!',
+            ],
+            'seeds' => [
+                'rooms' => [$this->sampleRoomSeed],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertSame('🚀', $res['json']['payload']['emoji']);
+        $this->assertSame('rocket', $res['json']['payload']['sound']);
+        $this->assertSame('Captain Agile', $res['json']['payload']['user_name']);
+        $this->assertSame('Let us go!', $res['json']['payload']['text']);
+    }
 }

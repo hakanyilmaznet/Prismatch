@@ -963,5 +963,57 @@ class RoomGameService {
 
         return ['ok' => true, 'players' => $players, 'spectator' => true];
     }
+
+    /**
+     * Broadcast live reaction (emoji, sound, banter text) across presence channel.
+     *
+     * @param string $guid Room GUID
+     * @param string $userId Player user ID
+     * @param string $userEmail Player email
+     * @param string $userName Player display name
+     * @param string $emoji Reaction emoji (e.g. 🔥, 😂, 🚀)
+     * @param string $sound Reaction audio identifier
+     * @param string|null $text Optional quick shout
+     * @return array{ok: bool, payload?: array<string, mixed>, code?: int, error?: string}
+     */
+    public function broadcastReaction(
+        string $guid,
+        string $userId,
+        string $userEmail,
+        string $userName,
+        string $emoji,
+        string $sound = 'pop',
+        ?string $text = null
+    ): array {
+        $room = $this->roomRepo->getRoomByGuid($guid);
+        if (!$room) {
+            return ['ok' => false, 'code' => 404, 'error' => 'room_not_found'];
+        }
+
+        $emoji = mb_substr(trim($emoji), 0, 8);
+        $sound = preg_replace('/[^a-zA-Z0-9_-]/', '', substr(trim($sound), 0, 20)) ?: 'pop';
+        $text = $text !== null ? mb_substr(trim($text), 0, 40) : null;
+        if ($text === '') {
+            $text = null;
+        }
+
+        $now = microtime(true);
+        $payload = [
+            'guid' => $guid,
+            'user_id' => $userId,
+            'email' => $userEmail,
+            'user_name' => $userName,
+            'emoji' => $emoji,
+            'sound' => $sound,
+            'text' => $text,
+            'ts' => (int)($now * 1000),
+        ];
+
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:reaction', $payload);
+        }
+
+        return ['ok' => true, 'payload' => $payload];
+    }
 }
 
