@@ -358,6 +358,70 @@ class RoomGameServiceTest extends BaseTestCase {
         $this->assertSame('ink_splat', $resSuccess['payload']['type']);
         $this->assertSame('u-player-2', $resSuccess['payload']['target_user_id']);
     }
+
+    public function testChooseTeamValidationsAndSuccess(): void {
+        $service = new RoomGameService($this->createMockPdo());
+
+        // Invalid team
+        $resInvalid = $service->chooseTeam('g-srv-1', 'u-1', 'green');
+        $this->assertFalse($resInvalid['ok']);
+        $this->assertSame('invalid_team', $resInvalid['error']);
+
+        // Room not found
+        $serviceNotFound = new RoomGameService($this->createMockPdo(['WHERE guid = :guid' => []]));
+        $resNotFound = $serviceNotFound->chooseTeam('ghost', 'u-1', 'blue');
+        $this->assertFalse($resNotFound['ok']);
+        $this->assertSame('room_not_found', $resNotFound['error']);
+
+        // Room already active
+        $activeRoom = $this->sampleRoom;
+        $activeRoom['status'] = 'active';
+        $serviceActive = new RoomGameService($this->createMockPdo(['WHERE guid = :guid' => [$activeRoom]]));
+        $resActive = $serviceActive->chooseTeam('g-srv-1', 'u-1', 'blue');
+        $this->assertFalse($resActive['ok']);
+        $this->assertSame('match_already_started', $resActive['error']);
+
+        // Success
+        $pdo = $this->createMockPdo([
+            'WHERE guid = :guid' => [$this->sampleRoom],
+            'UPDATE room_players SET team = :team' => [],
+            'FROM room_players' => [$this->samplePlayer1, $this->samplePlayer2],
+        ]);
+        $serviceSuccess = new RoomGameService($pdo);
+        $resSuccess = $serviceSuccess->chooseTeam('g-srv-1', 'u-owner-1', 'blue');
+        $this->assertTrue($resSuccess['ok']);
+        $this->assertSame('blue', $resSuccess['team']);
+    }
+
+    public function testFinishGameTeamsSummary(): void {
+        $teamsRoom = $this->sampleRoom;
+        $teamsRoom['game_mode'] = 'teams';
+
+        $p1 = $this->samplePlayer1;
+        $p1['team'] = 'red';
+        $p1['score'] = 2500;
+
+        $p2 = $this->samplePlayer2;
+        $p2['team'] = 'blue';
+        $p2['score'] = 1800;
+
+        $pdo = $this->createMockPdo([
+            'UPDATE rooms SET status = :status' => [],
+            'FROM room_players' => [$p1, $p2],
+            'WHERE id = :id' => [$teamsRoom],
+            'FROM room_events' => [],
+        ]);
+
+        $service = new RoomGameService($pdo);
+        $result = $service->finishGame('r-srv-1', 5, 'g-srv-1');
+
+        $this->assertTrue($result['finished']);
+        $this->assertSame('teams', $result['game_mode']);
+        $this->assertNotNull($result['team_summary']);
+        $this->assertSame(2500, $result['team_summary']['red_score']);
+        $this->assertSame(1800, $result['team_summary']['blue_score']);
+        $this->assertSame('red', $result['team_summary']['winning_team']);
+    }
 }
 
 

@@ -24,7 +24,7 @@ class RoomRepository implements RoomRepositoryInterface {
         $cleanName = $name !== null ? trim($name) : null;
         if ($cleanName === '') $cleanName = null;
 
-        $cleanMode = in_array($gameMode, ['elimination', 'points', 'flags'], true) ? $gameMode : 'elimination';
+        $cleanMode = in_array($gameMode, ['elimination', 'points', 'flags', 'teams'], true) ? $gameMode : 'elimination';
 
         $stmt = $this->pdo->prepare("
             INSERT INTO rooms (
@@ -153,11 +153,29 @@ class RoomRepository implements RoomRepositoryInterface {
         $initialStatus = $isMatchInProgress ? 'eliminated' : 'active';
         $eliminatedRound = $isMatchInProgress ? (int)($roomRow['current_round'] ?? 1) : null;
 
+        $team = null;
+        if (($roomRow['game_mode'] ?? '') === 'teams') {
+            try {
+                $tStmt = $this->pdo->prepare("SELECT team, COUNT(*) as cnt FROM room_players WHERE room_id = :rid GROUP BY team");
+                $tStmt->execute([':rid' => $roomId]);
+                $counts = ['red' => 0, 'blue' => 0];
+                foreach ($tStmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+                    $tName = (string)($row['team'] ?? '');
+                    if (isset($counts[$tName])) {
+                        $counts[$tName] = (int)$row['cnt'];
+                    }
+                }
+                $team = ($counts['blue'] < $counts['red']) ? 'blue' : 'red';
+            } catch (\Throwable $e) {
+                $team = 'red';
+            }
+        }
+
         $stmt = $this->pdo->prepare("
             INSERT INTO room_players (
-                id, room_id, user_id, email, joined_at, status, eliminated_round, score, correct, last_active
+                id, room_id, user_id, email, joined_at, status, eliminated_round, score, correct, team, last_active
             ) VALUES (
-                :id, :room_id, :user_id, :email, :joined_at, :status, :eliminated_round, 0, 0, :last_active
+                :id, :room_id, :user_id, :email, :joined_at, :status, :eliminated_round, 0, 0, :team, :last_active
             )
         ");
         $now = Database::nowUtc();
@@ -169,8 +187,21 @@ class RoomRepository implements RoomRepositoryInterface {
             ':joined_at' => $now,
             ':status' => $initialStatus,
             ':eliminated_round' => $eliminatedRound,
+            ':team' => $team,
             ':last_active' => $now,
         ]);
+        if ($ok) {
+            $this->touchRoom($roomId);
+        }
+        return $ok;
+    }
+
+    public function setPlayerTeam(string $roomId, string $userId, string $team): bool {
+        if (!in_array($team, ['red', 'blue'], true)) {
+            return false;
+        }
+        $stmt = $this->pdo->prepare("UPDATE room_players SET team = :team WHERE room_id = :rid AND user_id = :uid");
+        $ok = $stmt->execute([':team' => $team, ':rid' => $roomId, ':uid' => $userId]);
         if ($ok) {
             $this->touchRoom($roomId);
         }
@@ -180,7 +211,7 @@ class RoomRepository implements RoomRepositoryInterface {
     public function listPlayers(string $roomId): array {
         $cutoff = (new \DateTimeImmutable('-8 seconds', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s.v');
         $stmt = $this->pdo->prepare("
-            SELECT user_id, email, status, eliminated_round, score, correct, joined_at, last_active,
+            SELECT user_id, email, status, eliminated_round, score, correct, joined_at, last_active, team,
                    CASE WHEN last_active IS NOT NULL AND last_active >= :cutoff THEN 1 ELSE 0 END AS is_online
             FROM room_players
             WHERE room_id = :rid

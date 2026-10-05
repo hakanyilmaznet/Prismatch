@@ -754,12 +754,35 @@ class RoomGameService {
         $finalPlayers = $this->roomRepo->listPlayers($roomId);
         $awards = $this->getRoomAwards($roomId);
 
+        $roomRow = $this->roomRepo->getRoomById($roomId);
+        $gameMode = (string)($roomRow['game_mode'] ?? 'elimination');
+        $teamSummary = null;
+        if ($gameMode === 'teams') {
+            $teamScores = ['red' => 0, 'blue' => 0];
+            $teamMembers = ['red' => 0, 'blue' => 0];
+            foreach ($finalPlayers as $p) {
+                $t = (($p['team'] ?? 'red') === 'blue') ? 'blue' : 'red';
+                $teamScores[$t] += (int)($p['score'] ?? 0);
+                $teamMembers[$t]++;
+            }
+            $winningTeam = ($teamScores['red'] > $teamScores['blue']) ? 'red' : (($teamScores['blue'] > $teamScores['red']) ? 'blue' : 'tie');
+            $teamSummary = [
+                'red_score' => $teamScores['red'],
+                'blue_score' => $teamScores['blue'],
+                'red_members' => $teamMembers['red'],
+                'blue_members' => $teamMembers['blue'],
+                'winning_team' => $winningTeam,
+            ];
+        }
+
         if (function_exists('pusher_trigger')) {
             pusher_trigger('presence-room-' . $guid, 'room:finished', [
                 'guid' => $guid,
                 'round' => $round,
                 'players' => $finalPlayers,
                 'awards' => $awards,
+                'game_mode' => $gameMode,
+                'team_summary' => $teamSummary,
                 'winner' => $winner ? [
                     'user_id' => $winner['user_id'],
                     'email' => $winner['email'],
@@ -776,6 +799,8 @@ class RoomGameService {
             'round' => $round,
             'players' => $finalPlayers,
             'awards' => $awards,
+            'game_mode' => $gameMode,
+            'team_summary' => $teamSummary,
         ];
     }
 
@@ -1214,6 +1239,47 @@ class RoomGameService {
     }
 
     /**
+     * Set a player's team in the room lobby.
+     *
+     * @param string $guid Room GUID
+     * @param string $userId Player user ID
+     * @param string $team Team name ('red' or 'blue')
+     * @return array{ok: bool, error?: string, code?: int, team?: string, players?: array<int, array<string, mixed>>}
+     */
+    public function chooseTeam(string $guid, string $userId, string $team): array {
+        $allowed = ['red', 'blue'];
+        if (!in_array($team, $allowed, true)) {
+            return ['ok' => false, 'code' => 400, 'error' => 'invalid_team'];
+        }
+
+        $room = $this->roomRepo->getRoomByGuid($guid);
+        if (!$room) {
+            return ['ok' => false, 'code' => 404, 'error' => 'room_not_found'];
+        }
+
+        if (($room['status'] ?? '') !== 'waiting') {
+            return ['ok' => false, 'code' => 400, 'error' => 'match_already_started'];
+        }
+
+        $roomId = (string)$room['id'];
+        $ok = $this->roomRepo->setPlayerTeam($roomId, $userId, $team);
+        if (!$ok) {
+            return ['ok' => false, 'code' => 400, 'error' => 'update_failed'];
+        }
+
+        $players = $this->roomRepo->listPlayers($roomId);
+
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:update', [
+                'guid' => $guid,
+                'players' => $players,
+            ]);
+        }
+
+        return ['ok' => true, 'team' => $team, 'players' => $players];
+    }
+
+    /**
      * Compute funny and prestigious end-of-match awards for players in the room.
      *
      * @param string $roomId Room database ID
@@ -1426,6 +1492,30 @@ class RoomGameService {
                 'stat' => 'Mürekkep Sıçrattı',
                 'desc' => 'Ortalığı karıştırdı, dostluğu test etti!',
             ];
+        }
+
+        // 7. 👑 Maçın MVP'si / Match MVP (Highest score in teams mode)
+        $room = $this->roomRepo->getRoomById($roomId);
+        if (($room['game_mode'] ?? '') === 'teams') {
+            $topPlayer = null;
+            $topScore = -999999;
+            foreach ($userMetrics as $uid => $m) {
+                if ($m['score'] > $topScore) {
+                    $topScore = $m['score'];
+                    $topPlayer = $m;
+                }
+            }
+            if ($topPlayer && $topScore > 0) {
+                $awards[] = [
+                    'id' => 'mvp',
+                    'icon' => '👑',
+                    'title' => 'Maçın MVP\'si / Match MVP',
+                    'user_id' => $topPlayer['user_id'],
+                    'email' => $topPlayer['email'],
+                    'stat' => $topScore . ' Puan',
+                    'desc' => 'Tüm oyuncular arasında zirveye oturarak takımının yıldızı oldu!',
+                ];
+            }
         }
 
         return $awards;

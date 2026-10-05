@@ -170,6 +170,7 @@ if (!empty($config['use_sqlite'])) {
             joined_at TEXT,
             last_active TEXT,
             eliminated_round INTEGER,
+            team TEXT,
             UNIQUE(room_id, user_id)
         );
         CREATE TABLE IF NOT EXISTS room_rounds (

@@ -154,6 +154,7 @@ class SchemaManager {
                 eliminated_round INT NULL,
                 score INT NOT NULL DEFAULT 0,
                 correct INT NOT NULL DEFAULT 0,
+                team VARCHAR(16) NULL,
                 last_active DATETIME(3) NULL,
                 PRIMARY KEY (id),
                 UNIQUE KEY uq_room_player (room_id, user_id),
@@ -238,6 +239,12 @@ class SchemaManager {
         try {
             $pdo->exec("ALTER TABLE daily_scores ADD COLUMN game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination'");
             $pdo->exec("ALTER TABLE daily_scores ADD INDEX idx_daily_game_mode (game_mode)");
+        } catch (\Throwable $e) {}
+
+        // Ensure team column exists in room_players table
+        try {
+            $pdo->exec("ALTER TABLE room_players ADD COLUMN team VARCHAR(16) NULL");
+            $pdo->exec("ALTER TABLE room_players ADD INDEX idx_room_players_team (team)");
         } catch (\Throwable $e) {}
 
         // Update unique constraints on daily_scores to include game_mode so players can play each mode once per day

@@ -550,5 +550,82 @@ class RoomsApiTest extends ApiTestCase {
         $this->assertSame('ink_splat', $resInk['json']['payload']['type']);
         $this->assertSame('u-player-2', $resInk['json']['payload']['target_user_id']);
     }
+
+    public function testRoomsCreateTeamsMode(): void {
+        $res = $this->callApi('api/rooms_create.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-teams-creator',
+                'user_email' => 'creator@test.com',
+            ],
+            'body' => [
+                'name' => 'Devs vs QAs Arena',
+                'game_mode' => 'teams',
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertSame('teams', $res['json']['game_mode']);
+    }
+
+    public function testRoomsTeamUnauthorized(): void {
+        $res = $this->callApi('api/rooms_team.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'team' => 'blue',
+            ],
+        ]);
+
+        $this->assertSame(403, $res['status']);
+        $this->assertSame('login_required', $res['json']['error']);
+    }
+
+    public function testRoomsTeamBadRequest(): void {
+        $res = $this->callApi('api/rooms_team.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+            ],
+            'body' => [
+                'guid' => '',
+                'team' => '',
+            ],
+        ]);
+
+        $this->assertSame(400, $res['status']);
+        $this->assertSame('bad_request', $res['json']['error']);
+    }
+
+    public function testRoomsTeamSuccess(): void {
+        $teamsRoom = $this->sampleRoomSeed;
+        $teamsRoom['game_mode'] = 'teams';
+
+        $res = $this->callApi('api/rooms_team.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'team' => 'blue',
+            ],
+            'seeds' => [
+                'rooms' => [$teamsRoom],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertSame('blue', $res['json']['team']);
+    }
 }
 

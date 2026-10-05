@@ -114,10 +114,32 @@ $accuracyPercent = $totalRounds > 0 ? round(($correctCount / $totalRounds) * 100
 $roomService = new \Prismatch\Services\RoomGameService($pdo);
 $awards = $roomService->getRoomAwards($roomId);
 
+$gameMode = (string)($room['game_mode'] ?? 'elimination');
+$teamSummary = null;
+if ($gameMode === 'teams') {
+    $allPlayers = $roomRepo->listPlayers($roomId);
+    $teamScores = ['red' => 0, 'blue' => 0];
+    $teamMembers = ['red' => 0, 'blue' => 0];
+    foreach ($allPlayers as $p) {
+        $t = (($p['team'] ?? 'red') === 'blue') ? 'blue' : 'red';
+        $teamScores[$t] += (int)($p['score'] ?? 0);
+        $teamMembers[$t]++;
+    }
+    $winningTeam = ($teamScores['red'] > $teamScores['blue']) ? 'red' : (($teamScores['blue'] > $teamScores['red']) ? 'blue' : 'tie');
+    $teamSummary = [
+        'red_score' => $teamScores['red'],
+        'blue_score' => $teamScores['blue'],
+        'red_members' => $teamMembers['red'],
+        'blue_members' => $teamMembers['blue'],
+        'winning_team' => $winningTeam,
+    ];
+}
+
 echo json_encode([
     'ok' => true,
     'guid' => $guid,
-    'game_mode' => (string)($room['game_mode'] ?? 'elimination'),
+    'game_mode' => $gameMode,
+    'team_summary' => $teamSummary,
     'summary' => [
         'total_rounds' => $totalRounds,
         'correct_count' => $correctCount,
