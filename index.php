@@ -55,7 +55,7 @@ $faqItems = [
   ],
   [
     'q' => tt('faq_q_sabotage', 'Jokerler ve Mürekkep Sabotajı nasıl kullanılır?'),
-    'a' => tt('faq_a_sabotage', 'Çok oyunculu odalarda her oyuncunun tur başında iki kartı bulunur: 50/50 jokeri iki yanlış seçeneği eler; Mürekkep Sabotajı ise seçtiğiniz rakibin ekranına 3 saniye boyunca temizlemesi gereken mürekkep lekeleri fırlatarak dikkatini dağıtır!'),
+    'a' => tt('faq_a_sabotage', 'Çok oyunculu odalarda 5 tur üst üste doğru cevap vererek 50/50 jokeri ve Mürekkep Sabotajı kartlarını açabilirsiniz! 50/50 jokeri iki yanlış seçeneği eler; Mürekkep Sabotajı ise seçtiğiniz rakibin ekranına mürekkep lekeleri fırlatarak dikkatini dağıtır. Kullanıldıktan sonra her 5 doğru serisinde yenilenir!'),
   ],
   [
     'q' => tt('faq_q_awards', "Maçın En'leri rozetleri (Hız Şeytanı, Aşırı Düşünen vb.) nedir?"),
@@ -1242,12 +1242,12 @@ $howToData = [
             <div class="pm-sabotage-visual">
               <div class="pm-powerup-mini-badge" style="border-color:rgba(168,85,247,0.4); color:#c084fc;">
                 <span>🎯</span>
-                <span>50/50 Jokeri</span>
+                <span><?= htmlspecialchars(tt('home_powerup_5050', '50/50 Jokeri')) ?></span>
               </div>
               <span style="font-size:18px; opacity:0.4;">⚡</span>
               <div class="pm-powerup-mini-badge" style="border-color:rgba(236,72,153,0.4); color:#f472b6;">
                 <span>🦑</span>
-                <span>Mürekkep Fırlat</span>
+                <span><?= htmlspecialchars(tt('home_powerup_ink', 'Mürekkep Fırlat')) ?></span>
               </div>
             </div>
           </div>
@@ -1266,20 +1266,20 @@ $howToData = [
             <p class="pm-fun-desc"><?= htmlspecialchars(tt('home_feat_reactions_desc', 'Oyun sırasında uçuşan canlı emojiler ve retro synth sesleriyle odayı karnavala çevirin. Aşağıdaki butonlara tıklayarak canlı tepkileri test edin:')) ?></p>
             
             <div class="pm-reactions-visual">
-              <button type="button" class="pm-reaction-pill-btn" data-sound="bug" data-emoji="🐞" data-text="Bug var! 🐞">
-                <span>🐞 Bug var!</span>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="bug" data-emoji="🐞" data-text="<?= htmlspecialchars(tt('home_reaction_bug', '🐞 Bug var!')) ?>">
+                <span><?= htmlspecialchars(tt('home_reaction_bug', '🐞 Bug var!')) ?></span>
               </button>
-              <button type="button" class="pm-reaction-pill-btn" data-sound="po" data-emoji="👑" data-text="PO Haklı! 👑">
-                <span>👑 PO Haklı!</span>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="po" data-emoji="👑" data-text="<?= htmlspecialchars(tt('home_reaction_po', '👑 PO Haklı!')) ?>">
+                <span><?= htmlspecialchars(tt('home_reaction_po', '👑 PO Haklı!')) ?></span>
               </button>
-              <button type="button" class="pm-reaction-pill-btn" data-sound="fire" data-emoji="🔥" data-text="Alev! 🔥">
+              <button type="button" class="pm-reaction-pill-btn" data-sound="fire" data-emoji="🔥" data-text="<?= htmlspecialchars(tt('home_reaction_fire_text', 'Alev! 🔥')) ?>">
                 <span>🔥</span>
               </button>
-              <button type="button" class="pm-reaction-pill-btn" data-sound="laugh" data-emoji="😂" data-text="Haha! 😂">
+              <button type="button" class="pm-reaction-pill-btn" data-sound="laugh" data-emoji="😂" data-text="<?= htmlspecialchars(tt('home_reaction_laugh_text', 'Haha! 😂')) ?>">
                 <span>😂</span>
               </button>
-              <button type="button" class="pm-reaction-pill-btn" data-sound="party" data-emoji="🎉" data-text="GG! 🏆">
-                <span>🏆 GG!</span>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="party" data-emoji="🎉" data-text="<?= htmlspecialchars(tt('home_reaction_gg_text', 'GG! 🏆')) ?>">
+                <span><?= htmlspecialchars(tt('home_reaction_gg_text', '🏆 GG!')) ?></span>
               </button>
             </div>
           </div>
@@ -1300,19 +1300,19 @@ $howToData = [
             <div class="pm-awards-visual">
               <div class="pm-award-mini-chip">
                 <span>⚡</span>
-                <span>Hız Şeytanı</span>
+                <span><?= htmlspecialchars(tt('award_speed_demon_title', 'Hız Şeytanı')) ?></span>
               </div>
               <div class="pm-award-mini-chip">
                 <span>🧘</span>
-                <span>Aşırı Düşünen</span>
+                <span><?= htmlspecialchars(tt('award_overthinker_title', 'Aşırı Düşünen')) ?></span>
               </div>
               <div class="pm-award-mini-chip">
                 <span>🐢</span>
-                <span>Son Saniye</span>
+                <span><?= htmlspecialchars(tt('award_clutch_title', 'Son Saniye')) ?></span>
               </div>
               <div class="pm-award-mini-chip">
                 <span>👑</span>
-                <span>Maçın MVP'si</span>
+                <span><?= htmlspecialchars(tt('award_mvp_title', "Maçın MVP'si")) ?></span>
               </div>
             </div>
           </div>
@@ -2011,7 +2011,8 @@ $howToData = [
           setTimeout(() => playTone(880, 0.16, 'triangle', 0.09), 90);
         }
 
-        showHomeToast(`${emoji} "${text}" — Canlı çok oyunculu odalarda tüm ekibin ekranında patlar!`);
+        const reactDesc = <?= json_encode(tt('home_toast_reaction_desc', 'Canlı çok oyunculu odalarda tüm ekibin ekranında patlar!')) ?>;
+        showHomeToast(`${emoji} "${text}" — ${reactDesc}`);
       });
     });
 

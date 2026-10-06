@@ -1732,15 +1732,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     </div>
 
     <!-- Step 3: Power-ups & Sabotage Bar (Active match only) -->
-    <div id="powerupBar" class="powerup-bar d-none" aria-label="Joker ve Sabotaj Kartları">
+    <div id="powerupBar" class="powerup-bar d-none" aria-label="<?= htmlspecialchars(tt('powerup_bar_aria', 'Joker ve Sabotaj Kartları')) ?>">
       <button type="button" id="powerup5050Btn" class="powerup-btn btn-5050 is-locked" disabled title="<?= htmlspecialchars(tt('powerup_5050_title_locked', '50/50 Joker: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
         <span>🎯</span>
-        <span>50/50</span>
+        <span><?= htmlspecialchars(tt('powerup_5050_label', '50/50')) ?></span>
         <span id="badge5050" class="powerup-badge">🔒 0/5</span>
       </button>
       <button type="button" id="powerupInkBtn" class="powerup-btn btn-ink is-locked" disabled title="<?= htmlspecialchars(tt('powerup_ink_title_locked', 'Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
         <span>🦑</span>
-        <span>Mürekkep</span>
+        <span><?= htmlspecialchars(tt('powerup_ink_label', 'Mürekkep')) ?></span>
         <span id="badgeInk" class="powerup-badge">🔒 0/5</span>
       </button>
     </div>
@@ -1749,7 +1749,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     <div id="hudTeamBattle" class="hud-team-battle d-none">
       <div class="team-battle-label team-red-label">
         <span class="team-dot dot-red"></span>
-        <span class="team-name">Devs (Kırmızı)</span>
+        <span class="team-name"><?= htmlspecialchars(tt('room_team_red_name', 'Devs (Kırmızı)')) ?></span>
         <span id="hudScoreRed" class="team-score">0</span>
       </div>
       <div class="team-battle-bar-wrap">
@@ -1758,7 +1758,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       </div>
       <div class="team-battle-label team-blue-label">
         <span id="hudScoreBlue" class="team-score">0</span>
-        <span class="team-name">QAs (Mavi)</span>
+        <span class="team-name"><?= htmlspecialchars(tt('room_team_blue_name', 'QAs (Mavi)')) ?></span>
         <span class="team-dot dot-blue"></span>
       </div>
     </div>
@@ -1820,24 +1820,24 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     </main>
 
     <!-- Live Team Reaction & Sound Effects Bar -->
-    <div id="reactionBar" class="reaction-bar" aria-label="Canlı Tepkiler">
+    <div id="reactionBar" class="reaction-bar" aria-label="<?= htmlspecialchars(tt('reaction_bar_aria', 'Canlı Tepkiler')) ?>">
       <div class="reaction-group">
-        <button type="button" class="reaction-btn" data-emoji="🔥" data-sound="fire" title="Alev / Fire!">
+        <button type="button" class="reaction-btn" data-emoji="🔥" data-sound="fire" title="<?= htmlspecialchars(tt('reaction_fire_title', 'Alev / Fire!')) ?>">
           <span class="reaction-icon">🔥</span>
         </button>
-        <button type="button" class="reaction-btn" data-emoji="😂" data-sound="laugh" title="Gülme / Haha!">
+        <button type="button" class="reaction-btn" data-emoji="😂" data-sound="laugh" title="<?= htmlspecialchars(tt('reaction_laugh_title', 'Gülme / Haha!')) ?>">
           <span class="reaction-icon">😂</span>
         </button>
-        <button type="button" class="reaction-btn" data-emoji="😱" data-sound="shock" title="Şok / Olamaz!">
+        <button type="button" class="reaction-btn" data-emoji="😱" data-sound="shock" title="<?= htmlspecialchars(tt('reaction_shock_title', 'Şok / Olamaz!')) ?>">
           <span class="reaction-icon">😱</span>
         </button>
-        <button type="button" class="reaction-btn" data-emoji="💩" data-sound="poop" title="Patates / Oops!">
+        <button type="button" class="reaction-btn" data-emoji="💩" data-sound="poop" title="<?= htmlspecialchars(tt('reaction_poop_title', 'Patates / Oops!')) ?>">
           <span class="reaction-icon">💩</span>
         </button>
-        <button type="button" class="reaction-btn" data-emoji="🚀" data-sound="rocket" title="Roket / Haydi!">
+        <button type="button" class="reaction-btn" data-emoji="🚀" data-sound="rocket" title="<?= htmlspecialchars(tt('reaction_rocket_title', 'Roket / Haydi!')) ?>">
           <span class="reaction-icon">🚀</span>
         </button>
-        <button type="button" class="reaction-btn" data-emoji="🎉" data-sound="party" title="Parti / GG!">
+        <button type="button" class="reaction-btn" data-emoji="🎉" data-sound="party" title="<?= htmlspecialchars(tt('reaction_party_title', 'Parti / GG!')) ?>">
           <span class="reaction-icon">🎉</span>
         </button>
       </div>
@@ -1846,17 +1846,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       <!-- Quick Banter Pills for Agile/Product Teams -->
       <div class="reaction-group">
-        <button type="button" class="shout-pill" data-emoji="🐞" data-sound="banter" data-text="Bug var! 🐞">
-          <span>Bug var! 🐞</span>
+        <button type="button" class="shout-pill" data-emoji="🐞" data-sound="banter" data-text="<?= htmlspecialchars(tt('reaction_shout_bug_text', 'Bug var! 🐞')) ?>">
+          <span><?= htmlspecialchars(tt('reaction_shout_bug_text', 'Bug var! 🐞')) ?></span>
         </button>
-        <button type="button" class="shout-pill" data-emoji="👑" data-sound="banter" data-text="PO Haklı! 👑">
-          <span>PO Haklı! 👑</span>
+        <button type="button" class="shout-pill" data-emoji="👑" data-sound="banter" data-text="<?= htmlspecialchars(tt('reaction_shout_po_text', 'PO Haklı! 👑')) ?>">
+          <span><?= htmlspecialchars(tt('reaction_shout_po_text', 'PO Haklı! 👑')) ?></span>
         </button>
-        <button type="button" class="shout-pill" data-emoji="⚡" data-sound="banter" data-text="Hadi! ⚡">
-          <span>Hadi! ⚡</span>
+        <button type="button" class="shout-pill" data-emoji="⚡" data-sound="banter" data-text="<?= htmlspecialchars(tt('reaction_shout_hadi_text', 'Hadi! ⚡')) ?>">
+          <span><?= htmlspecialchars(tt('reaction_shout_hadi_text', 'Hadi! ⚡')) ?></span>
         </button>
-        <button type="button" class="shout-pill" data-emoji="🏆" data-sound="party" data-text="GG! 🏆">
-          <span>GG! 🏆</span>
+        <button type="button" class="shout-pill" data-emoji="🏆" data-sound="party" data-text="<?= htmlspecialchars(tt('reaction_shout_gg_text', 'GG! 🏆')) ?>">
+          <span><?= htmlspecialchars(tt('reaction_shout_gg_text', 'GG! 🏆')) ?></span>
         </button>
       </div>
 
@@ -1901,7 +1901,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
   <?php if ($canViewLogs): ?>
   <!-- In-Game Debug / Log Panel Toggle & Drawer (yilmazmukerrem@gmail.com only) -->
-  <div id="debugLogToggleBtn" class="debug-log-toggle" title="Debug / Hata Ayıklama">
+  <div id="debugLogToggleBtn" class="debug-log-toggle" title="<?= htmlspecialchars(tt('room_debug_title', 'Debug / Hata Ayıklama')) ?>">
     🐞 <?= htmlspecialchars(tt('room_debug_logs', 'Logs')) ?>
   </div>
   <div id="debugLogDrawer" class="debug-log-drawer d-none">
@@ -2029,6 +2029,27 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       teamBlueWon: <?= json_encode(tt('room_team_blue_won', '🏆 🔵 QAS (MAVİ TAKIM) KAZANDI!')) ?>,
       teamTie: <?= json_encode(tt('room_team_tie', '🤝 DOSTLUK KAZANDI! (BERABERE)')) ?>,
       teamVictoryDesc: <?= json_encode(tt('room_team_victory_desc', 'Takımlar kıyasıya yarıştı! İşte nihai takım skorları:')) ?>,
+      powerup5050Ready: <?= json_encode(tt('powerup_5050_ready', '50/50 Joker: Yanlış şıkların yarısını eler (Hazır!)')) ?>,
+      powerup5050Locked: <?= json_encode(tt('powerup_5050_locked', '50/50 Joker: 5 tur üst üste doğru cevap vererek aç ({streak}/5)')) ?>,
+      powerupInkReady: <?= json_encode(tt('powerup_ink_ready', 'Mürekkep Sabotajı: Rakibin ekranını karala! (Hazır!)')) ?>,
+      powerupInkLocked: <?= json_encode(tt('powerup_ink_locked', 'Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)')) ?>,
+      powerup5050StreakReq: <?= json_encode(tt('powerup_5050_streak_req', '50/50 jokeri için 5 tur üst üste doğru cevap gerekli! ({streak}/5)')) ?>,
+      powerup5050OnlyQuestion: <?= json_encode(tt('powerup_5050_only_question', '50/50 yalnızca seçenekler ekrandayken kullanılabilir!')) ?>,
+      powerup5050Active: <?= json_encode(tt('powerup_5050_active', '🎯 50/50 Joker Aktif! Yanlış şıklar elendi.')) ?>,
+      sabotageNoRivals: <?= json_encode(tt('sabotage_no_rivals', 'Sabote edilecek aktif rakip yok!')) ?>,
+      sabotageLeader: <?= json_encode(tt('sabotage_leader', '(Lider)')) ?>,
+      powerupInkStreakReq: <?= json_encode(tt('powerup_ink_streak_req', 'Mürekkep sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)')) ?>,
+      powerupInkFired: <?= json_encode(tt('powerup_ink_fired', '🦑 {target} hedeflendi! Mürekkep fırlatıldı!')) ?>,
+      powerupInkAlert: <?= json_encode(tt('powerup_ink_alert', '🦑 <strong>{attacker}</strong> sana mürekkep fırlattı!<br><span style="font-size: 13px; font-weight: normal; opacity: 0.9;">Pikselleri açmak için lekelere tıkla!</span>')) ?>,
+      noMembersYet: <?= json_encode(tt('no_members_yet', 'Henüz kimse yok')) ?>,
+      joinedTeamRed: <?= json_encode(tt('joined_team_red', '🔴 Devs (Kırmızı) takımına katıldın!')) ?>,
+      joinedTeamBlue: <?= json_encode(tt('joined_team_blue', '🔵 QAs (Mavi) takımına katıldın!')) ?>,
+      powerupBothUnlocked: <?= json_encode(tt('powerup_both_unlocked', '🎯 50/50 ve 🦑 Mürekkep Jokerleri')) ?>,
+      powerupInkUnlocked: <?= json_encode(tt('powerup_ink_unlocked', '🦑 Mürekkep Sabotajı')) ?>,
+      powerup5050Unlocked: <?= json_encode(tt('powerup_5050_unlocked', '🎯 50/50 Jokeri')) ?>,
+      powerupEarnedToast: <?= json_encode(tt('powerup_earned_toast', '🎉 5 tur üst üste doğru! {item} Kazandın!')) ?>,
+      powerupInkBrdcst: <?= json_encode(tt('powerup_ink_broadcast', '🦑 {attacker}, {victim} oyuncusuna mürekkep fırlattı!')) ?>,
+      powerup5050Brdcst: <?= json_encode(tt('powerup_5050_broadcast', '🎯 {user} 50/50 jokerini kullandı!')) ?>,
     };
 
     function escapeHtml(s) {
@@ -2567,13 +2588,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         btn5050.classList.remove('is-used', 'is-locked');
         btn5050.classList.add('is-ready');
         if (badge5050) badge5050.textContent = '1';
-        btn5050.title = '50/50 Joker: Yanlış şıkların yarısını eler (Hazır!)';
+        btn5050.title = STR.powerup5050Ready || '50/50 Joker: Yanlış şıkların yarısını eler (Hazır!)';
       } else {
         btn5050.disabled = true;
         btn5050.classList.remove('is-ready', 'is-used');
         btn5050.classList.add('is-locked');
         if (badge5050) badge5050.textContent = `🔒 ${streak5050}/5`;
-        btn5050.title = `50/50 Joker: 5 tur üst üste doğru cevap vererek aç (${streak5050}/5)`;
+        btn5050.title = (STR.powerup5050Locked || '50/50 Joker: 5 tur üst üste doğru cevap vererek aç ({streak}/5)').replace('{streak}', streak5050);
       }
 
       // Ink Splat Sabotage UI
@@ -2583,24 +2604,24 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         btnInk.classList.remove('is-used', 'is-locked');
         btnInk.classList.add('is-ready');
         if (badgeInk) badgeInk.textContent = '1';
-        btnInk.title = 'Mürekkep Sabotajı: Rakibin ekranını karala! (Hazır!)';
+        btnInk.title = STR.powerupInkReady || 'Mürekkep Sabotajı: Rakibin ekranını karala! (Hazır!)';
       } else {
         btnInk.disabled = true;
         btnInk.classList.remove('is-ready', 'is-used');
         btnInk.classList.add('is-locked');
         if (badgeInk) badgeInk.textContent = `🔒 ${streakInk}/5`;
-        btnInk.title = `Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç (${streakInk}/5)`;
+        btnInk.title = (STR.powerupInkLocked || 'Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)').replace('{streak}', streakInk);
       }
     }
 
     function useFiftyFifty() {
       if (!state.powerups.fifty_fifty_available) {
         const streak = state.powerups.fifty_fifty_streak || 0;
-        showToast(`50/50 jokeri için 5 tur üst üste doğru cevap gerekli! (${streak}/5)`);
+        showToast((STR.powerup5050StreakReq || '50/50 jokeri için 5 tur üst üste doğru cevap gerekli! ({streak}/5)').replace('{streak}', streak));
         return;
       }
       if (state.phase !== 'question' || state.eliminated || state.answered) {
-        showToast('50/50 yalnızca seçenekler ekrandayken kullanılabilir!');
+        showToast(STR.powerup5050OnlyQuestion || '50/50 yalnızca seçenekler ekrandayken kullanılabilir!');
         return;
       }
       const gridEl = document.getElementById('choiceGrid');
@@ -2619,7 +2640,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.powerups.fifty_fifty_streak = 0;
       updatePowerupUI();
       playReactionSound('fifty_fifty');
-      showToast('🎯 50/50 Joker Aktif! Yanlış şıklar elendi.');
+      showToast(STR.powerup5050Active || '🎯 50/50 Joker Aktif! Yanlış şıklar elendi.');
 
       fetch('api/rooms_powerup.php', {
         method: 'POST',
@@ -2631,7 +2652,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     function openSabotageModal() {
       if (!state.powerups.ink_available) {
         const streak = state.powerups.ink_streak || 0;
-        showToast(`Mürekkep sabotajı için 5 tur üst üste doğru cevap gerekli! (${streak}/5)`);
+        showToast((STR.powerupInkStreakReq || 'Mürekkep sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)').replace('{streak}', streak));
         return;
       }
       if (state.eliminated) return;
@@ -2643,7 +2664,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       );
 
       if (rivals.length === 0) {
-        showToast('Sabote edilecek aktif rakip yok!');
+        showToast(STR.sabotageNoRivals || 'Sabote edilecek aktif rakip yok!');
         return;
       }
 
@@ -2668,7 +2689,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       leadBtn.type = 'button';
       leadBtn.className = 'sabotage-target-btn';
       leadBtn.innerHTML = `
-        <span>🥇 <strong>${escapeHtml(leaderName)}</strong> (Lider)</span>
+        <span>🥇 <strong>${escapeHtml(leaderName)}</strong> ${STR.sabotageLeader || '(Lider)'}</span>
         <span class="badge bg-warning text-dark">${leader.score || 0} pts</span>
       `;
       leadBtn.onclick = () => {
@@ -2704,7 +2725,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       updatePowerupUI();
 
       playReactionSound('ink_splat');
-      showToast(`🦑 ${targetName.split('@')[0]} hedeflendi! Mürekkep fırlatıldı!`);
+      showToast((STR.powerupInkFired || '🦑 {target} hedeflendi! Mürekkep fırlatıldı!').replace('{target}', targetName.split('@')[0]));
 
       fetch('api/rooms_powerup.php', {
         method: 'POST',
@@ -2730,7 +2751,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       const banner = document.createElement('div');
       banner.className = 'ink-alert-banner';
-      banner.innerHTML = `🦑 <strong>${escapeHtml(attackerName)}</strong> sana mürekkep fırlattı!<br><span style="font-size: 13px; font-weight: normal; opacity: 0.9;">Pikselleri açmak için lekelere tıkla!</span>`;
+      banner.innerHTML = (STR.powerupInkAlert || '🦑 <strong>{attacker}</strong> sana mürekkep fırlattı!<br><span style="font-size: 13px; font-weight: normal; opacity: 0.9;">Pikselleri açmak için lekelere tıkla!</span>').replace('{attacker}', escapeHtml(attackerName));
       overlay.appendChild(banner);
 
       const blotSvgPaths = [
@@ -2875,12 +2896,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <div class="team-card-header">
               <div class="team-card-title team-red-label">
                 <span class="team-dot dot-red"></span>
-                <span>🔴 Devs (Kırmızı)</span>
+                <span>${escapeHtml(STR.teamRed || '🔴 Devs (Kırmızı)')}</span>
               </div>
-              <span class="badge bg-danger-subtle text-danger border border-danger-subtle">${redMembers.length} Oyuncu</span>
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle">${redMembers.length} ${escapeHtml(STR.players || 'Oyuncu')}</span>
             </div>
             <div class="team-roster-list">
-              ${redMembers.length === 0 ? '<div class="text-secondary small fst-italic">Henüz kimse yok</div>' : redMembers.map(m => {
+              ${redMembers.length === 0 ? `<div class="text-secondary small fst-italic">${escapeHtml(STR.noMembersYet || 'Henüz kimse yok')}</div>` : redMembers.map(m => {
                 const isMe = m.email === ME_EMAIL || String(m.user_id) === String(ME_ID);
                 const mName = m.email ? m.email.split('@')[0] : (m.nickname || STR.player);
                 return `
@@ -2902,12 +2923,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <div class="team-card-header">
               <div class="team-card-title team-blue-label">
                 <span class="team-dot dot-blue"></span>
-                <span>🔵 QAs (Mavi)</span>
+                <span>${escapeHtml(STR.teamBlue || '🔵 QAs (Mavi)')}</span>
               </div>
-              <span class="badge bg-info-subtle text-info border border-info-subtle">${blueMembers.length} Oyuncu</span>
+              <span class="badge bg-info-subtle text-info border border-info-subtle">${blueMembers.length} ${escapeHtml(STR.players || 'Oyuncu')}</span>
             </div>
             <div class="team-roster-list">
-              ${blueMembers.length === 0 ? '<div class="text-secondary small fst-italic">Henüz kimse yok</div>' : blueMembers.map(m => {
+              ${blueMembers.length === 0 ? `<div class="text-secondary small fst-italic">${escapeHtml(STR.noMembersYet || 'Henüz kimse yok')}</div>` : blueMembers.map(m => {
                 const isMe = m.email === ME_EMAIL || String(m.user_id) === String(ME_ID);
                 const mName = m.email ? m.email.split('@')[0] : (m.nickname || STR.player);
                 return `
@@ -2943,7 +2964,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             renderPlayers(data.players);
           }
           playTone(600, 0.08, 'sine');
-          showToast(team === 'red' ? '🔴 Devs (Kırmızı) takımına katıldın!' : '🔵 QAs (Mavi) takımına katıldın!');
+          showToast(team === 'red' ? (STR.joinedTeamRed || '🔴 Devs (Kırmızı) takımına katıldın!') : (STR.joinedTeamBlue || '🔵 QAs (Mavi) takımına katıldın!'));
         } else {
           showToast(data.error || STR.errorGeneric);
         }
@@ -3287,7 +3308,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           if (state.powerups.fifty_fifty_streak >= 5) {
             state.powerups.fifty_fifty_available = true;
             state.powerups.fifty_fifty_streak = 5;
-            unlockedPowerup = '🎯 50/50 Jokeri';
+            unlockedPowerup = STR.powerup5050Unlocked || '🎯 50/50 Jokeri';
           }
         }
         if (!state.powerups.ink_available) {
@@ -3295,14 +3316,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           if (state.powerups.ink_streak >= 5) {
             state.powerups.ink_available = true;
             state.powerups.ink_streak = 5;
-            unlockedPowerup = unlockedPowerup ? '🎯 50/50 ve 🦑 Mürekkep Jokerleri' : '🦑 Mürekkep Sabotajı';
+            unlockedPowerup = unlockedPowerup ? (STR.powerupBothUnlocked || '🎯 50/50 ve 🦑 Mürekkep Jokerleri') : (STR.powerupInkUnlocked || '🦑 Mürekkep Sabotajı');
           }
         }
         updatePowerupUI();
         if (unlockedPowerup) {
           setTimeout(() => {
             playTone(880, 0.25, 'triangle');
-            showToast(`🎉 5 tur üst üste doğru! ${unlockedPowerup} Kazandın!`, true);
+            showToast((STR.powerupEarnedToast || '🎉 5 tur üst üste doğru! {item} Kazandın!').replace('{item}', unlockedPowerup), true);
           }, 350);
         }
 
@@ -4514,17 +4535,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         if (data.type === 'ink_splat') {
           if (String(data.target_user_id) === String(ME_ID) || data.target_email === ME_EMAIL) {
-            triggerInkSplatEffect(data.from_name || 'Bir rakip');
+            triggerInkSplatEffect(data.from_name || (STR.player || 'Player'));
           } else {
-            const victimName = data.target_name ? data.target_name.split('@')[0] : 'birine';
-            const attackerName = data.from_name ? data.from_name.split('@')[0] : 'Biri';
-            showToast(`🦑 ${attackerName}, ${victimName} oyuncusuna mürekkep fırlattı!`);
+            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Player');
+            const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
+            showToast((STR.powerupInkBrdcst || '🦑 {attacker}, {victim} oyuncusuna mürekkep fırlattı!').replace('{attacker}', attackerName).replace('{victim}', victimName));
             playReactionSound('ink_splat');
           }
         } else if (data.type === 'fifty_fifty') {
           if (String(data.from_user_id) !== String(ME_ID)) {
-            const userName = data.from_name ? data.from_name.split('@')[0] : 'Rakip';
-            showToast(`🎯 ${userName} 50/50 jokerini kullandı!`);
+            const userName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
+            showToast((STR.powerup5050Brdcst || '🎯 {user} 50/50 jokerini kullandı!').replace('{user}', userName));
           }
         }
       });
