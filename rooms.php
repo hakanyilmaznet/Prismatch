@@ -236,7 +236,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               <div class="form-check m-0">
                 <input class="form-check-input" type="radio" name="roomGameMode" id="modeTeams" value="teams" style="cursor: pointer;">
                 <label class="form-check-label fw-bold user-select-none" for="modeTeams" style="cursor: pointer;">
-                  ⚔️ <?= htmlspecialchars(tt('rooms_mode_teams_title', 'Takım Savaşı (Devs vs QAs)')) ?>
+                  ⚔️ <?= htmlspecialchars(tt('rooms_mode_teams_title', 'Takım Savaşı')) ?>
                 </label>
               </div>
               <div class="small text-secondary mt-1 ps-4">

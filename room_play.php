@@ -1854,7 +1854,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     <div id="hudTeamBattle" class="hud-team-battle d-none">
       <div class="team-battle-label team-red-label">
         <span class="team-dot dot-red"></span>
-        <span class="team-name"><?= htmlspecialchars(tt('room_team_red_name', 'Devs (Kırmızı)')) ?></span>
+        <span class="team-name"><?= htmlspecialchars(tt('room_team_red_name', 'Kırmızı Takım')) ?></span>
         <span id="hudScoreRed" class="team-score">0</span>
       </div>
       <div class="team-battle-bar-wrap">
@@ -1863,7 +1863,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       </div>
       <div class="team-battle-label team-blue-label">
         <span id="hudScoreBlue" class="team-score">0</span>
-        <span class="team-name"><?= htmlspecialchars(tt('room_team_blue_name', 'QAs (Mavi)')) ?></span>
+        <span class="team-name"><?= htmlspecialchars(tt('room_team_blue_name', 'Mavi Takım')) ?></span>
         <span class="team-dot dot-blue"></span>
       </div>
     </div>
@@ -1949,13 +1949,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       <div class="reaction-divider"></div>
 
-      <!-- Quick Banter Pills for Agile/Product Teams -->
+      <!-- Quick Banter Pills for Live Matches -->
       <div class="reaction-group">
-        <button type="button" class="shout-pill" data-emoji="🐞" data-sound="banter" data-text="<?= htmlspecialchars(tt('reaction_shout_bug_text', 'Bug var! 🐞')) ?>">
-          <span><?= htmlspecialchars(tt('reaction_shout_bug_text', 'Bug var! 🐞')) ?></span>
+        <button type="button" class="shout-pill" data-emoji="🐞" data-sound="banter" data-text="<?= htmlspecialchars(tt('reaction_shout_bug_text', 'Olamaz! 🐞')) ?>">
+          <span><?= htmlspecialchars(tt('reaction_shout_bug_text', 'Olamaz! 🐞')) ?></span>
         </button>
-        <button type="button" class="shout-pill" data-emoji="👑" data-sound="banter" data-text="<?= htmlspecialchars(tt('reaction_shout_po_text', 'PO Haklı! 👑')) ?>">
-          <span><?= htmlspecialchars(tt('reaction_shout_po_text', 'PO Haklı! 👑')) ?></span>
+        <button type="button" class="shout-pill" data-emoji="👑" data-sound="banter" data-text="<?= htmlspecialchars(tt('reaction_shout_po_text', 'Harikasın! 👑')) ?>">
+          <span><?= htmlspecialchars(tt('reaction_shout_po_text', 'Harikasın! 👑')) ?></span>
         </button>
         <button type="button" class="shout-pill" data-emoji="⚡" data-sound="banter" data-text="<?= htmlspecialchars(tt('reaction_shout_hadi_text', 'Hadi! ⚡')) ?>">
           <span><?= htmlspecialchars(tt('reaction_shout_hadi_text', 'Hadi! ⚡')) ?></span>
@@ -2126,13 +2126,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       colCorrect: <?= json_encode(tt('room_col_correct', 'Doğru')) ?>,
       statTimeoutBadge: <?= json_encode(tt('room_stat_timeout_badge', 'Süre Doldu')) ?>,
       modeTeams: <?= json_encode(tt('rooms_mode_teams_short', 'Takım Savaşı')) ?>,
-      teamRed: <?= json_encode(tt('room_team_red', '🔴 Devs (Kırmızı)')) ?>,
-      teamBlue: <?= json_encode(tt('room_team_blue', '🔵 QAs (Mavi)')) ?>,
-      joinTeamRed: <?= json_encode(tt('room_join_team_red', '🔴 Devs Takımına Katıl')) ?>,
-      joinTeamBlue: <?= json_encode(tt('room_join_team_blue', '🔵 QAs Takımına Katıl')) ?>,
+      teamRed: <?= json_encode(tt('room_team_red', '🔴 Kırmızı Takım')) ?>,
+      teamBlue: <?= json_encode(tt('room_team_blue', '🔵 Mavi Takım')) ?>,
+      joinTeamRed: <?= json_encode(tt('room_join_team_red', '🔴 Kırmızı Takıma Katıl')) ?>,
+      joinTeamBlue: <?= json_encode(tt('room_join_team_blue', '🔵 Mavi Takıma Katıl')) ?>,
       yourTeam: <?= json_encode(tt('room_your_team', 'Senin Takımın')) ?>,
-      teamRedWon: <?= json_encode(tt('room_team_red_won', '🏆 🔴 DEVS (KIRMIZI TAKIM) KAZANDI!')) ?>,
-      teamBlueWon: <?= json_encode(tt('room_team_blue_won', '🏆 🔵 QAS (MAVİ TAKIM) KAZANDI!')) ?>,
+      teamRedWon: <?= json_encode(tt('room_team_red_won', '🏆 🔴 KIRMIZI TAKIM KAZANDI!')) ?>,
+      teamBlueWon: <?= json_encode(tt('room_team_blue_won', '🏆 🔵 MAVİ TAKIM KAZANDI!')) ?>,
       teamTie: <?= json_encode(tt('room_team_tie', '🤝 DOSTLUK KAZANDI! (BERABERE)')) ?>,
       teamVictoryDesc: <?= json_encode(tt('room_team_victory_desc', 'Takımlar kıyasıya yarıştı! İşte nihai takım skorları:')) ?>,
       powerup5050Ready: <?= json_encode(tt('powerup_5050_ready', '50/50 Joker: Yanlış şıkların yarısını eler (Hazır!)')) ?>,
@@ -2148,8 +2148,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       powerupInkFired: <?= json_encode(tt('powerup_ink_fired', '🦑 {target} hedeflendi! Mürekkep fırlatıldı!')) ?>,
       powerupInkAlert: <?= json_encode(tt('powerup_ink_alert', '🦑 <strong>{attacker}</strong> sana mürekkep fırlattı!<br><span style="font-size: 13px; font-weight: normal; opacity: 0.9;">Pikselleri açmak için lekelere tıkla!</span>')) ?>,
       noMembersYet: <?= json_encode(tt('no_members_yet', 'Henüz kimse yok')) ?>,
-      joinedTeamRed: <?= json_encode(tt('joined_team_red', '🔴 Devs (Kırmızı) takımına katıldın!')) ?>,
-      joinedTeamBlue: <?= json_encode(tt('joined_team_blue', '🔵 QAs (Mavi) takımına katıldın!')) ?>,
+      joinedTeamRed: <?= json_encode(tt('joined_team_red', '🔴 Kırmızı takıma katıldın!')) ?>,
+      joinedTeamBlue: <?= json_encode(tt('joined_team_blue', '🔵 Mavi takıma katıldın!')) ?>,
       powerupBothUnlocked: <?= json_encode(tt('powerup_both_unlocked', '🎯 50/50 ve 🦑 Mürekkep Jokerleri')) ?>,
       powerupInkUnlocked: <?= json_encode(tt('powerup_ink_unlocked', '🦑 Mürekkep Sabotajı')) ?>,
       powerup5050Unlocked: <?= json_encode(tt('powerup_5050_unlocked', '🎯 50/50 Jokeri')) ?>,

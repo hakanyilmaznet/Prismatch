@@ -50,8 +50,8 @@ $faqItems = [
     'a' => tt('faq_a2', 'Her turun başında hedef bir renk veya bayrak gösterilir. Geri sayım bittiğinde benzer tonlardan oluşan bir ızgara açılır. Doğru rengi ne kadar hızlı bulursanız o kadar yüksek puan kazanırsınız.'),
   ],
   [
-    'q' => tt('faq_q_teams', 'Takım Savaşı (Devs vs QAs) modu nasıl çalışır?'),
-    'a' => tt('faq_a_teams', 'Takım Savaşı modunda oyuncular lobide 🔴 Kırmızı (Devs) ve 🔵 Mavi (QAs) takımlarına ayrılır. Her oyuncunun topladığı puan doğrudan takımının ortak havuzuna eklenir. Oyun ekranındaki canlı halat çekme (tug-of-war) barı anlık skoru gösterir ve maç sonunda en çok puanı toplayan takım zaferi kazanır!'),
+    'q' => tt('faq_q_teams', 'Takım Savaşı modu nasıl çalışır?'),
+    'a' => tt('faq_a_teams', 'Takım Savaşı modunda oyuncular lobide takımlara ayrılır. Her oyuncunun topladığı puan doğrudan takımının ortak havuzuna eklenir. Oyun ekranındaki canlı yarış çubuğu anlık skoru gösterir ve maç sonunda en çok puanı toplayan takım zaferi kazanır!'),
   ],
   [
     'q' => tt('faq_q_sabotage', 'Jokerler ve Mürekkep Sabotajı nasıl kullanılır?'),
@@ -1136,7 +1136,7 @@ $howToData = [
         <div class="pm-hero-chips">
           <div class="pm-chip" style="border-color: rgba(244, 63, 94, 0.4); color: #fb7185;">
             <span>⚔️</span>
-            <span><?= htmlspecialchars(tt('rooms_mode_teams_short', 'Takım Savaşı (Devs vs QAs)')) ?></span>
+            <span><?= htmlspecialchars(tt('rooms_mode_teams_short', 'Takım Savaşı')) ?></span>
           </div>
           <div class="pm-chip" style="border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
             <span>🦑</span>
@@ -1144,7 +1144,7 @@ $howToData = [
           </div>
           <div class="pm-chip" style="border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
             <span>🐞</span>
-            <span><?= htmlspecialchars(tt('home_chip_banter', 'Canlı "Bug var!" Tepkileri')) ?></span>
+            <span><?= htmlspecialchars(tt('home_chip_banter', 'Canlı Tepkiler & Sesler')) ?></span>
           </div>
           <div class="pm-chip" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
             <span>👑</span>
@@ -1205,19 +1205,19 @@ $howToData = [
       </div>
 
       <div class="pm-features-grid">
-        <!-- Feature 1: Squad Battle / Devs vs QAs -->
+        <!-- Feature 1: Squad Battle -->
         <div class="pm-fun-card card-teams">
           <div>
             <div class="pm-card-top-pill pill-teams">
-              <span>⚔️</span> <?= htmlspecialchars(tt('home_feat_teams_pill', 'Takım Savaşı: Devs vs QAs')) ?>
+              <span>⚔️</span> <?= htmlspecialchars(tt('home_feat_teams_pill', 'Takım Savaşı')) ?>
             </div>
             <h3 class="pm-fun-title"><?= htmlspecialchars(tt('home_feat_teams_title', '🔴 Kırmızı vs 🔵 Mavi Takım')) ?></h3>
             <p class="pm-fun-desc"><?= htmlspecialchars(tt('home_feat_teams_desc', 'Ekibini ikiye böl, takımını seç! Bireysel puanların ortak takım havuzuna aktığı bu modda kıyasıya halat çekin, kazanan takım kutlamasını yapın.')) ?></p>
             
             <div class="pm-tug-visual">
               <div class="pm-tug-labels">
-                <span style="color:#f43f5e">🔴 Devs: 4.850 pts</span>
-                <span style="color:#38bdf8">QAs: 5.120 pts 🔵</span>
+                <span style="color:#f43f5e">🔴 Kırmızı: 4.850 pts</span>
+                <span style="color:#38bdf8">Mavi: 5.120 pts 🔵</span>
               </div>
               <div class="pm-tug-bar">
                 <div class="pm-tug-red"></div>
@@ -1260,17 +1260,17 @@ $howToData = [
         <div class="pm-fun-card card-reactions">
           <div>
             <div class="pm-card-top-pill pill-reactions">
-              <span>🔥</span> <?= htmlspecialchars(tt('home_feat_reactions_pill', 'Sesli Tepkiler & Çevik Sloganlar')) ?>
+              <span>🔥</span> <?= htmlspecialchars(tt('home_feat_reactions_pill', 'Sesli Tepkiler & Canlı Sloganlar')) ?>
             </div>
-            <h3 class="pm-fun-title"><?= htmlspecialchars(tt('home_feat_reactions_title', '"Bug var! 🐞" & "PO Haklı! 👑"')) ?></h3>
+            <h3 class="pm-fun-title"><?= htmlspecialchars(tt('home_feat_reactions_title', '"Olamaz! 🐞" & "Harikasın! 👑"')) ?></h3>
             <p class="pm-fun-desc"><?= htmlspecialchars(tt('home_feat_reactions_desc', 'Oyun sırasında uçuşan canlı emojiler ve retro synth sesleriyle odayı karnavala çevirin. Aşağıdaki butonlara tıklayarak canlı tepkileri test edin:')) ?></p>
             
             <div class="pm-reactions-visual">
-              <button type="button" class="pm-reaction-pill-btn" data-sound="bug" data-emoji="🐞" data-text="<?= htmlspecialchars(tt('home_reaction_bug', '🐞 Bug var!')) ?>">
-                <span><?= htmlspecialchars(tt('home_reaction_bug', '🐞 Bug var!')) ?></span>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="bug" data-emoji="🐞" data-text="<?= htmlspecialchars(tt('home_reaction_bug', '🐞 Olamaz!')) ?>">
+                <span><?= htmlspecialchars(tt('home_reaction_bug', '🐞 Olamaz!')) ?></span>
               </button>
-              <button type="button" class="pm-reaction-pill-btn" data-sound="po" data-emoji="👑" data-text="<?= htmlspecialchars(tt('home_reaction_po', '👑 PO Haklı!')) ?>">
-                <span><?= htmlspecialchars(tt('home_reaction_po', '👑 PO Haklı!')) ?></span>
+              <button type="button" class="pm-reaction-pill-btn" data-sound="po" data-emoji="👑" data-text="<?= htmlspecialchars(tt('home_reaction_po', '👑 Harikasın!')) ?>">
+                <span><?= htmlspecialchars(tt('home_reaction_po', '👑 Harikasın!')) ?></span>
               </button>
               <button type="button" class="pm-reaction-pill-btn" data-sound="fire" data-emoji="🔥" data-text="<?= htmlspecialchars(tt('home_reaction_fire_text', 'Alev! 🔥')) ?>">
                 <span>🔥</span>
@@ -1338,7 +1338,7 @@ $howToData = [
               <div class="pm-mode-icon" style="background: linear-gradient(135deg, rgba(244,63,94,0.2), rgba(56,189,248,0.2));">⚔️</div>
               <span class="pm-mode-pill pm-pill-multi" style="background: linear-gradient(90deg, #f43f5e, #38bdf8); color:#fff; border:none;"><?= htmlspecialchars(tt('badge_teams_pop', 'TAKIM SAVAŞI')) ?></span>
             </div>
-            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('rooms_mode_teams_title', 'Takım Savaşı (Devs vs QAs)')) ?></h3>
+            <h3 class="pm-mode-title"><?= htmlspecialchars(tt('rooms_mode_teams_title', 'Takım Savaşı')) ?></h3>
             <p class="pm-mode-desc"><?= htmlspecialchars(tt('rooms_mode_teams_desc', '🔴 Kırmızı vs 🔵 Mavi Takım! Bireysel puanlar takım havuzuna yazılır, en çok puanı toplayan takım kazanır.')) ?></p>
           </div>
           <a class="pm-btn-rooms-glow" href="rooms.php" style="justify-content:center; width:100%; box-sizing:border-box; padding:10px 18px !important; font-size:14px !important;">
@@ -1546,7 +1546,7 @@ $howToData = [
         <span>🚀</span> <?= htmlspecialchars(tt('home_cta_badge_squad', 'EKİBİNİ TOPLA')) ?>
       </div>
       <h2 class="pm-cta-title"><?= htmlspecialchars(tt('home_cta_banner_title_squad', 'Ekibini Topla, Takımını Seç ve Arenaya Çık!')) ?></h2>
-      <p class="pm-cta-desc"><?= htmlspecialchars(tt('home_cta_banner_desc_squad', 'İster tek başına rekor kır, ister arkadaşlarınla Devs vs QAs savaşı başlat. Prismatch tamamen ücretsiz ve tarayıcında anında hazır!')) ?></p>
+      <p class="pm-cta-desc"><?= htmlspecialchars(tt('home_cta_banner_desc_squad', 'İster tek başına rekor kır, ister arkadaşlarınla takım savaşı başlat. Prismatch tamamen ücretsiz ve tarayıcında anında hazır!')) ?></p>
       <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:8px;">
         <a class="pm-btn-rooms-glow" href="rooms.php">
           <span class="pulse-dot" style="background:#fff; box-shadow:0 0 0 0 rgba(255,255,255,0.7)"></span>
