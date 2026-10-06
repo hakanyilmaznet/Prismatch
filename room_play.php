@@ -1734,6 +1734,73 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       gap: 16px;
       margin-top: 8px;
     }
+
+    /* Lobby Rules Card */
+    .lobby-rules-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--arena-border);
+      border-radius: 18px;
+      padding: 16px 20px;
+      max-width: 680px;
+      width: 100%;
+      margin: 18px auto 0;
+      text-align: left;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(8px);
+    }
+    .lobby-rules-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: var(--arena-text);
+      border-bottom: 1px solid var(--arena-border);
+      padding-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+    .lobby-rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+    }
+    .lobby-rule-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--arena-muted);
+    }
+    .lobby-rule-icon {
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .lobby-rule-text strong {
+      color: var(--arena-text);
+      display: block;
+      margin-bottom: 2px;
+      font-size: 13px;
+    }
+    .lobby-rule-item.mode-highlight {
+      grid-column: 1 / -1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    [data-bs-theme="light"] .lobby-rules-card {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+    [data-bs-theme="light"] .lobby-rule-item.mode-highlight {
+      background: rgba(0, 0, 0, 0.03);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
   </style>
 </head>
 <body class="pm-has-fixed-header">
@@ -1852,8 +1919,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             </button>
             <div id="minPlayersNotice" class="small text-warning mt-2 fw-semibold text-center"></div>
           </div>
-        </div>
         <div id="lobbyTeamsContainer"></div>
+        <div id="lobbyRulesContainer"></div>
       </div>
     </main>
 
@@ -2089,6 +2156,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       powerupEarnedToast: <?= json_encode(tt('powerup_earned_toast', '🎉 5 tur üst üste doğru! {item} Kazandın!')) ?>,
       powerupInkBrdcst: <?= json_encode(tt('powerup_ink_broadcast', '🦑 {attacker}, {victim} oyuncusuna mürekkep fırlattı!')) ?>,
       powerup5050Brdcst: <?= json_encode(tt('powerup_5050_broadcast', '🎯 {user} 50/50 jokerini kullandı!')) ?>,
+      lobbyRulesTitle: <?= json_encode(tt('lobby_rules_title', 'Oyun Kuralları & İpuçları')) ?>,
+      ruleGoalTitle: <?= json_encode(tt('lobby_rule_goal_title', 'Hedefi Hafızana Al')) ?>,
+      ruleGoalDesc: <?= json_encode(tt('lobby_rule_goal_desc', 'Tur başında ekranda beliren hedef rengi veya bayrağı dikkatlice incele ve kaybolmadan hafızana al.')) ?>,
+      ruleSpeedTitle: <?= json_encode(tt('lobby_rule_speed_title', 'Hız ve İsabet')) ?>,
+      ruleSpeedDesc: <?= json_encode(tt('lobby_rule_speed_desc', 'Izgaradaki doğru seçeneği ne kadar hızlı bulup seçersen, o kadar yüksek puan kazanırsın.')) ?>,
+      rulePowerupsTitle: <?= json_encode(tt('lobby_rule_powerups_title', 'Jokerler & Sabotaj')) ?>,
+      rulePowerupsDesc: <?= json_encode(tt('lobby_rule_powerups_desc', '5 tur üst üste doğru cevap vererek 🎯 %50 Jokerini ve rakiplerin ekranını karalayan 🦑 Mürekkep Sabotajını aç.')) ?>,
+      ruleModeTitle: <?= json_encode(tt('lobby_rule_mode_title', 'Mod Kuralı')) ?>,
+      ruleElimDesc: <?= json_encode(tt('lobby_rule_elim_desc', 'Hayatta kalma mücadelesi! Yanlış seçim yapan veya süresi dolan elenir ve izleyici olur. Son hayatta kalan kazanır.')) ?>,
+      rulePointsDesc: <?= json_encode(tt('lobby_rule_points_desc', 'Elenme yok! Doğru cevap puan kazandırır, yanlış seçim puan düşürür. 25 turun sonunda en yüksek puanlı kazanır.')) ?>,
+      ruleFlagsDesc: <?= json_encode(tt('lobby_rule_flags_desc', '250+ ülke bayrağı! Elenme yok, doğru bayrağı en hızlı bulan ve en çok puanı toplayan şampiyon olur.')) ?>,
+      ruleTeamsDesc: <?= json_encode(tt('lobby_rule_teams_desc', 'Takımını seç! Tüm takım üyelerinin bireysel puanları takım havuzuna eklenir. En yüksek skoru toplayan takım kazanır.')) ?>,
     };
 
     function escapeHtml(s) {
@@ -2996,6 +3075,76 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           }).join('')}
         </div>
       `;
+    }
+
+    function getLobbyRulesHtml(gameMode) {
+      const mode = gameMode || state.gameMode || 'elimination';
+      let modeIcon = '💀';
+      let modeName = STR.modeElimination || 'Eleme Modu';
+      let modeDesc = STR.ruleElimDesc;
+
+      if (mode === 'points') {
+        modeIcon = '⚡';
+        modeName = STR.modePoints || 'Puan Yarışı';
+        modeDesc = STR.rulePointsDesc;
+      } else if (mode === 'flags') {
+        modeIcon = '🚩';
+        modeName = STR.modeFlags || 'Bayrak Modu';
+        modeDesc = STR.ruleFlagsDesc;
+      } else if (mode === 'teams') {
+        modeIcon = '⚔️';
+        modeName = STR.modeTeams || 'Takım Savaşı';
+        modeDesc = STR.ruleTeamsDesc;
+      }
+
+      return `
+        <div class="lobby-rules-card" id="lobbyRulesCard">
+          <div class="lobby-rules-header">
+            <span>📜</span>
+            <span>${escapeHtml(STR.lobbyRulesTitle || 'Oyun Kuralları & İpuçları')}</span>
+          </div>
+          <div class="lobby-rules-grid">
+            <div class="lobby-rule-item">
+              <span class="lobby-rule-icon">👁️</span>
+              <div class="lobby-rule-text">
+                <strong>${escapeHtml(STR.ruleGoalTitle || 'Hedefi Hafızana Al')}</strong>
+                <span>${escapeHtml(STR.ruleGoalDesc)}</span>
+              </div>
+            </div>
+            <div class="lobby-rule-item">
+              <span class="lobby-rule-icon">⚡</span>
+              <div class="lobby-rule-text">
+                <strong>${escapeHtml(STR.ruleSpeedTitle || 'Hız ve İsabet')}</strong>
+                <span>${escapeHtml(STR.ruleSpeedDesc)}</span>
+              </div>
+            </div>
+            <div class="lobby-rule-item">
+              <span class="lobby-rule-icon">🎯</span>
+              <div class="lobby-rule-text">
+                <strong>${escapeHtml(STR.rulePowerupsTitle || 'Jokerler & Sabotaj')}</strong>
+                <span>${escapeHtml(STR.rulePowerupsDesc)}</span>
+              </div>
+            </div>
+            <div class="lobby-rule-item mode-highlight">
+              <span class="lobby-rule-icon">${modeIcon}</span>
+              <div class="lobby-rule-text">
+                <strong>${escapeHtml(STR.ruleModeTitle || 'Mod Kuralı')}: ${escapeHtml(modeName)}</strong>
+                <span>${escapeHtml(modeDesc)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLobbyRules() {
+      const container = document.getElementById('lobbyRulesContainer');
+      if (!container) return;
+      if (state.phase !== 'lobby') {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = getLobbyRulesHtml(state.gameMode);
     }
 
     async function joinTeam(team) {
@@ -4365,6 +4514,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             </div>
           </div>
           <div id="lobbyTeamsContainer"></div>
+          <div id="lobbyRulesContainer">${getLobbyRulesHtml(state.gameMode)}</div>
         </div>
       `;
 
@@ -4466,6 +4616,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           }
           hudStatus.textContent = STR.waiting;
           hudStatus.className = 'hud-val text-info';
+          renderLobbyRules();
         } else {
           hudStatus.textContent = STR.active;
           hudStatus.className = 'hud-val text-info';
@@ -4851,6 +5002,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     if (ROOM_GAME_MODE === 'flags') {
       backgroundPreloadAllFlags();
     }
+    renderLobbyRules();
     initRoom();
   </script>
 </body>
