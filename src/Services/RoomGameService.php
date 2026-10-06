@@ -20,7 +20,7 @@ class RoomGameService {
         $this->userRepo = new UserRepository($this->pdo);
     }
 
-    public function getTimingForRound(int $roundIndex): array {
+    public function getTimingForRound(int $roundIndex, string $gameMode = 'elimination'): array {
         $lvl = max(1, $roundIndex);
         // Sonraki tura geçişte 3-2-1 saymasın, 1 saniye sonra başlasın (1000ms)
         $countdownMs = ($lvl > 1) ? 1000 : 3000;
@@ -29,8 +29,16 @@ class RoomGameService {
         if ($lvl === 21 || $lvl === 41) {
             $showMs = 5000;
         } else {
-            $showMs = (int)floor(3000 * pow(0.9, $lvl - 1));
-            if ($showMs < 250) $showMs = 250;
+            // Gelişmiş hedef renk/bayrak görüntüleme süresi algoritması:
+            // 250ms gibi çok kısa süreler insan gözü, mobil DOM render ve ağ gecikmesi nedeniyle hedefin görünmeden geçilmesine neden oluyordu.
+            // Yeni dengeli süre eğrisi:
+            // - Bayrak modunda armaları/desenleri net algılamak için taban 1600ms, tavan 3200ms
+            // - Renk modunda gözün net odaklanabilmesi için taban 1200ms, tavan 2800ms
+            if ($gameMode === 'flags') {
+                $showMs = max(1600, (int)round(3200 - ($lvl - 1) * 70));
+            } else {
+                $showMs = max(1200, (int)round(2800 - ($lvl - 1) * 65));
+            }
         }
 
         return [
@@ -369,8 +377,10 @@ class RoomGameService {
 
             $this->pdo->commit();
 
-            $timing = $this->getTimingForRound($nextRound);
+            $timing = $this->getTimingForRound($nextRound, $gameMode);
             $freshPlayers = $this->roomRepo->listPlayers($roomId);
+
+            $nowMs = (int)round((float)(new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('U.u') * 1000);
 
             $payload = [
                 'guid' => $guid,
@@ -382,6 +392,8 @@ class RoomGameService {
                 'show_ms' => $timing['show_ms'],
                 'answer_ms' => $timing['answer_ms'],
                 'players' => $freshPlayers,
+                'started_at_ms' => $nowMs,
+                'server_now_ms' => $nowMs,
             ];
 
             if (function_exists('pusher_trigger')) {
@@ -400,6 +412,8 @@ class RoomGameService {
                 'show_ms' => $timing['show_ms'],
                 'answer_ms' => $timing['answer_ms'],
                 'players' => $freshPlayers,
+                'started_at_ms' => $nowMs,
+                'server_now_ms' => $nowMs,
             ];
         } catch (\Throwable $e) {
             if ($this->pdo->inTransaction()) {
@@ -818,7 +832,15 @@ class RoomGameService {
 
         if ($room['status'] === 'finished' || (int)$room['rounds_total'] <= 0) {
             $players = $this->roomRepo->listPlayers($roomId);
-            return ['ok' => true, 'status' => 'finished', 'finished' => true, 'players' => $players];
+            $awards = $this->getRoomAwards($roomId);
+            return [
+                'ok' => true,
+                'status' => 'finished',
+                'finished' => true,
+                'players' => $players,
+                'awards' => $awards,
+                'game_mode' => (string)($room['game_mode'] ?? 'elimination'),
+            ];
         }
 
         $current = (int)$room['current_round'];
@@ -840,7 +862,7 @@ class RoomGameService {
             return ['ok' => true, 'status' => $room['status'], 'round' => $current, 'game_mode' => $gameMode];
         }
 
-        $timing = $this->getTimingForRound($current);
+        $timing = $this->getTimingForRound($current, $gameMode);
         $countdownMs = $timing['countdown_ms'];
         $showMs = $timing['show_ms'];
         $answerMs = $timing['answer_ms'];
@@ -850,8 +872,9 @@ class RoomGameService {
         $startedAt = new \DateTimeImmutable($round['started_at'], new \DateTimeZone('UTC'));
         $endedAt = $round['ended_at'] ? new \DateTimeImmutable($round['ended_at'], new \DateTimeZone('UTC')) : null;
 
-        // Accurate millisecond elapsed calculation
-        $elapsed = (int)round(((float)$now->format('U.u') - (float)$startedAt->format('U.u')) * 1000);
+        $nowMs = (int)round((float)$now->format('U.u') * 1000);
+        $startedAtMs = (int)round((float)$startedAt->format('U.u') * 1000);
+        $elapsed = max(0, $nowMs - $startedAtMs);
 
         // Auto-end round when time runs out (+ 1000ms buffer for network latency)
         if ($endedAt === null && $elapsed >= ($countdownMs + $showMs + $answerMs + 1000)) {
@@ -964,6 +987,8 @@ class RoomGameService {
             'show_ms' => $showMs,
             'answer_ms' => $answerMs,
             'started_at' => $round['started_at'],
+            'started_at_ms' => $startedAtMs,
+            'server_now_ms' => $nowMs,
             'elapsed_ms' => $elapsed,
             'players' => $this->roomRepo->listPlayers($roomId),
         ];

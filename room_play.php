@@ -93,6 +93,30 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       --arena-text: #0f172a;
       --arena-muted: rgba(15, 23, 42, 0.65);
     }
+    [data-bs-theme="light"] .podium-name {
+      color: #0f172a !important;
+      text-shadow: none !important;
+    }
+    [data-bs-theme="light"] .victory-title {
+      color: #0f172a !important;
+    }
+    [data-bs-theme="light"] .stats-header-bar h3,
+    [data-bs-theme="light"] .stat-metric-val {
+      color: #0f172a !important;
+    }
+    [data-bs-theme="light"] .personal-stats-section {
+      background: rgba(0, 0, 0, 0.03) !important;
+    }
+    [data-bs-theme="light"] .stats-summary-grid {
+      background: rgba(0, 0, 0, 0.02) !important;
+    }
+    [data-bs-theme="light"] .victory-standings {
+      background: rgba(0, 0, 0, 0.02) !important;
+    }
+    [data-bs-theme="light"] .round-stats-table th {
+      background: #e2e8f0 !important;
+      color: #334155 !important;
+    }
     body {
       margin: 0;
       font-family: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -433,7 +457,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .victory-title {
       font-size: 26px;
       font-weight: 800;
-      color: #fff;
+      color: var(--arena-text);
       margin-bottom: 4px;
     }
     .victory-subtitle {
@@ -516,7 +540,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       font-family: "Baloo 2", sans-serif;
       font-size: 14px;
       font-weight: 700;
-      color: #fff;
+      color: var(--arena-text);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.35);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -617,7 +642,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .stats-header-bar h3 {
       font-size: 15px;
       font-weight: 800;
-      color: #fff;
+      color: var(--arena-text);
       margin: 0 0 2px 0;
       display: flex;
       align-items: center;
@@ -646,7 +671,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .stat-metric-val {
       font-size: 16px;
       font-weight: 800;
-      color: #fff;
+      color: var(--arena-text);
       line-height: 1.2;
     }
     .stat-metric-lbl {
@@ -2167,7 +2192,23 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       },
       myTeam: 'red',
       teamSummary: null,
+      targetShowTimer: null,
+      serverTimeOffsetMs: 0,
+      roundStartedAtMs: 0,
+      targetShowStartTs: 0,
+      pendingLeaderboard: null,
     };
+
+    function getPlayerDisplayName(p) {
+      if (!p) return STR.player || 'Player';
+      const raw = p.name || p.user_name || p.nickname;
+      if (raw && String(raw).trim() !== '') return String(raw).trim();
+      if (p.email) {
+        const parts = String(p.email).split('@');
+        if (parts[0] && parts[0].trim() !== '') return parts[0].trim();
+      }
+      return STR.player || 'Player';
+    }
 
     function isPlayerOnline(p) {
       if (!p) return false;
@@ -2891,7 +2932,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         let statusSuffix = '';
         if (isElim) statusSuffix = ' 💀 (' + (STR.spectating || 'İzleyici') + ')';
         else if (!isOnline) statusSuffix = ` (${STR.offline})`;
-        nameSpan.textContent = (p.email ? p.email.split('@')[0] : (p.nickname || STR.player)) + (isMe ? ' ' + STR.you : '') + statusSuffix;
+        nameSpan.textContent = getPlayerDisplayName(p) + (isMe ? ' ' + STR.you : '') + statusSuffix;
         tag.appendChild(nameSpan);
 
         if (state.gameMode === 'teams') {
@@ -2959,11 +3000,19 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         clearTimeout(state.countdownInterval);
         state.countdownInterval = null;
       }
+      if (state.targetShowTimer) {
+        clearTimeout(state.targetShowTimer);
+        state.targetShowTimer = null;
+      }
 
       const isFlag = isFlagTarget(state.targetColor);
       const remTitle = isFlag ? STR.rememberFlag : STR.rememberColor;
 
-      // Sonraki tura geçişte (round > 1 veya countdownMs <= 1000): 3-2-1 diye sayma, 1 saniye sonra sonraki tura geç
+      // Sunucu saatine göre senkronize countdown hesaplama
+      const nowEst = Date.now() + (state.serverTimeOffsetMs || 0);
+      const elapsedSinceStart = state.roundStartedAtMs ? Math.max(0, nowEst - state.roundStartedAtMs) : 0;
+
+      // Sonraki tura geçişte (round > 1 veya countdownMs <= 1000):
       if (state.round > 1 || state.countdownMs <= 1000) {
         stageContent.innerHTML = `
           <h2 class="stage-title">${remTitle}</h2>
@@ -2971,15 +3020,20 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           <div class="stage-subtitle">${STR.watchScreen}</div>
         `;
 
+        // Tüm oyuncuların aynı anda hedef renge geçmesi için senkronize geçiş
+        const delay = Math.max(250, 1000 - elapsedSinceStart);
         state.countdownInterval = setTimeout(() => {
           state.countdownInterval = null;
           runTargetShow();
-        }, 1000);
+        }, delay);
         return;
       }
 
       // İlk tur / Maç başlangıcı: 3-2-1 geri sayımı
-      let remaining = Math.max(1, Math.round(state.countdownMs / 1000));
+      const totalCountSeconds = Math.max(1, Math.round(state.countdownMs / 1000));
+      const elapsedSeconds = Math.floor(elapsedSinceStart / 1000);
+      let remaining = Math.max(1, totalCountSeconds - elapsedSeconds);
+
       stageContent.innerHTML = `
         <h2 class="stage-title">${remTitle}</h2>
         <div class="big-countdown" id="countdownNum">${remaining}</div>
@@ -3003,8 +3057,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     // Step 2: Target Color / Flag Show
     function runTargetShow() {
       state.phase = 'show';
+      state.targetShowStartTs = performance.now();
       hudStatus.textContent = STR.memorize;
       hudStatus.className = 'hud-val text-warning';
+
+      if (state.targetShowTimer) {
+        clearTimeout(state.targetShowTimer);
+        state.targetShowTimer = null;
+      }
 
       const isFlag = isFlagTarget(state.targetColor);
       const remTitle = isFlag ? STR.rememberFlag : STR.rememberColor;
@@ -3027,13 +3087,33 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <div class="stage-subtitle">${showSub}</div>
       `;
 
-      setTimeout(() => {
+      // HEDEF RENK GÖRÜNTÜLEME SÜRESİ GARANTİSİ:
+      // Minimum süre: Bayrak modunda en az 1600ms, renk modunda en az 1200ms.
+      // Asla hedefin anlık flaş yapıp veya görünmeden geçilmesine izin verilmez.
+      const minSafeShowMs = isFlag ? 1600 : 1200;
+      const effectiveShowMs = Math.max(minSafeShowMs, Number(state.showMs) || minSafeShowMs);
+
+      state.targetShowTimer = setTimeout(() => {
+        state.targetShowTimer = null;
         runQuestion();
-      }, state.showMs);
+      }, effectiveShowMs);
     }
 
     // Step 3: Question & Interactive Grid Phase
     async function runQuestion() {
+      if (state.targetShowTimer) {
+        clearTimeout(state.targetShowTimer);
+        state.targetShowTimer = null;
+      }
+
+      // Eğer hedef rengi izlerken tüm canlı oyuncular bitirdiyse ve bu oyuncu izleyici/elenmişse:
+      if (state.pendingLeaderboard && state.eliminated) {
+        const pb = state.pendingLeaderboard;
+        state.pendingLeaderboard = null;
+        renderLeaderboard(pb.players, pb.targetRound);
+        return;
+      }
+
       state.phase = 'question';
       state.answered = false;
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
@@ -3234,6 +3314,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         } else if (data.ok && (data.round_ended || data.all_answered)) {
           RoomLogger.info('GameState', 'All players answered! Immediately transitioning to leaderboard');
           renderLeaderboard(data.players || []);
+        } else if (state.pendingLeaderboard) {
+          const pb = state.pendingLeaderboard;
+          state.pendingLeaderboard = null;
+          renderLeaderboard(pb.players, pb.targetRound);
         } else if (data.ok && data.answered_count && data.total_participants) {
           const notice = document.getElementById('waitingOthersNotice');
           if (notice) {
@@ -3299,6 +3383,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           renderFinalVictory(data.players || [], data.awards || null, data.team_summary || null);
         } else if (data && data.ok && (data.round_ended || data.all_answered)) {
           renderLeaderboard(data.players || []);
+        } else if (state.pendingLeaderboard) {
+          const pb = state.pendingLeaderboard;
+          state.pendingLeaderboard = null;
+          renderLeaderboard(pb.players, pb.targetRound);
         }
       } catch (e) {
         RoomLogger.error('Answer', 'Failed to submit timeout', e);
@@ -3324,6 +3412,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     function renderLeaderboard(players, targetRound = null) {
       if (state.phase === 'finished') return;
       const r = targetRound || state.round;
+
+      // HEDEF RENK GÖRÜNTÜLEME KORUMA KALKANI:
+      // Eğer kullanıcı şu anda hedef rengi görüyorsa (phase === 'show') veya geri sayım aşamasındaysa (phase === 'countdown'),
+      // hedef rengin gösterim süresi bitene kadar leaderboard ile araya GİRİLMEZ!
+      // Erken gelen sonuç verisi kuyruğa alınır ve hedef gösterimi bittikten sonra devreye girer.
+      if (state.phase === 'countdown' || state.phase === 'show') {
+        RoomLogger.info('GameState', 'Holding leaderboard display until target color exposure finishes', { phase: state.phase, round: r });
+        state.pendingLeaderboard = { players, targetRound: r };
+        return;
+      }
+
       if (state.phase === 'intermission' && state.leaderboardRound === r) {
         if (Array.isArray(players) && players.length > 0) {
           state.players = players;
@@ -3331,9 +3430,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         }
         return;
       }
+      state.pendingLeaderboard = null;
       state.leaderboardRound = r;
       state.phase = 'intermission';
       if (state.countdownInterval) { clearInterval(state.countdownInterval); clearTimeout(state.countdownInterval); state.countdownInterval = null; }
+      if (state.targetShowTimer) { clearTimeout(state.targetShowTimer); state.targetShowTimer = null; }
       if (state.activeTimer) clearInterval(state.activeTimer);
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       hudTimer.textContent = '-';
@@ -3367,7 +3468,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               ${sorted.map((p, idx) => `
                 <tr class="${(p.email === ME_EMAIL || String(p.user_id) === String(ME_ID)) ? 'table-active fw-bold' : ''}">
                   <td>${idx === 0 ? '👑 1' : idx + 1}</td>
-                  <td>${p.email ? p.email.split('@')[0] : (p.nickname || STR.player)}</td>
+                  <td>${escapeHtml(getPlayerDisplayName(p))}</td>
                   <td>${Number(p.score) || 0}</td>
                   <td><span class="badge ${p.status === 'eliminated' ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'} rounded-pill">${p.status === 'eliminated' ? STR.eliminated : STR.active}</span></td>
                 </tr>
@@ -3419,11 +3520,21 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       RoomLogger.info('GameState', `applyRoundData: Starting round ${data.round}`, data);
 
+      if (data.server_now_ms) {
+        state.serverTimeOffsetMs = Number(data.server_now_ms) - Date.now();
+      }
+      state.roundStartedAtMs = Number(data.started_at_ms || data.server_now_ms || Date.now());
+      state.pendingLeaderboard = null;
+
       if (state.intermissionTimer) clearTimeout(state.intermissionTimer);
       if (state.countdownInterval) {
         clearInterval(state.countdownInterval);
         clearTimeout(state.countdownInterval);
         state.countdownInterval = null;
+      }
+      if (state.targetShowTimer) {
+        clearTimeout(state.targetShowTimer);
+        state.targetShowTimer = null;
       }
       if (state.activeTimer) clearInterval(state.activeTimer);
 
@@ -3434,9 +3545,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       hudRound.textContent = `${data.round} / ${state.roundsTotal || 25}`;
       state.targetColor = data.question?.target;
       state.gridColors = data.question?.grid || [];
-      state.showMs = data.show_ms || 3000;
-      state.answerMs = data.answer_ms || 5000;
-      state.countdownMs = data.countdown_ms || 3000;
+
+      // Minimum güvenli hedef görüntüleme süresi garantisi (bayrak: 1600ms, renk: 1200ms)
+      const minShow = (state.gameMode === 'flags' || isFlagTarget(state.targetColor)) ? 1600 : 1200;
+      state.showMs = Math.max(minShow, Number(data.show_ms) || minShow);
+      state.answerMs = Number(data.answer_ms) || 5000;
+      state.countdownMs = Number(data.countdown_ms) || (state.round > 1 ? 1000 : 3000);
       state.answered = false;
 
       // Tur başlamadan önce bu turda gösterilecek tüm bayrak dosyalarını (hedef ve tüm seçenekler) hemen indir
@@ -3530,7 +3644,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <div class="awards-grid">
               ${awardList.map(a => {
                 const isMe = a.email === ME_EMAIL || String(a.user_id) === String(ME_ID);
-                const winnerName = a.email ? a.email.split('@')[0] : (a.nickname || STR.player);
+                const winnerName = getPlayerDisplayName(a);
                 return `
                   <div class="award-card ${isMe ? 'is-me' : ''}">
                     <div class="award-icon">${a.icon}</div>
@@ -3568,7 +3682,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         }
 
         const isMe = player.email === ME_EMAIL || String(player.user_id) === String(ME_ID);
-        const name = player.email ? player.email.split('@')[0] : (player.nickname || STR.player);
+        const name = getPlayerDisplayName(player);
         const score = Number(player.score) || 0;
         const medalIcon = rankNum === 1 ? '🥇' : (rankNum === 2 ? '🥈' : '🥉');
 
@@ -3681,7 +3795,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                     const isMe = p.email === ME_EMAIL || String(p.user_id) === String(ME_ID);
                     const isElim = p.status === 'eliminated';
                     const isWin = (idx === 0);
-                    const pName = p.email ? p.email.split('@')[0] : (p.nickname || STR.player);
+                    const pName = getPlayerDisplayName(p);
                     const pScore = Number(p.score) || 0;
                     const pCorrect = typeof p.correct_count !== 'undefined' ? Number(p.correct_count) : '-';
                     let rankBadge = '';
@@ -4416,7 +4530,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         if ((data.finished || data.status === 'finished') && state.phase !== 'finished') {
           RoomLogger.info('TickSync', 'Match concluded on server', data);
-          renderFinalVictory(data.players || []);
+          renderFinalVictory(data.players || [], data.awards || null, data.team_summary || null);
         } else if (data.status === 'waiting' && state.phase === 'finished') {
           RoomLogger.info('TickSync', 'Match reset to waiting lobby on server', data);
           resetToLobby(data.players || []);

@@ -221,6 +221,11 @@ class RoomRepository implements RoomRepositoryInterface {
         $rows = $stmt->fetchAll() ?: [];
         foreach ($rows as &$r) {
             $r['is_online'] = (int)($r['is_online'] ?? 0);
+            $email = trim((string)($r['email'] ?? ''));
+            $displayName = ($email !== '' && str_contains($email, '@')) ? explode('@', $email)[0] : ($email !== '' ? $email : 'Player');
+            $r['name'] = $displayName;
+            $r['nickname'] = $displayName;
+            $r['user_name'] = $displayName;
         }
         return $rows;
     }

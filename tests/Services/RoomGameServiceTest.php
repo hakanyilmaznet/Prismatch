@@ -55,11 +55,19 @@ class RoomGameServiceTest extends BaseTestCase {
         $t1 = $service->getTimingForRound(1);
         $this->assertSame(3000, $t1['countdown_ms']);
         $this->assertSame(5000, $t1['answer_ms']);
-        $this->assertGreaterThanOrEqual(250, $t1['show_ms']);
+        $this->assertGreaterThanOrEqual(1200, $t1['show_ms']);
 
         // Round 2+
         $t2 = $service->getTimingForRound(2);
         $this->assertSame(1000, $t2['countdown_ms']);
+
+        // High round minimum guarantee (never below 1200ms in colors mode)
+        $t25 = $service->getTimingForRound(25, 'elimination');
+        $this->assertGreaterThanOrEqual(1200, $t25['show_ms']);
+
+        // Flags mode guarantee (never below 1600ms)
+        $tFlags = $service->getTimingForRound(25, 'flags');
+        $this->assertGreaterThanOrEqual(1600, $tFlags['show_ms']);
 
         // Special milestone rounds 21 and 41
         $t21 = $service->getTimingForRound(21);
