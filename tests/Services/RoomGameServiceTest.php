@@ -349,18 +349,38 @@ class RoomGameServiceTest extends BaseTestCase {
         $this->assertFalse($resNotActive['ok']);
         $this->assertSame('room_not_active', $resNotActive['error']);
 
-        // Active room with success
+        // Active room but no streak -> powerup_streak_required
         $activeRoom = $this->sampleRoom;
         $activeRoom['status'] = 'active';
         $activeRoom['current_round'] = 2;
 
-        $pdo = $this->createMockPdo([
+        $pdoNoStreak = $this->createMockPdo([
             'WHERE guid = :guid' => [$activeRoom],
             'FROM room_players' => [$this->samplePlayer1, $this->samplePlayer2],
-            'SELECT COUNT(*) FROM room_events' => [['COUNT(*)' => 0]],
+            'FROM room_events' => [],
+        ]);
+        $serviceNoStreak = new RoomGameService($pdoNoStreak);
+        $resNoStreak = $serviceNoStreak->usePowerup('g-srv-1', 'u-owner-1', 'owner@test.com', 'Owner', 'fifty_fifty');
+        $this->assertFalse($resNoStreak['ok']);
+        $this->assertSame('powerup_streak_required', $resNoStreak['error']);
+
+        // 5 consecutive correct answers unlocked powerup
+        $fiveCorrectEvents = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $fiveCorrectEvents[] = [
+                'round_index' => $i,
+                'event_type' => 'answer',
+                'payload_json' => json_encode(['correct' => true, 'response_ms' => 800]),
+            ];
+        }
+
+        $pdoActive = $this->createMockPdo([
+            'WHERE guid = :guid' => [$activeRoom],
+            'FROM room_players' => [$this->samplePlayer1, $this->samplePlayer2],
+            'FROM room_events' => $fiveCorrectEvents,
             'INSERT INTO room_events' => [],
         ]);
-        $serviceActive = new RoomGameService($pdo);
+        $serviceActive = new RoomGameService($pdoActive);
         $resSuccess = $serviceActive->usePowerup('g-srv-1', 'u-owner-1', 'owner@test.com', 'Owner', 'ink_splat');
         $this->assertTrue($resSuccess['ok']);
         $this->assertSame('ink_splat', $resSuccess['payload']['type']);

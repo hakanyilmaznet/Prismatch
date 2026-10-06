@@ -13,6 +13,7 @@ class RoomGameService {
     private PDO $pdo;
     private RoomRepository $roomRepo;
     private UserRepository $userRepo;
+    public const POWERUP_STREAK_REQUIREMENT = 5;
 
     public function __construct(?PDO $pdo = null) {
         $this->pdo = $pdo ?? Database::getConnection();
@@ -1175,18 +1176,17 @@ class RoomGameService {
             return ['ok' => false, 'code' => 403, 'error' => 'player_not_active'];
         }
 
-        // Check if user has already used this powerup in this room
-        $checkStmt = $this->pdo->prepare("
-            SELECT COUNT(*) FROM room_events
-            WHERE room_id = :rid AND user_id = :uid AND event_type = 'powerup' AND payload_json LIKE :pattern
-        ");
-        $checkStmt->execute([
-            ':rid' => $roomId,
-            ':uid' => $userId,
-            ':pattern' => '%"type":"' . $type . '"%',
-        ]);
-        if ((int)$checkStmt->fetchColumn() > 0) {
-            return ['ok' => false, 'code' => 400, 'error' => 'powerup_already_used'];
+        // Verify user has unlocked/renewed this powerup via 5 consecutive correct answers
+        $avail = $this->checkPowerupAvailability($roomId, $userId, $type);
+        if (!$avail['available']) {
+            return [
+                'ok' => false,
+                'code' => 400,
+                'error' => 'powerup_streak_required',
+                'current_streak' => $avail['current_streak'],
+                'required_streak' => $avail['required_streak'],
+                'msg' => 'Bu jokeri kullanmak için 5 tur üst üste doğru cevap vermelisiniz.'
+            ];
         }
 
         $targetPlayer = null;
@@ -1544,6 +1544,62 @@ class RoomGameService {
         }
 
         return $awards;
+    }
+
+    /**
+     * Check if a player currently has access to a powerup based on streak rules.
+     * Rule: Not given up-front. Earned after 5 consecutive correct answers,
+     * and after each use, renewed after another 5 consecutive correct answers.
+     *
+     * @param string $roomId Room ID
+     * @param string $userId User ID
+     * @param string $type Powerup type ('fifty_fifty' or 'ink_splat')
+     * @return array{available: bool, current_streak: int, required_streak: int}
+     */
+    public function checkPowerupAvailability(string $roomId, string $userId, string $type): array {
+        $stmt = $this->pdo->prepare("
+            SELECT round_index, event_type, payload_json
+            FROM room_events
+            WHERE room_id = :rid AND user_id = :uid AND event_type IN ('answer', 'timeout', 'eliminate', 'powerup')
+            ORDER BY id ASC
+        ");
+        $stmt->execute([':rid' => $roomId, ':uid' => $userId]);
+        $events = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $hasItem = false;
+        $currentStreak = 0;
+
+        foreach ($events as $ev) {
+            $eType = (string)($ev['event_type'] ?? '');
+            $payload = json_decode((string)($ev['payload_json'] ?? ''), true) ?: [];
+
+            if ($eType === 'answer') {
+                $isCorrect = !empty($payload['correct']);
+                if ($isCorrect) {
+                    $currentStreak++;
+                    if (!$hasItem && $currentStreak >= self::POWERUP_STREAK_REQUIREMENT) {
+                        $hasItem = true;
+                    }
+                } else {
+                    $currentStreak = 0;
+                }
+            } elseif ($eType === 'timeout' || $eType === 'eliminate') {
+                $currentStreak = 0;
+            } elseif ($eType === 'powerup') {
+                $pType = (string)($payload['type'] ?? '');
+                if ($pType === $type) {
+                    // This specific powerup was consumed; streak counter resets for next renewal
+                    $hasItem = false;
+                    $currentStreak = 0;
+                }
+            }
+        }
+
+        return [
+            'available' => $hasItem,
+            'current_streak' => $currentStreak,
+            'required_streak' => self::POWERUP_STREAK_REQUIREMENT,
+        ];
     }
 }
 

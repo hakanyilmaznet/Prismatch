@@ -1356,11 +1356,27 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       transform: translateY(0) scale(0.97);
     }
     .powerup-btn:disabled, .powerup-btn.is-used {
-      opacity: 0.35;
+      opacity: 0.45;
       cursor: not-allowed;
-      filter: grayscale(1);
       pointer-events: none;
       box-shadow: none;
+    }
+    .powerup-btn.is-locked {
+      opacity: 0.65;
+      filter: grayscale(0.3);
+    }
+    .powerup-btn.is-ready {
+      animation: powerupPulse 2s infinite ease-in-out;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+    }
+    .powerup-btn.btn-ink.is-ready {
+      border-color: #a855f7 !important;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.45);
+    }
+    @keyframes powerupPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
     }
     .powerup-btn.btn-5050 {
       border-color: rgba(56, 189, 248, 0.45);
@@ -1372,15 +1388,28 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #ff6b5b, #ffb020);
+      background: linear-gradient(135deg, #10b981, #06b6d4);
       color: #fff;
       font-size: 11px;
       font-weight: 800;
-      min-width: 18px;
-      height: 18px;
-      padding: 0 5px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
       border-radius: 999px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .powerup-btn.is-locked .powerup-badge {
+      background: rgba(148, 163, 184, 0.25);
+      color: #cbd5e1;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    [data-bs-theme="light"] .powerup-btn.is-locked .powerup-badge {
+      color: #475569;
+      background: rgba(100, 116, 139, 0.15);
+      border: 1px solid rgba(0, 0, 0, 0.1);
     }
     .powerup-btn.is-used .powerup-badge {
       background: #64748b;
@@ -1704,15 +1733,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     <!-- Step 3: Power-ups & Sabotage Bar (Active match only) -->
     <div id="powerupBar" class="powerup-bar d-none" aria-label="Joker ve Sabotaj Kartları">
-      <button type="button" id="powerup5050Btn" class="powerup-btn btn-5050" title="<?= htmlspecialchars(tt('powerup_5050_title', '50/50 Joker: Yanlış şıkların yarısını eler')) ?>">
+      <button type="button" id="powerup5050Btn" class="powerup-btn btn-5050 is-locked" disabled title="<?= htmlspecialchars(tt('powerup_5050_title_locked', '50/50 Joker: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
         <span>🎯</span>
         <span>50/50</span>
-        <span id="badge5050" class="powerup-badge">1</span>
+        <span id="badge5050" class="powerup-badge">🔒 0/5</span>
       </button>
-      <button type="button" id="powerupInkBtn" class="powerup-btn btn-ink" title="<?= htmlspecialchars(tt('powerup_ink_title', 'Mürekkep Sabotajı: Rakibin ekranını karala!')) ?>">
+      <button type="button" id="powerupInkBtn" class="powerup-btn btn-ink is-locked" disabled title="<?= htmlspecialchars(tt('powerup_ink_title_locked', 'Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
         <span>🦑</span>
         <span>Mürekkep</span>
-        <span id="badgeInk" class="powerup-badge">1</span>
+        <span id="badgeInk" class="powerup-badge">🔒 0/5</span>
       </button>
     </div>
 
@@ -2187,8 +2216,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       streak: 0,
       maxStreak: 0,
       powerups: {
-        fifty_fifty_used: false,
-        ink_used: false,
+        fifty_fifty_available: false,
+        fifty_fifty_streak: 0,
+        ink_available: false,
+        ink_streak: 0,
       },
       myTeam: 'red',
       teamSummary: null,
@@ -2529,29 +2560,45 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       bar.classList.remove('d-none');
 
-      if (state.powerups.fifty_fifty_used) {
-        btn5050.disabled = true;
-        btn5050.classList.add('is-used');
-        if (badge5050) badge5050.textContent = '0';
-      } else {
+      // 50/50 Joker UI
+      const streak5050 = Math.min(5, Math.max(0, state.powerups.fifty_fifty_streak || 0));
+      if (state.powerups.fifty_fifty_available) {
         btn5050.disabled = false;
-        btn5050.classList.remove('is-used');
+        btn5050.classList.remove('is-used', 'is-locked');
+        btn5050.classList.add('is-ready');
         if (badge5050) badge5050.textContent = '1';
+        btn5050.title = '50/50 Joker: Yanlış şıkların yarısını eler (Hazır!)';
+      } else {
+        btn5050.disabled = true;
+        btn5050.classList.remove('is-ready', 'is-used');
+        btn5050.classList.add('is-locked');
+        if (badge5050) badge5050.textContent = `🔒 ${streak5050}/5`;
+        btn5050.title = `50/50 Joker: 5 tur üst üste doğru cevap vererek aç (${streak5050}/5)`;
       }
 
-      if (state.powerups.ink_used) {
-        btnInk.disabled = true;
-        btnInk.classList.add('is-used');
-        if (badgeInk) badgeInk.textContent = '0';
-      } else {
+      // Ink Splat Sabotage UI
+      const streakInk = Math.min(5, Math.max(0, state.powerups.ink_streak || 0));
+      if (state.powerups.ink_available) {
         btnInk.disabled = false;
-        btnInk.classList.remove('is-used');
+        btnInk.classList.remove('is-used', 'is-locked');
+        btnInk.classList.add('is-ready');
         if (badgeInk) badgeInk.textContent = '1';
+        btnInk.title = 'Mürekkep Sabotajı: Rakibin ekranını karala! (Hazır!)';
+      } else {
+        btnInk.disabled = true;
+        btnInk.classList.remove('is-ready', 'is-used');
+        btnInk.classList.add('is-locked');
+        if (badgeInk) badgeInk.textContent = `🔒 ${streakInk}/5`;
+        btnInk.title = `Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç (${streakInk}/5)`;
       }
     }
 
     function useFiftyFifty() {
-      if (state.powerups.fifty_fifty_used) return;
+      if (!state.powerups.fifty_fifty_available) {
+        const streak = state.powerups.fifty_fifty_streak || 0;
+        showToast(`50/50 jokeri için 5 tur üst üste doğru cevap gerekli! (${streak}/5)`);
+        return;
+      }
       if (state.phase !== 'question' || state.eliminated || state.answered) {
         showToast('50/50 yalnızca seçenekler ekrandayken kullanılabilir!');
         return;
@@ -2568,7 +2615,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         btn.classList.add('fifty-fifty-dimmed');
       });
 
-      state.powerups.fifty_fifty_used = true;
+      state.powerups.fifty_fifty_available = false;
+      state.powerups.fifty_fifty_streak = 0;
       updatePowerupUI();
       playReactionSound('fifty_fifty');
       showToast('🎯 50/50 Joker Aktif! Yanlış şıklar elendi.');
@@ -2581,7 +2629,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     function openSabotageModal() {
-      if (state.powerups.ink_used) return;
+      if (!state.powerups.ink_available) {
+        const streak = state.powerups.ink_streak || 0;
+        showToast(`Mürekkep sabotajı için 5 tur üst üste doğru cevap gerekli! (${streak}/5)`);
+        return;
+      }
       if (state.eliminated) return;
 
       const rivals = (state.players || []).filter(p => 
@@ -2646,8 +2698,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     function fireInkSabotage(targetUserId, targetName) {
-      if (state.powerups.ink_used) return;
-      state.powerups.ink_used = true;
+      if (!state.powerups.ink_available) return;
+      state.powerups.ink_available = false;
+      state.powerups.ink_streak = 0;
       updatePowerupUI();
 
       playReactionSound('ink_splat');
@@ -3227,6 +3280,32 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           document.getElementById('arenaStage')?.classList.add('stage-on-fire');
         }
 
+        // Power-ups: 5 consecutive correct answers unlock/renew fifty-fifty & ink sabotage
+        let unlockedPowerup = null;
+        if (!state.powerups.fifty_fifty_available) {
+          state.powerups.fifty_fifty_streak = (state.powerups.fifty_fifty_streak || 0) + 1;
+          if (state.powerups.fifty_fifty_streak >= 5) {
+            state.powerups.fifty_fifty_available = true;
+            state.powerups.fifty_fifty_streak = 5;
+            unlockedPowerup = '🎯 50/50 Jokeri';
+          }
+        }
+        if (!state.powerups.ink_available) {
+          state.powerups.ink_streak = (state.powerups.ink_streak || 0) + 1;
+          if (state.powerups.ink_streak >= 5) {
+            state.powerups.ink_available = true;
+            state.powerups.ink_streak = 5;
+            unlockedPowerup = unlockedPowerup ? '🎯 50/50 ve 🦑 Mürekkep Jokerleri' : '🦑 Mürekkep Sabotajı';
+          }
+        }
+        updatePowerupUI();
+        if (unlockedPowerup) {
+          setTimeout(() => {
+            playTone(880, 0.25, 'triangle');
+            showToast(`🎉 5 tur üst üste doğru! ${unlockedPowerup} Kazandın!`, true);
+          }, 350);
+        }
+
         let toastMsg = STR.correct;
         if (state.streak >= 2) {
           toastMsg += ` 🔥 ${state.streak}x ${STR.streakCombo || 'Kombo!'}`;
@@ -3235,6 +3314,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       } else {
         btn.classList.add('wrong');
         playTone(220, 0.2, 'sawtooth');
+
+        // Streak broken: reset locked powerups progress (already earned powerups are kept)
+        if (!state.powerups.fifty_fifty_available) {
+          state.powerups.fifty_fifty_streak = 0;
+        }
+        if (!state.powerups.ink_available) {
+          state.powerups.ink_streak = 0;
+        }
+        updatePowerupUI();
 
         if (state.streak >= 2) {
           document.getElementById('arenaStage')?.classList.add('screen-shake');
@@ -3343,6 +3431,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.streak = 0;
       updateStreakUI(0);
       document.getElementById('arenaStage')?.classList.remove('stage-on-fire');
+
+      // Streak broken: reset locked powerups progress (already earned powerups are kept)
+      if (!state.powerups.fifty_fifty_available) {
+        state.powerups.fifty_fifty_streak = 0;
+      }
+      if (!state.powerups.ink_available) {
+        state.powerups.ink_streak = 0;
+      }
+      updatePowerupUI();
 
       state.myRoundStats.push({
         round: state.round,
@@ -3568,8 +3665,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       if (data.round === 1 || data.is_restart) {
         state.score = 0;
         state.myRoundStats = [];
-        state.powerups.fifty_fifty_used = false;
-        state.powerups.ink_used = false;
+        state.powerups.fifty_fifty_available = false;
+        state.powerups.fifty_fifty_streak = 0;
+        state.powerups.ink_available = false;
+        state.powerups.ink_streak = 0;
         hudScore.textContent = '0';
       }
       updatePowerupUI();
@@ -4104,8 +4203,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.gridColors = [];
       state.gridPreloadPromise = null;
       state.myRoundStats = [];
-      state.powerups.fifty_fifty_used = false;
-      state.powerups.ink_used = false;
+      state.powerups.fifty_fifty_available = false;
+      state.powerups.fifty_fifty_streak = 0;
+      state.powerups.ink_available = false;
+      state.powerups.ink_streak = 0;
       updatePowerupUI();
 
       hudRound.textContent = '-';

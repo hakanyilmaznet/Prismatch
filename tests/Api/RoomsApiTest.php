@@ -502,8 +502,8 @@ class RoomsApiTest extends ApiTestCase {
             'last_active' => '2026-10-01 12:00:00',
         ];
 
-        // 1. Successful fifty_fifty
-        $res = $this->callApi('api/rooms_powerup.php', [
+        // 1. Blocked when streak < 5
+        $resBlocked = $this->callApi('api/rooms_powerup.php', [
             'method' => 'POST',
             'use_sqlite' => true,
             'session' => [
@@ -521,11 +521,50 @@ class RoomsApiTest extends ApiTestCase {
             ],
         ]);
 
+        $this->assertSame(400, $resBlocked['status']);
+        $this->assertFalse($resBlocked['json']['ok']);
+        $this->assertSame('powerup_streak_required', $resBlocked['json']['error']);
+
+        // Generate 5 consecutive correct answer events
+        $eventsSeed = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $eventsSeed[] = [
+                'id' => 'ev-streak-' . $i,
+                'room_id' => 'r-api-room-1',
+                'round_index' => $i,
+                'user_id' => 'u-owner-api',
+                'email' => 'owner@test.com',
+                'event_type' => 'answer',
+                'payload_json' => json_encode(['correct' => true, 'response_ms' => 500]),
+                'created_at' => '2026-10-01 12:00:0' . $i,
+            ];
+        }
+
+        // 2. Successful fifty_fifty with 5-streak
+        $res = $this->callApi('api/rooms_powerup.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+                'user_name' => 'Host User',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'type' => 'fifty_fifty',
+            ],
+            'seeds' => [
+                'rooms' => [$activeRoom],
+                'room_players' => [$this->samplePlayerSeed, $opponentSeed],
+                'room_events' => $eventsSeed,
+            ],
+        ]);
+
         $this->assertSame(200, $res['status']);
         $this->assertTrue($res['json']['ok']);
         $this->assertSame('fifty_fifty', $res['json']['payload']['type']);
 
-        // 2. Successful ink_splat targeting rival
+        // 3. Successful ink_splat targeting rival (with 5-streak)
         $resInk = $this->callApi('api/rooms_powerup.php', [
             'method' => 'POST',
             'use_sqlite' => true,
@@ -542,6 +581,7 @@ class RoomsApiTest extends ApiTestCase {
             'seeds' => [
                 'rooms' => [$activeRoom],
                 'room_players' => [$this->samplePlayerSeed, $opponentSeed],
+                'room_events' => $eventsSeed,
             ],
         ]);
 
