@@ -126,6 +126,7 @@ class SchemaManager {
                 max_players INT NOT NULL DEFAULT 25,
                 is_private TINYINT(1) NOT NULL DEFAULT 0,
                 game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination',
+                settings_json TEXT NULL,
                 created_at DATETIME(3) NOT NULL,
                 updated_at DATETIME(3) NULL,
                 started_at DATETIME(3) NULL,
@@ -239,6 +240,11 @@ class SchemaManager {
         try {
             $pdo->exec("ALTER TABLE daily_scores ADD COLUMN game_mode VARCHAR(32) NOT NULL DEFAULT 'elimination'");
             $pdo->exec("ALTER TABLE daily_scores ADD INDEX idx_daily_game_mode (game_mode)");
+        } catch (\Throwable $e) {}
+
+        // Ensure settings_json column exists in rooms table
+        try {
+            $pdo->exec("ALTER TABLE rooms ADD COLUMN settings_json TEXT NULL");
         } catch (\Throwable $e) {}
 
         // Ensure team column exists in room_players table

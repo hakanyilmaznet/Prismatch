@@ -84,6 +84,39 @@ class RoomsApiTest extends ApiTestCase {
         $this->assertFalse($res['json']['is_private']);
     }
 
+    public function testRoomsCreateTeamsWithCustomNames(): void {
+        $res = $this->callApi('api/rooms_create.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-1',
+                'user_email' => 'u1@test.com',
+            ],
+            'body' => [
+                'name' => 'Mega Team War',
+                'game_mode' => 'teams',
+                'is_private' => false,
+                'teams' => [
+                    ['id' => 'red', 'name' => 'Phoenix'],
+                    ['id' => 'blue', 'name' => 'Hydra'],
+                    ['id' => 'green', 'name' => 'Titan'],
+                    ['id' => 'yellow', 'name' => 'Dragon'],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertNotEmpty($res['json']['guid']);
+        $this->assertSame('teams', $res['json']['game_mode']);
+        $this->assertNotNull($res['json']['settings_json']);
+
+        $settings = json_decode($res['json']['settings_json'], true);
+        $this->assertCount(4, $settings['teams']);
+        $this->assertSame('Phoenix', $settings['teams'][0]['name']);
+        $this->assertSame('Dragon', $settings['teams'][3]['name']);
+    }
+
     public function testRoomsJoinUnauthorized(): void {
         $res = $this->callApi('api/rooms_join.php', [
             'method' => 'POST',

@@ -773,20 +773,56 @@ class RoomGameService {
         $gameMode = (string)($roomRow['game_mode'] ?? 'elimination');
         $teamSummary = null;
         if ($gameMode === 'teams') {
-            $teamScores = ['red' => 0, 'blue' => 0];
-            $teamMembers = ['red' => 0, 'blue' => 0];
+            $configuredTeams = $this->getRoomTeams($roomRow ?: []);
+            $teamScores = [];
+            $teamMembers = [];
+            foreach ($configuredTeams as $ct) {
+                $tId = (string)($ct['id'] ?? 'red');
+                $teamScores[$tId] = 0;
+                $teamMembers[$tId] = 0;
+            }
+            if (empty($teamScores)) {
+                $teamScores = ['red' => 0, 'blue' => 0];
+                $teamMembers = ['red' => 0, 'blue' => 0];
+            }
+
+            $allowedIds = array_keys($teamScores);
+            $fallbackTeam = $allowedIds[0];
+
             foreach ($finalPlayers as $p) {
-                $t = (($p['team'] ?? 'red') === 'blue') ? 'blue' : 'red';
+                $t = (string)($p['team'] ?? '');
+                if (!in_array($t, $allowedIds, true)) {
+                    $t = $fallbackTeam;
+                }
                 $teamScores[$t] += (int)($p['score'] ?? 0);
                 $teamMembers[$t]++;
             }
-            $winningTeam = ($teamScores['red'] > $teamScores['blue']) ? 'red' : (($teamScores['blue'] > $teamScores['red']) ? 'blue' : 'tie');
+
+            $maxScore = -1;
+            $winningTeam = 'tie';
+            $isTie = false;
+            foreach ($teamScores as $tId => $score) {
+                if ($score > $maxScore) {
+                    $maxScore = $score;
+                    $winningTeam = $tId;
+                    $isTie = false;
+                } elseif ($score === $maxScore && $maxScore >= 0) {
+                    $isTie = true;
+                }
+            }
+            if ($isTie && count($teamScores) > 1) {
+                $winningTeam = 'tie';
+            }
+
             $teamSummary = [
-                'red_score' => $teamScores['red'],
-                'blue_score' => $teamScores['blue'],
-                'red_members' => $teamMembers['red'],
-                'blue_members' => $teamMembers['blue'],
+                'red_score' => $teamScores['red'] ?? 0,
+                'blue_score' => $teamScores['blue'] ?? 0,
+                'red_members' => $teamMembers['red'] ?? 0,
+                'blue_members' => $teamMembers['blue'] ?? 0,
                 'winning_team' => $winningTeam,
+                'teams' => $configuredTeams,
+                'scores' => $teamScores,
+                'members' => $teamMembers,
             ];
         }
 
@@ -1264,22 +1300,46 @@ class RoomGameService {
     }
 
     /**
+     * Get teams configuration for a room (2-4 teams).
+     *
+     * @param array $roomRow Room database record
+     * @return array<int, array{id: string, name: string, color: string}>
+     */
+    public function getRoomTeams(array $roomRow): array {
+        if (!empty($roomRow['settings_json'])) {
+            $decoded = json_decode((string)$roomRow['settings_json'], true);
+            if (!empty($decoded['teams']) && is_array($decoded['teams'])) {
+                return $decoded['teams'];
+            }
+        }
+        return [
+            ['id' => 'red', 'name' => 'Red', 'color' => '#ef4444'],
+            ['id' => 'blue', 'name' => 'Blue', 'color' => '#3b82f6'],
+        ];
+    }
+
+    /**
      * Set a player's team in the room lobby.
      *
      * @param string $guid Room GUID
      * @param string $userId Player user ID
-     * @param string $team Team name ('red' or 'blue')
+     * @param string $team Team name ('red', 'blue', 'green', 'yellow')
      * @return array{ok: bool, error?: string, code?: int, team?: string, players?: array<int, array<string, mixed>>}
      */
     public function chooseTeam(string $guid, string $userId, string $team): array {
-        $allowed = ['red', 'blue'];
-        if (!in_array($team, $allowed, true)) {
-            return ['ok' => false, 'code' => 400, 'error' => 'invalid_team'];
-        }
-
         $room = $this->roomRepo->getRoomByGuid($guid);
         if (!$room) {
             return ['ok' => false, 'code' => 404, 'error' => 'room_not_found'];
+        }
+
+        $roomTeams = $this->getRoomTeams($room);
+        $allowed = array_column($roomTeams, 'id');
+        if (empty($allowed)) {
+            $allowed = ['red', 'blue', 'green', 'yellow'];
+        }
+
+        if (!in_array($team, $allowed, true)) {
+            return ['ok' => false, 'code' => 400, 'error' => 'invalid_team'];
         }
 
         if (($room['status'] ?? '') !== 'waiting') {

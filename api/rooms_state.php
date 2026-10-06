@@ -39,6 +39,8 @@ echo json_encode([
         'current_round' => (int)$room['current_round'],
         'owner_email' => $room['owner_email'],
         'owner_id' => $room['owner_id'] ?? null,
+        'settings_json' => $room['settings_json'] ?? null,
+        'teams' => (new \Prismatch\Services\RoomGameService())->getRoomTeams($room),
     ],
     'players' => list_room_players((string)$room['id']),
 ]);

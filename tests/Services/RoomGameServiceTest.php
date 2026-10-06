@@ -388,9 +388,9 @@ class RoomGameServiceTest extends BaseTestCase {
     }
 
     public function testChooseTeamValidationsAndSuccess(): void {
-        $service = new RoomGameService($this->createMockPdo());
+        $service = new RoomGameService($this->createMockPdo(['WHERE guid = :guid' => [$this->sampleRoom]]));
 
-        // Invalid team
+        // Invalid team for 2-team room
         $resInvalid = $service->chooseTeam('g-srv-1', 'u-1', 'green');
         $this->assertFalse($resInvalid['ok']);
         $this->assertSame('invalid_team', $resInvalid['error']);
@@ -449,6 +449,75 @@ class RoomGameServiceTest extends BaseTestCase {
         $this->assertSame(2500, $result['team_summary']['red_score']);
         $this->assertSame(1800, $result['team_summary']['blue_score']);
         $this->assertSame('red', $result['team_summary']['winning_team']);
+    }
+
+    public function testChooseTeamDynamicFourTeams(): void {
+        $fourTeamsRoom = $this->sampleRoom;
+        $fourTeamsRoom['game_mode'] = 'teams';
+        $fourTeamsRoom['settings_json'] = json_encode([
+            'teams' => [
+                ['id' => 'red', 'name' => 'Ruby', 'color' => '#ef4444'],
+                ['id' => 'blue', 'name' => 'Sapphire', 'color' => '#3b82f6'],
+                ['id' => 'green', 'name' => 'Emerald', 'color' => '#10b981'],
+                ['id' => 'yellow', 'name' => 'Amber', 'color' => '#f59e0b'],
+            ]
+        ]);
+
+        $pdo = $this->createMockPdo([
+            'WHERE guid = :guid' => [$fourTeamsRoom],
+            'UPDATE room_players SET team = :team' => [],
+            'FROM room_players' => [$this->samplePlayer1],
+        ]);
+
+        $service = new RoomGameService($pdo);
+
+        // Choosing green or yellow is valid in a 4-team room
+        $resGreen = $service->chooseTeam('g-srv-1', 'u-owner-1', 'green');
+        $this->assertTrue($resGreen['ok']);
+        $this->assertSame('green', $resGreen['team']);
+
+        // Choosing an unknown team like purple is still invalid
+        $resPurple = $service->chooseTeam('g-srv-1', 'u-owner-1', 'purple');
+        $this->assertFalse($resPurple['ok']);
+        $this->assertSame('invalid_team', $resPurple['error']);
+    }
+
+    public function testFinishGameCustomFourTeamsSummary(): void {
+        $fourTeamsRoom = $this->sampleRoom;
+        $fourTeamsRoom['game_mode'] = 'teams';
+        $fourTeamsRoom['settings_json'] = json_encode([
+            'teams' => [
+                ['id' => 'red', 'name' => 'Alfa', 'color' => '#ef4444'],
+                ['id' => 'blue', 'name' => 'Beta', 'color' => '#3b82f6'],
+                ['id' => 'green', 'name' => 'Gama', 'color' => '#10b981'],
+                ['id' => 'yellow', 'name' => 'Delta', 'color' => '#f59e0b'],
+            ]
+        ]);
+
+        $p1 = $this->samplePlayer1;
+        $p1['team'] = 'green';
+        $p1['score'] = 3000;
+
+        $p2 = $this->samplePlayer2;
+        $p2['team'] = 'yellow';
+        $p2['score'] = 1200;
+
+        $pdo = $this->createMockPdo([
+            'UPDATE rooms SET status = :status' => [],
+            'FROM room_players' => [$p1, $p2],
+            'WHERE id = :id' => [$fourTeamsRoom],
+            'FROM room_events' => [],
+        ]);
+
+        $service = new RoomGameService($pdo);
+        $result = $service->finishGame('r-srv-1', 5, 'g-srv-1');
+
+        $this->assertTrue($result['finished']);
+        $this->assertNotNull($result['team_summary']);
+        $this->assertSame('green', $result['team_summary']['winning_team']);
+        $this->assertSame(3000, $result['team_summary']['scores']['green']);
+        $this->assertSame(1200, $result['team_summary']['scores']['yellow']);
+        $this->assertCount(4, $result['team_summary']['teams']);
     }
 }
 

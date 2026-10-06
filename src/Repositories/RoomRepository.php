@@ -15,7 +15,7 @@ class RoomRepository implements RoomRepositoryInterface {
         $this->pdo = $pdo ?? Database::getConnection();
     }
 
-    public function createRoom(string $ownerId, string $ownerEmail, int $roundsTotal = 25, ?string $name = null, bool $isPrivate = false, string $gameMode = 'elimination'): array {
+    public function createRoom(string $ownerId, string $ownerEmail, int $roundsTotal = 25, ?string $name = null, bool $isPrivate = false, string $gameMode = 'elimination', ?string $settingsJson = null): array {
         $roomId = Database::generateUuid();
         $guid = Database::generateUuid();
         $ownerEmail = strtolower(trim($ownerEmail));
@@ -29,10 +29,10 @@ class RoomRepository implements RoomRepositoryInterface {
         $stmt = $this->pdo->prepare("
             INSERT INTO rooms (
                 id, guid, name, owner_id, owner_email,
-                status, rounds_total, current_round, is_private, game_mode, created_at, updated_at
+                status, rounds_total, current_round, is_private, game_mode, settings_json, created_at, updated_at
             ) VALUES (
                 :id, :guid, :name, :owner_id, :owner_email,
-                'waiting', :rounds_total, 0, :is_private, :game_mode, :created_at, :updated_at
+                'waiting', :rounds_total, 0, :is_private, :game_mode, :settings_json, :created_at, :updated_at
             )
         ");
         $stmt->execute([
@@ -44,6 +44,7 @@ class RoomRepository implements RoomRepositoryInterface {
             ':rounds_total' => $roundsTotal,
             ':is_private' => $isPrivate ? 1 : 0,
             ':game_mode' => $cleanMode,
+            ':settings_json' => $settingsJson,
             ':created_at' => $now,
             ':updated_at' => $now,
         ]);
@@ -61,6 +62,7 @@ class RoomRepository implements RoomRepositoryInterface {
             'current_round' => 0,
             'is_private' => $isPrivate ? 1 : 0,
             'game_mode' => $cleanMode,
+            'settings_json' => $settingsJson,
             'created_at' => $now,
         ];
     }
@@ -197,7 +199,7 @@ class RoomRepository implements RoomRepositoryInterface {
     }
 
     public function setPlayerTeam(string $roomId, string $userId, string $team): bool {
-        if (!in_array($team, ['red', 'blue'], true)) {
+        if (!in_array($team, ['red', 'blue', 'green', 'yellow'], true)) {
             return false;
         }
         $stmt = $this->pdo->prepare("UPDATE room_players SET team = :team WHERE room_id = :rid AND user_id = :uid");

@@ -4,13 +4,14 @@ declare(strict_types=1);
 namespace Prismatch\Contracts;
 
 interface RoomRepositoryInterface {
-    public function createRoom(string $ownerId, string $ownerEmail, int $roundsTotal = 25, ?string $name = null, bool $isPrivate = false, string $gameMode = 'elimination'): array;
+    public function createRoom(string $ownerId, string $ownerEmail, int $roundsTotal = 25, ?string $name = null, bool $isPrivate = false, string $gameMode = 'elimination', ?string $settingsJson = null): array;
     public function getRoomByGuid(string $guid): ?array;
     public function getRoomById(string $id): ?array;
     public function listUserRooms(string $userId, int $limit = 50): array;
     public function listPublicRooms(int $limit = 20): array;
     public function addPlayer(string $roomId, string $userId, string $email): bool;
     public function listPlayers(string $roomId): array;
+    public function setPlayerTeam(string $roomId, string $userId, string $team): bool;
     public function touchPlayer(string $roomId, string $userId, bool $reactivate = false): void;
     public function removePlayer(string $roomId, string $userId): bool;
     public function cleanupStalePlayers(string $roomId, string $ownerId, int $staleSeconds = 8): int;

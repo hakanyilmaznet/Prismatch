@@ -154,6 +154,7 @@ if (!empty($config['use_sqlite'])) {
             max_players INTEGER DEFAULT 25,
             is_private INTEGER,
             game_mode TEXT,
+            settings_json TEXT,
             created_at TEXT,
             updated_at TEXT,
             finished_at TEXT

@@ -258,8 +258,8 @@ function get_daily_leaderboard(?string $dayUtc = null, int $limit = 100, ?string
 
 // --- Multiplayer Rooms ---
 
-function create_room(string $ownerId, string $ownerEmail, int $roundsTotal = 25, ?string $name = null, bool $isPrivate = false, string $gameMode = 'elimination'): array {
-    return (new RoomRepository())->createRoom($ownerId, $ownerEmail, $roundsTotal, $name, $isPrivate, $gameMode);
+function create_room(string $ownerId, string $ownerEmail, int $roundsTotal = 25, ?string $name = null, bool $isPrivate = false, string $gameMode = 'elimination', ?string $settingsJson = null): array {
+    return (new RoomRepository())->createRoom($ownerId, $ownerEmail, $roundsTotal, $name, $isPrivate, $gameMode, $settingsJson);
 }
 
 function get_room_by_guid(string $guid): ?array {

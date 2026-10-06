@@ -243,6 +243,63 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                 <?= htmlspecialchars(tt('rooms_mode_teams_desc', '🔴 Kırmızı vs 🔵 Mavi Takım! Bireysel puanlar takım havuzuna yazılır, en çok puanı toplayan takım kazanır.')) ?>
               </div>
             </div>
+      </div>
+
+      <!-- Teams Configuration (Revealed when Teams mode is chosen) -->
+      <div id="teamsConfigWrap" class="mt-3 p-3 rounded-3 border bg-body-tertiary" style="display: none; border-left: 4px solid #f59e0b !important;">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            <div class="fw-bold d-flex align-items-center gap-1.5 text-warning-emphasis">
+              <span>⚔️</span> <?= htmlspecialchars(tt('teams_config_title', 'Takım Ayarları')) ?>
+            </div>
+            <div class="small text-secondary">
+              <?= htmlspecialchars(tt('teams_config_desc', 'Takım sayısını (2-4) ve takımlarınızın özel isimlerini belirleyin.')) ?>
+            </div>
+          </div>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Takım Sayısı">
+            <input type="radio" class="btn-check" name="teamCountRadio" id="teamCount2" value="2" checked autocomplete="off">
+            <label class="btn btn-outline-warning fw-semibold px-3" for="teamCount2">2 <?= htmlspecialchars(tt('teams_count_unit', 'Takım')) ?></label>
+
+            <input type="radio" class="btn-check" name="teamCountRadio" id="teamCount3" value="3" autocomplete="off">
+            <label class="btn btn-outline-warning fw-semibold px-3" for="teamCount3">3 <?= htmlspecialchars(tt('teams_count_unit', 'Takım')) ?></label>
+
+            <input type="radio" class="btn-check" name="teamCountRadio" id="teamCount4" value="4" autocomplete="off">
+            <label class="btn btn-outline-warning fw-semibold px-3" for="teamCount4">4 <?= htmlspecialchars(tt('teams_count_unit', 'Takım')) ?></label>
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <!-- Team Red -->
+          <div class="col-12 col-sm-6 col-lg-3" id="teamWrapRed">
+            <label class="form-label small fw-bold text-danger d-flex align-items-center gap-1 mb-1" for="teamNameRed">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;"></span>
+              <?= htmlspecialchars(tt('team_slot_red', '1. Takım (Kırmızı)')) ?>
+            </label>
+            <input type="text" class="form-control form-control-sm border-danger-subtle" id="teamNameRed" maxlength="40" placeholder="<?= htmlspecialchars(tt('team_default_red', 'Kırmızı Takım')) ?>" value="<?= htmlspecialchars(tt('team_default_red', 'Kırmızı Takım')) ?>">
+          </div>
+          <!-- Team Blue -->
+          <div class="col-12 col-sm-6 col-lg-3" id="teamWrapBlue">
+            <label class="form-label small fw-bold text-primary d-flex align-items-center gap-1 mb-1" for="teamNameBlue">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;"></span>
+              <?= htmlspecialchars(tt('team_slot_blue', '2. Takım (Mavi)')) ?>
+            </label>
+            <input type="text" class="form-control form-control-sm border-primary-subtle" id="teamNameBlue" maxlength="40" placeholder="<?= htmlspecialchars(tt('team_default_blue', 'Mavi Takım')) ?>" value="<?= htmlspecialchars(tt('team_default_blue', 'Mavi Takım')) ?>">
+          </div>
+          <!-- Team Green -->
+          <div class="col-12 col-sm-6 col-lg-3" id="teamWrapGreen" style="display: none;">
+            <label class="form-label small fw-bold text-success d-flex align-items-center gap-1 mb-1" for="teamNameGreen">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;"></span>
+              <?= htmlspecialchars(tt('team_slot_green', '3. Takım (Yeşil)')) ?>
+            </label>
+            <input type="text" class="form-control form-control-sm border-success-subtle" id="teamNameGreen" maxlength="40" placeholder="<?= htmlspecialchars(tt('team_default_green', 'Yeşil Takım')) ?>" value="<?= htmlspecialchars(tt('team_default_green', 'Yeşil Takım')) ?>">
+          </div>
+          <!-- Team Yellow -->
+          <div class="col-12 col-sm-6 col-lg-3" id="teamWrapYellow" style="display: none;">
+            <label class="form-label small fw-bold text-warning d-flex align-items-center gap-1 mb-1" for="teamNameYellow">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;"></span>
+              <?= htmlspecialchars(tt('team_slot_yellow', '4. Takım (Sarı)')) ?>
+            </label>
+            <input type="text" class="form-control form-control-sm border-warning-subtle" id="teamNameYellow" maxlength="40" placeholder="<?= htmlspecialchars(tt('team_default_yellow', 'Sarı Takım')) ?>" value="<?= htmlspecialchars(tt('team_default_yellow', 'Sarı Takım')) ?>">
           </div>
         </div>
       </div>
@@ -500,6 +557,19 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     const radioFlags = document.getElementById('modeFlags');
     const radioTeams = document.getElementById('modeTeams');
 
+    const teamsConfigWrap = document.getElementById('teamsConfigWrap');
+    const teamWrapGreen = document.getElementById('teamWrapGreen');
+    const teamWrapYellow = document.getElementById('teamWrapYellow');
+    const teamCountRadios = document.querySelectorAll('input[name="teamCountRadio"]');
+
+    function syncTeamCount() {
+      const selected = parseInt(document.querySelector('input[name="teamCountRadio"]:checked')?.value || '2', 10);
+      if (teamWrapGreen) teamWrapGreen.style.display = (selected >= 3) ? 'block' : 'none';
+      if (teamWrapYellow) teamWrapYellow.style.display = (selected >= 4) ? 'block' : 'none';
+    }
+
+    teamCountRadios.forEach(radio => radio.addEventListener('change', syncTeamCount));
+
     function syncModeCards() {
       const cards = [
         { card: modeCardPoints, radio: radioPoints, color: 'var(--bs-primary)' },
@@ -514,6 +584,12 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           item.card?.style.setProperty('border-color', 'rgba(255,255,255,0.12)', 'important');
         }
       });
+      if (teamsConfigWrap) {
+        teamsConfigWrap.style.display = (radioTeams && radioTeams.checked) ? 'block' : 'none';
+        if (radioTeams && radioTeams.checked) {
+          syncTeamCount();
+        }
+      }
     }
 
     modeCardPoints?.addEventListener('click', () => {
@@ -549,14 +625,38 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       const isPrivate = !!document.getElementById('roomIsPrivate')?.checked;
       const gameMode = document.querySelector('input[name="roomGameMode"]:checked')?.value || 'points';
 
+      let teams = null;
+      if (gameMode === 'teams') {
+        const teamCount = parseInt(document.querySelector('input[name="teamCountRadio"]:checked')?.value || '2', 10);
+        const redName = (document.getElementById('teamNameRed')?.value || '').trim() || <?= json_encode(tt('team_default_red', 'Kırmızı Takım')) ?>;
+        const blueName = (document.getElementById('teamNameBlue')?.value || '').trim() || <?= json_encode(tt('team_default_blue', 'Mavi Takım')) ?>;
+        const greenName = (document.getElementById('teamNameGreen')?.value || '').trim() || <?= json_encode(tt('team_default_green', 'Yeşil Takım')) ?>;
+        const yellowName = (document.getElementById('teamNameYellow')?.value || '').trim() || <?= json_encode(tt('team_default_yellow', 'Sarı Takım')) ?>;
+
+        teams = [
+          { id: 'red', name: redName, color: '#ef4444' },
+          { id: 'blue', name: blueName, color: '#3b82f6' }
+        ];
+        if (teamCount >= 3) {
+          teams.push({ id: 'green', name: greenName, color: '#10b981' });
+        }
+        if (teamCount >= 4) {
+          teams.push({ id: 'yellow', name: yellowName, color: '#f59e0b' });
+        }
+      }
+
       createBtn.disabled = true;
       createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> ' + STR.creating;
 
       try {
+        const payload = {rounds_total: 25, name, is_private: isPrivate ? 1 : 0, game_mode: gameMode};
+        if (teams) {
+          payload.teams = teams;
+        }
         const res = await fetch('api/rooms_create.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({rounds_total: 25, name, is_private: isPrivate ? 1 : 0, game_mode: gameMode})
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.ok && data.guid) {

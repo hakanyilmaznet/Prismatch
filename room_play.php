@@ -41,7 +41,7 @@ if ($userDisplay === '') {
 
 $seoTitle = ($room['name'] ?: tt('room_play_title', 'Multiplayer Match')) . ' - ' . tt('app_name', 'Prismatch');
 $seoDescription = tt('room_play_desc', 'Compete live in real time against other players.');
-$seoLangs = function_exists('supported_languages') ? array_keys(supported_languages()) : [];
+$roomTeams = (new \Prismatch\Services\RoomGameService())->getRoomTeams($room);
 $dict = translations();
 $rightAnswerMessages = $dict[$lang]['right_answer_messages'] ?? ($dict['en']['right_answer_messages'] ?? []);
 $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wrong_answer_messages'] ?? []);
@@ -1566,6 +1566,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     .team-red-label { color: #f43f5e; }
     .team-blue-label { color: #38bdf8; }
+    .team-green-label { color: #10b981; }
+    .team-yellow-label { color: #f59e0b; }
     .team-dot {
       width: 10px;
       height: 10px;
@@ -1574,6 +1576,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     .dot-red { background: #f43f5e; box-shadow: 0 0 8px rgba(244, 63, 94, 0.6); }
     .dot-blue { background: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.6); }
+    .dot-green { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
+    .dot-yellow { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
     .team-battle-bar-wrap {
       flex: 1;
       height: 10px;
@@ -1593,14 +1597,24 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       background: linear-gradient(90deg, #38bdf8, #0284c7);
       transition: width 0.4s ease;
     }
+    .team-progress-green {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #34d399);
+      transition: width 0.4s ease;
+    }
+    .team-progress-yellow {
+      height: 100%;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      transition: width 0.4s ease;
+    }
 
     /* Lobby Team Chooser Box */
     .lobby-teams-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
       width: 100%;
-      max-width: 580px;
+      max-width: 900px;
       margin: 16px auto 12px;
       text-align: left;
     }
@@ -1620,6 +1634,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .lobby-team-card.team-card-blue {
       border-color: rgba(56, 189, 248, 0.4);
     }
+    .lobby-team-card.team-card-green {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+    .lobby-team-card.team-card-yellow {
+      border-color: rgba(245, 158, 11, 0.4);
+    }
     .lobby-team-card.is-my-team {
       background: rgba(255, 255, 255, 0.08);
       box-shadow: 0 0 18px rgba(255, 255, 255, 0.1);
@@ -1631,6 +1651,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .lobby-team-card.team-card-blue.is-my-team {
       border-color: #38bdf8;
       box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+    }
+    .lobby-team-card.team-card-green.is-my-team {
+      border-color: #10b981;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    .lobby-team-card.team-card-yellow.is-my-team {
+      border-color: #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
     }
     .team-card-header {
       display: flex;
@@ -1680,6 +1708,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.35), rgba(56, 189, 248, 0.15));
       border-color: #38bdf8;
       box-shadow: 0 0 30px rgba(56, 189, 248, 0.35);
+    }
+    .team-victory-banner.winner-green {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(16, 185, 129, 0.15));
+      border-color: #10b981;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.35);
+    }
+    .team-victory-banner.winner-yellow {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(245, 158, 11, 0.15));
+      border-color: #f59e0b;
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.35);
     }
     .team-victory-title {
       font-family: "Baloo 2", sans-serif;
@@ -1930,6 +1968,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     const PUSHER_KEY = <?= json_encode(defined('PUSHER_KEY') ? PUSHER_KEY : '') ?>;
     const PUSHER_CLUSTER = <?= json_encode(defined('PUSHER_CLUSTER') ? PUSHER_CLUSTER : 'eu') ?>;
     const ROOM_GAME_MODE = <?= json_encode($room['game_mode'] ?? 'elimination') ?>;
+    const ROOM_TEAMS = <?= json_encode($roomTeams, JSON_UNESCAPED_UNICODE) ?>;
     const ALL_FLAGS = <?= json_encode((($room['game_mode'] ?? '') === 'flags') ? \Prismatch\Services\RoomGameService::getFlagPalette() : []) ?>;
 
     const STR = {
@@ -2242,7 +2281,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         ink_available: false,
         ink_streak: 0,
       },
-      myTeam: 'red',
+      teams: (Array.isArray(ROOM_TEAMS) && ROOM_TEAMS.length > 0) ? ROOM_TEAMS : [
+        { id: 'red', name: 'Red', color: '#ef4444' },
+        { id: 'blue', name: 'Blue', color: '#3b82f6' }
+      ],
+      myTeam: (Array.isArray(ROOM_TEAMS) && ROOM_TEAMS[0]) ? ROOM_TEAMS[0].id : 'red',
       teamSummary: null,
       targetShowTimer: null,
       serverTimeOffsetMs: 0,
@@ -2832,39 +2875,55 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       hudBar.classList.remove('d-none');
 
-      let redScore = 0;
-      let blueScore = 0;
+      const teams = state.teams || [
+        { id: 'red', name: 'Red', color: '#ef4444' },
+        { id: 'blue', name: 'Blue', color: '#3b82f6' }
+      ];
+
+      const teamScores = {};
+      teams.forEach(t => { teamScores[t.id] = 0; });
+      const defaultTeamId = teams[0]?.id || 'red';
+
       (state.players || []).forEach(p => {
-        const t = (p.team === 'blue') ? 'blue' : 'red';
+        const tId = teams.some(t => t.id === p.team) ? p.team : defaultTeamId;
         const s = Number(p.score) || 0;
-        if (t === 'red') redScore += s;
-        else blueScore += s;
+        teamScores[tId] = (teamScores[tId] || 0) + s;
       });
 
-      const redScoreEl = document.getElementById('hudScoreRed');
-      const blueScoreEl = document.getElementById('hudScoreBlue');
-      const redBarEl = document.getElementById('teamProgressBarRed');
-      const blueBarEl = document.getElementById('teamProgressBarBlue');
+      const totalScore = Object.values(teamScores).reduce((a, b) => a + b, 0);
 
-      if (redScoreEl) redScoreEl.textContent = redScore.toLocaleString();
-      if (blueScoreEl) blueScoreEl.textContent = blueScore.toLocaleString();
-
-      let redPct = 50;
-      let bluePct = 50;
-      const total = redScore + blueScore;
-      if (total > 0) {
-        redPct = Math.max(12, Math.min(88, Math.round((redScore / total) * 100)));
-        bluePct = 100 - redPct;
-      } else if (redScore > blueScore) {
-        redPct = 60;
-        bluePct = 40;
-      } else if (blueScore > redScore) {
-        redPct = 40;
-        bluePct = 60;
+      let contentEl = document.getElementById('hudTeamBattleContent');
+      let barEl = document.getElementById('hudTeamBattleBar');
+      if (!contentEl || !barEl) {
+        hudBar.innerHTML = `
+          <div id="hudTeamBattleContent" class="d-flex align-items-center justify-content-between flex-wrap gap-2 w-100"></div>
+          <div id="hudTeamBattleBar" class="team-battle-bar-wrap w-100 mt-1 d-flex"></div>
+        `;
+        contentEl = document.getElementById('hudTeamBattleContent');
+        barEl = document.getElementById('hudTeamBattleBar');
       }
 
-      if (redBarEl) redBarEl.style.width = redPct + '%';
-      if (blueBarEl) blueBarEl.style.width = bluePct + '%';
+      contentEl.innerHTML = teams.map(t => {
+        const score = teamScores[t.id] || 0;
+        return `
+          <div class="team-battle-label team-${t.id}-label d-inline-flex align-items-center gap-1.5" style="color: ${t.color};">
+            <span class="team-dot dot-${t.id}" style="background: ${t.color}; box-shadow: 0 0 8px ${t.color}80;"></span>
+            <span class="team-name fw-bold">${escapeHtml(t.name)}</span>
+            <span id="hudScore_${t.id}" class="team-score fw-extrabold ms-1">${score.toLocaleString()}</span>
+          </div>
+        `;
+      }).join('');
+
+      barEl.innerHTML = teams.map(t => {
+        const score = teamScores[t.id] || 0;
+        let pct = 100 / teams.length;
+        if (totalScore > 0) {
+          pct = Math.max(8, Math.min(85, Math.round((score / totalScore) * 100)));
+        }
+        return `
+          <div class="team-progress-${t.id}" style="width: ${pct}%; height: 100%; background: ${t.color}; transition: width 0.4s ease;"></div>
+        `;
+      }).join('');
     }
 
     function renderLobbyTeams() {
@@ -2875,82 +2934,77 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         return;
       }
 
+      const teams = state.teams || [
+        { id: 'red', name: 'Red', color: '#ef4444' },
+        { id: 'blue', name: 'Blue', color: '#3b82f6' }
+      ];
+
       const players = state.players || [];
-      const redMembers = [];
-      const blueMembers = [];
+      const teamRosters = {};
+      teams.forEach(t => { teamRosters[t.id] = []; });
+      const defaultTeamId = teams[0]?.id || 'red';
 
       players.forEach(p => {
-        if (p.team === 'blue') {
-          blueMembers.push(p);
-        } else {
-          redMembers.push(p);
-        }
+        const tId = teams.some(t => t.id === p.team) ? p.team : defaultTeamId;
+        teamRosters[tId].push(p);
       });
 
-      const myTeam = state.myTeam || 'red';
+      const myTeam = state.myTeam || defaultTeamId;
+
+      const teamBtnClassMap = {
+        red: 'danger',
+        blue: 'primary',
+        green: 'success',
+        yellow: 'warning'
+      };
 
       container.innerHTML = `
         <div class="lobby-teams-grid">
-          <!-- Red Team (Devs) -->
-          <div class="lobby-team-card team-card-red ${myTeam === 'red' ? 'is-my-team' : ''}">
-            <div class="team-card-header">
-              <div class="team-card-title team-red-label">
-                <span class="team-dot dot-red"></span>
-                <span>${escapeHtml(STR.teamRed || '🔴 Devs (Kırmızı)')}</span>
-              </div>
-              <span class="badge bg-danger-subtle text-danger border border-danger-subtle">${redMembers.length} ${escapeHtml(STR.players || 'Oyuncu')}</span>
-            </div>
-            <div class="team-roster-list">
-              ${redMembers.length === 0 ? `<div class="text-secondary small fst-italic">${escapeHtml(STR.noMembersYet || 'Henüz kimse yok')}</div>` : redMembers.map(m => {
-                const isMe = m.email === ME_EMAIL || String(m.user_id) === String(ME_ID);
-                const mName = m.email ? m.email.split('@')[0] : (m.nickname || STR.player);
-                return `
-                  <div class="team-member-item">
-                    <span>🔴</span>
-                    <span>${escapeHtml(mName)}</span>
-                    ${isMe ? `<span class="badge bg-danger text-light fs-8 py-0 px-1 ms-1">${STR.you}</span>` : ''}
+          ${teams.map(t => {
+            const members = teamRosters[t.id] || [];
+            const isMine = myTeam === t.id;
+            const btnTheme = teamBtnClassMap[t.id] || 'primary';
+            return `
+              <div class="lobby-team-card team-card-${t.id} ${isMine ? 'is-my-team' : ''}" style="${isMine ? 'border-color:' + t.color + ';' : ''}">
+                <div class="team-card-header">
+                  <div class="team-card-title team-${t.id}-label" style="color: ${t.color};">
+                    <span class="team-dot dot-${t.id}" style="background: ${t.color}; box-shadow: 0 0 8px ${t.color}80;"></span>
+                    <span>${escapeHtml(t.name)}</span>
                   </div>
-                `;
-              }).join('')}
-            </div>
-            <button type="button" class="btn btn-sm ${myTeam === 'red' ? 'btn-danger disabled' : 'btn-outline-danger'} w-100 rounded-pill mt-2" onclick="joinTeam('red')" ${myTeam === 'red' ? 'disabled' : ''}>
-              ${myTeam === 'red' ? '✓ ' + (STR.yourTeam || 'Senin Takımın') : (STR.joinTeamRed || '🔴 Devs Takımına Katıl')}
-            </button>
-          </div>
-
-          <!-- Blue Team (QAs) -->
-          <div class="lobby-team-card team-card-blue ${myTeam === 'blue' ? 'is-my-team' : ''}">
-            <div class="team-card-header">
-              <div class="team-card-title team-blue-label">
-                <span class="team-dot dot-blue"></span>
-                <span>${escapeHtml(STR.teamBlue || '🔵 QAs (Mavi)')}</span>
+                  <span class="badge rounded-pill" style="background: ${t.color}22; color: ${t.color}; border: 1px solid ${t.color}44;">
+                    ${members.length} ${escapeHtml(STR.players || 'Oyuncu')}
+                  </span>
+                </div>
+                <div class="team-roster-list">
+                  ${members.length === 0 ? `<div class="text-secondary small fst-italic">${escapeHtml(STR.noMembersYet || 'Henüz kimse yok')}</div>` : members.map(m => {
+                    const isMe = m.email === ME_EMAIL || String(m.user_id) === String(ME_ID);
+                    const mName = m.email ? m.email.split('@')[0] : (m.nickname || STR.player);
+                    return `
+                      <div class="team-member-item">
+                        <span class="team-dot dot-${t.id}" style="background: ${t.color}; width: 8px; height: 8px;"></span>
+                        <span class="text-truncate" style="max-width: 140px;">${escapeHtml(mName)}</span>
+                        ${isMe ? `<span class="badge bg-${btnTheme} text-light fs-8 py-0 px-1 ms-1">${STR.you}</span>` : ''}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+                <button type="button" class="btn btn-sm ${isMine ? 'btn-' + btnTheme + ' disabled' : 'btn-outline-' + btnTheme} w-100 rounded-pill mt-2 fw-bold" onclick="joinTeam('${t.id}')" ${isMine ? 'disabled' : ''}>
+                  ${isMine ? '✓ ' + (STR.yourTeam || 'Senin Takımın') : escapeHtml(t.name) + ' ' + (STR.roomsJoin || 'Takımına Katıl')}
+                </button>
               </div>
-              <span class="badge bg-info-subtle text-info border border-info-subtle">${blueMembers.length} ${escapeHtml(STR.players || 'Oyuncu')}</span>
-            </div>
-            <div class="team-roster-list">
-              ${blueMembers.length === 0 ? `<div class="text-secondary small fst-italic">${escapeHtml(STR.noMembersYet || 'Henüz kimse yok')}</div>` : blueMembers.map(m => {
-                const isMe = m.email === ME_EMAIL || String(m.user_id) === String(ME_ID);
-                const mName = m.email ? m.email.split('@')[0] : (m.nickname || STR.player);
-                return `
-                  <div class="team-member-item">
-                    <span>🔵</span>
-                    <span>${escapeHtml(mName)}</span>
-                    ${isMe ? `<span class="badge bg-info text-dark fs-8 py-0 px-1 ms-1">${STR.you}</span>` : ''}
-                  </div>
-                `;
-              }).join('')}
-            </div>
-            <button type="button" class="btn btn-sm ${myTeam === 'blue' ? 'btn-info disabled' : 'btn-outline-info'} w-100 rounded-pill mt-2" onclick="joinTeam('blue')" ${myTeam === 'blue' ? 'disabled' : ''}>
-              ${myTeam === 'blue' ? '✓ ' + (STR.yourTeam || 'Senin Takımın') : (STR.joinTeamBlue || '🔵 QAs Takımına Katıl')}
-            </button>
-          </div>
+            `;
+          }).join('')}
         </div>
       `;
     }
 
     async function joinTeam(team) {
-      if (team !== 'red' && team !== 'blue') return;
+      const teams = state.teams || [];
+      if (!teams.some(t => t.id === team)) return;
       state.myTeam = team;
+      const targetTeam = teams.find(t => t.id === team);
+      const teamName = targetTeam ? targetTeam.name : team;
+
       try {
         const res = await fetch('api/rooms_team.php', {
           method: 'POST',
@@ -2964,7 +3018,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             renderPlayers(data.players);
           }
           playTone(600, 0.08, 'sine');
-          showToast(team === 'red' ? (STR.joinedTeamRed || '🔴 Devs (Kırmızı) takımına katıldın!') : (STR.joinedTeamBlue || '🔵 QAs (Mavi) takımına katıldın!'));
+          showToast(`✓ ${teamName} takımına katıldın!`);
         } else {
           showToast(data.error || STR.errorGeneric);
         }
@@ -2997,8 +3051,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           dot.style.background = '#64748b';
           dot.style.boxShadow = 'none';
         } else if (state.gameMode === 'teams') {
-          dot.style.background = (p.team === 'blue') ? '#38bdf8' : '#f43f5e';
-          dot.style.boxShadow = (p.team === 'blue') ? '0 0 6px rgba(56, 189, 248, 0.6)' : '0 0 6px rgba(244, 63, 94, 0.6)';
+          const pTeamObj = (state.teams || []).find(t => t.id === p.team) || (state.teams || [])[0];
+          const tColor = pTeamObj ? pTeamObj.color : '#f43f5e';
+          dot.style.background = tColor;
+          dot.style.boxShadow = `0 0 6px ${tColor}99`;
         }
         tag.appendChild(dot);
 
@@ -3010,11 +3066,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         tag.appendChild(nameSpan);
 
         if (state.gameMode === 'teams') {
+          const pTeamObj = (state.teams || []).find(t => t.id === p.team) || (state.teams || [])[0];
           const teamPill = document.createElement('span');
-          const isBlue = (p.team === 'blue');
-          teamPill.className = 'badge ' + (isBlue ? 'bg-info-subtle text-info border border-info-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle') + ' ms-1';
+          const tColor = pTeamObj ? pTeamObj.color : '#f43f5e';
+          teamPill.className = 'badge ms-1';
           teamPill.style.fontSize = '10px';
-          teamPill.textContent = isBlue ? '🔵 QA' : '🔴 DEV';
+          teamPill.style.backgroundColor = tColor + '22';
+          teamPill.style.color = tColor;
+          teamPill.style.border = '1px solid ' + tColor + '44';
+          teamPill.textContent = pTeamObj ? pTeamObj.name : 'Team';
           tag.appendChild(teamPill);
         }
 
@@ -3832,41 +3892,72 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       let teamVictoryHtml = '';
       if (state.gameMode === 'teams') {
-        let redScore = 0;
-        let blueScore = 0;
+        const teams = state.teams || [
+          { id: 'red', name: 'Red', color: '#ef4444' },
+          { id: 'blue', name: 'Blue', color: '#3b82f6' }
+        ];
+        const teamScores = {};
+        teams.forEach(t => { teamScores[t.id] = 0; });
+        const defaultTeamId = teams[0]?.id || 'red';
+
         (list || []).forEach(p => {
           const s = Number(p.score) || 0;
-          if (p.team === 'blue') {
-            blueScore += s;
-          } else {
-            redScore += s;
-          }
+          const tId = teams.some(t => t.id === p.team) ? p.team : defaultTeamId;
+          teamScores[tId] = (teamScores[tId] || 0) + s;
         });
+
         const summary = teamSummary || state.teamSummary;
-        if (summary) {
-          if (typeof summary.red_score === 'number') redScore = summary.red_score;
-          if (typeof summary.blue_score === 'number') blueScore = summary.blue_score;
+        if (summary && summary.scores) {
+          teams.forEach(t => {
+            if (typeof summary.scores[t.id] === 'number') {
+              teamScores[t.id] = summary.scores[t.id];
+            }
+          });
         }
 
-        const winningTeam = summary?.winning_team || (redScore > blueScore ? 'red' : (blueScore > redScore ? 'blue' : 'tie'));
-        let bannerClass = 'winner-red';
-        let bannerTitle = STR.teamRedWon || '🏆 🔴 DEVS (KIRMIZI TAKIM) KAZANDI!';
-        if (winningTeam === 'blue') {
-          bannerClass = 'winner-blue';
-          bannerTitle = STR.teamBlueWon || '🏆 🔵 QAS (MAVİ TAKIM) KAZANDI!';
-        } else if (winningTeam === 'tie') {
+        let winningTeam = summary?.winning_team;
+        if (!winningTeam) {
+          let maxS = -1;
+          let isTie = false;
+          teams.forEach(t => {
+            const sc = teamScores[t.id] || 0;
+            if (sc > maxS) {
+              maxS = sc;
+              winningTeam = t.id;
+              isTie = false;
+            } else if (sc === maxS && maxS >= 0) {
+              isTie = true;
+            }
+          });
+          if (isTie) winningTeam = 'tie';
+        }
+
+        let bannerClass = 'winner-' + winningTeam;
+        let bannerTitle = '';
+        if (winningTeam === 'tie') {
           bannerClass = '';
           bannerTitle = STR.teamTie || '🤝 DOSTLUK KAZANDI! (BERABERE)';
+        } else {
+          const winningObj = teams.find(t => t.id === winningTeam);
+          const winName = winningObj ? winningObj.name : winningTeam.toUpperCase();
+          bannerTitle = `🏆 ${escapeHtml(winName).toUpperCase()} KAZANDI!`;
         }
 
         teamVictoryHtml = `
           <div class="team-victory-banner ${bannerClass}">
             <div class="team-victory-title">${bannerTitle}</div>
             <div class="small opacity-75">${STR.teamVictoryDesc || 'Takımlar kıyasıya yarıştı! İşte nihai takım skorları:'}</div>
-            <div class="team-victory-scores">
-              <span class="team-red-label"><span class="team-dot dot-red"></span> Devs: <strong>${redScore.toLocaleString()}</strong> ${STR.pts}</span>
-              <span class="text-secondary opacity-50">⚡ VS ⚡</span>
-              <span class="team-blue-label">QAs: <strong>${blueScore.toLocaleString()}</strong> ${STR.pts} <span class="team-dot dot-blue"></span></span>
+            <div class="team-victory-scores flex-wrap justify-content-center gap-3 mt-2">
+              ${teams.map((t, idx) => {
+                const sc = (teamScores[t.id] || 0).toLocaleString();
+                return `
+                  <span class="team-${t.id}-label d-inline-flex align-items-center gap-1" style="color: ${t.color};">
+                    <span class="team-dot dot-${t.id}" style="background: ${t.color}; box-shadow: 0 0 8px ${t.color}80;"></span>
+                    <strong>${escapeHtml(t.name)}:</strong> ${sc} ${STR.pts}
+                  </span>
+                  ${idx < teams.length - 1 ? '<span class="text-secondary opacity-50">⚡</span>' : ''}
+                `;
+              }).join('')}
             </div>
           </div>
         `;
@@ -4444,8 +4535,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           fetch('api/rooms_state.php?guid=' + encodeURIComponent(GUID))
             .then(res => res.json())
             .then(data => {
-              if (data && data.ok && Array.isArray(data.players)) {
-                renderPlayers(data.players);
+              if (data && data.ok) {
+                if (data.room && Array.isArray(data.room.teams) && data.room.teams.length > 0) {
+                  state.teams = data.room.teams;
+                }
+                if (Array.isArray(data.players)) {
+                  renderPlayers(data.players);
+                }
               }
             }).catch(() => {});
         } else {
@@ -4480,6 +4576,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       channel.bind('room:update', (data) => {
         RoomLogger.info('Pusher', 'Event room:update received', data);
+        if (data.teams && Array.isArray(data.teams) && data.teams.length > 0) {
+          state.teams = data.teams;
+        }
         renderPlayers(data.players || []);
         const meRow = (data.players || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
         if (meRow && meRow.status === 'eliminated') {
@@ -4519,6 +4618,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       channel.bind('room:finished', (data) => {
         RoomLogger.info('Pusher', 'Event room:finished received', data);
         if (data.game_mode) state.gameMode = data.game_mode;
+        if (data.team_summary && Array.isArray(data.team_summary.teams) && data.team_summary.teams.length > 0) {
+          state.teams = data.team_summary.teams;
+        }
         renderFinalVictory(data.players || [], data.awards || null, data.team_summary || null);
       });
 
