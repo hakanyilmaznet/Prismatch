@@ -1942,18 +1942,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     .lobby-avatars-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-      gap: 8px;
-      max-height: 280px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-    .lobby-avatars-grid::-webkit-scrollbar {
-      width: 5px;
-    }
-    .lobby-avatars-grid::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
+      grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+      gap: 6px;
+      overflow: visible;
     }
     .avatar-tile-btn {
       position: relative;
@@ -5421,15 +5412,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const name = getPlayerDisplayName(player);
         const score = Number(player.score) || 0;
         const medalIcon = rankNum === 1 ? '🥇' : (rankNum === 2 ? '🥈' : '🥉');
-        const pAvObj = (state.avatars || ALL_AVATARS || []).find(a => String(a.id) === String(player.avatar));
-        const avIcon = pAvObj ? pAvObj.icon : '';
-
         return `
           <div class="podium-col ${cssClass}">
             <div class="podium-player-info">
               ${rankNum === 1 ? '<div class="podium-crown">👑</div>' : ''}
-              <div class="podium-avatar" style="${pAvObj && pAvObj.bg ? `background: ${pAvObj.bg}; border-color: ${pAvObj.color || 'var(--accent)'};` : ''}">
-                ${avIcon ? `<span class="podium-avatar-icon me-1 fs-5">${avIcon}</span>` : ''}
+              <div class="podium-avatar">
                 <span>${medalIcon}</span>
               </div>
               <div class="podium-name" title="${escapeHtml(name)}">
