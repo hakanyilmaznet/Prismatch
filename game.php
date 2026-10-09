@@ -108,6 +108,11 @@ $gameCountry = isset($game['country']) ? (string)$game['country'] : '';
     body {
       padding-top: calc(var(--pm-header-offset, 0px) + 20px);
       padding-bottom: calc(var(--pm-footer-offset, 0px) + 24px);
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    .table {
+      min-width: 540px;
     }
     .grid2 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
     .k { color: var(--pm-text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }

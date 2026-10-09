@@ -215,12 +215,16 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
       padding-top: calc(var(--pm-header-offset, 0px) + 20px);
       padding-bottom: calc(var(--pm-footer-offset, 0px) + 36px);
       min-height: 100vh;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     .wrap {
       max-width: 1080px;
+      width: 100%;
       margin: 0 auto;
       padding: 0 16px;
+      box-sizing: border-box;
     }
 
     /* Hero Card */
@@ -1328,6 +1332,33 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
     .pm-mode-pill-flags {
       background: rgba(13, 202, 240, 0.15);
       color: #0dcaf0;
+    }
+
+    @media (max-width: 640px) {
+      .pm-toolbar-card {
+        padding: 12px;
+        gap: 12px;
+      }
+      .countryWrap {
+        width: 100% !important;
+      }
+      .pm-date-stepper {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .pm-date-input-wrap {
+        flex: 1;
+      }
+      .pm-date-input {
+        width: 100%;
+      }
+      .pm-table th, .pm-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+      .pm-lb-hero {
+        padding: 18px 16px;
+      }
     }
   </style>
 </head>

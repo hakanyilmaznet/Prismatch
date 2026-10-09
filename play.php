@@ -405,8 +405,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     }
 
     .grid{
-      width: min(440px, 100%, calc(100vh - 440px));
+      width: min(440px, 92vw, calc(100dvh - 300px));
       min-width: min(260px, 100%);
+      max-width: 100%;
       aspect-ratio: 1 / 1;
       display:grid;
       grid-template-columns: repeat(3, 1fr);
@@ -737,7 +738,7 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     @media (max-width: 600px){
       .stats{ grid-template-columns: repeat(2, 1fr); gap: 8px; }
       .stage{ padding: 20px 12px 18px; border-radius: 18px; min-height: 320px; }
-      .grid{ gap: 8px; width: 100%; }
+      .grid{ gap: 8px; width: min(440px, 92vw, calc(100dvh - 280px)); }
       .cell{ border-radius: 12px; }
       .hud .chip{ padding: 8px 12px; flex: 1 1 120px; }
       .action-row{ grid-template-columns: 1fr; }

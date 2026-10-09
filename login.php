@@ -77,9 +77,13 @@ $seoTitle = t('home_cta_login') . ' - ' . t('app_name');
     body {
       padding-top: calc(var(--pm-header-offset, 0px) + 20px);
       padding-bottom: calc(var(--pm-footer-offset, 0px) + 24px);
+      max-width: 100vw;
+      overflow-x: hidden;
     }
     .auth-container {
       max-width: 520px;
+      width: 100%;
+      box-sizing: border-box;
       margin: 0 auto;
       padding: 16px;
       display: flex;

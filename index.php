@@ -144,6 +144,8 @@ $howToData = [
     body.pm-has-fixed-header {
       padding-top: calc(var(--pm-header-offset, 76px) + 20px) !important;
       padding-bottom: calc(var(--pm-footer-offset, 60px) + 24px + env(safe-area-inset-bottom));
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     .pm-homepage-wrap {

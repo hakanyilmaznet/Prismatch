@@ -117,12 +117,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       background: #e2e8f0 !important;
       color: #334155 !important;
     }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       font-family: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--arena-bg);
       color: var(--arena-text);
       min-height: 100vh;
+      max-width: 100vw;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       padding-top: calc(var(--pm-header-offset, 0px) + 16px);
@@ -130,8 +135,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     .arena-container {
       width: min(920px, 100%);
+      max-width: 100vw;
+      box-sizing: border-box;
       margin: 0 auto;
-      padding: 0 16px calc(var(--pm-footer-offset, 0px) + 88px);
+      padding: 0 16px calc(var(--pm-footer-offset, 0px) + 88px + env(safe-area-inset-bottom));
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -356,8 +363,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     /* Question Grid */
     .choice-grid {
-      width: min(440px, 100%, calc(100vh - 440px));
+      width: min(440px, 92vw, calc(100dvh - 310px));
       min-width: min(260px, 100%);
+      max-width: 100%;
       aspect-ratio: 1 / 1;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -944,8 +952,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       .podium-col-1 .podium-num { font-size: 32px; }
       .podium-name { font-size: 12px; }
       .reaction-bar {
-        bottom: 8px;
+        bottom: max(8px, env(safe-area-inset-bottom));
         width: calc(100% - 16px);
+        max-width: calc(100vw - 16px);
+        box-sizing: border-box;
         padding: 6px 10px;
         gap: 6px;
         border-radius: 16px;
@@ -971,7 +981,25 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         min-height: 38px;
       }
       .arena-container {
-        padding-bottom: calc(var(--pm-footer-offset, 0px) + 78px);
+        padding-bottom: calc(var(--pm-footer-offset, 0px) + 78px + env(safe-area-inset-bottom));
+      }
+      .lobby-avatars-card {
+        padding: 12px 10px;
+        margin: 12px auto 0;
+      }
+      .lobby-avatars-grid {
+        grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+        gap: 5px;
+      }
+      .avatar-tile-btn {
+        padding: 6px 2px 4px;
+      }
+      .avatar-tile-icon {
+        font-size: 20px;
+      }
+      .avatar-tile-name {
+        font-size: 8px;
+        max-width: 50px;
       }
     }
 
@@ -1072,14 +1100,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     /* Live Reaction & Party Sound Bar (Fixed Bottom Dock) */
     .reaction-bar {
       position: fixed;
-      bottom: 14px;
+      bottom: max(14px, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       width: min(880px, calc(100% - 24px));
+      max-width: calc(100vw - 24px);
+      box-sizing: border-box;
       z-index: 1040;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 10px;
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.16);

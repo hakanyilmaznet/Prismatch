@@ -106,16 +106,23 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       background: var(--bs-body-bg);
       color: var(--bs-body-color);
       min-height: 100vh;
+      max-width: 100vw;
+      overflow-x: hidden;
       padding-top: calc(var(--pm-header-offset, 0px) + 24px);
       padding-bottom: calc(var(--pm-footer-offset, 0px) + 32px);
     }
     .wrap {
       max-width: 980px;
+      width: 100%;
+      box-sizing: border-box;
       margin: 0 auto;
       padding: 0 16px;
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+    .table {
+      min-width: 480px;
     }
     .card-modern {
       background: var(--bs-card-bg, rgba(255, 255, 255, 0.85));

@@ -125,13 +125,14 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       }
     }
     @media (max-width: 767px) {
-      .card-modern .row > div {
-        width: 100% !important;
-        flex: 0 0 100% !important;
-        max-width: 100% !important;
+      .hero-card {
+        padding: 16px;
       }
-      .card-modern .row {
-        gap: 12px;
+      .mode-select-card {
+        padding: 12px !important;
+      }
+      .table-modern {
+        min-width: 520px;
       }
     }
   </style>
@@ -417,6 +418,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
             $pPlayers = (int)($pr['player_count'] ?? 1);
             $pHost = explode('@', (string)($pr['owner_email'] ?? ''))[0] ?: tt('room_host', 'Host');
           ?>
+            <tr>
               <td>
                 <div class="d-flex flex-wrap align-items-center gap-1.5">
                   <span class="fw-semibold"><?= htmlspecialchars($pr['name'] ?: tt('room_prefix', 'Room #') . substr($pGuid, 0, 8)) ?></span>

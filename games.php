@@ -128,6 +128,11 @@ foreach ($rows as $g) {
     body {
       padding-top: calc(var(--pm-header-offset, 0px) + 20px);
       padding-bottom: calc(var(--pm-footer-offset, 0px) + 24px);
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    .table {
+      min-width: 620px;
     }
     .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--pm-radius-pill); font-size: 12px; font-weight: 600; }
     .pill-won { border: 1px solid rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.15); color: var(--pm-emerald); }
