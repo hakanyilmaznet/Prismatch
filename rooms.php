@@ -162,7 +162,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         <?= htmlspecialchars(tt('rooms_guest_banner_desc', 'Arkadaşlarınızla canlı yarışmak veya yeni bir oda kurmak için oturum açın.')) ?>
       </p>
       <div>
-        <a href="login.php" class="btn btn-action px-4 py-2">
+        <a href="login.php?next=<?= rawurlencode('rooms.php') ?>" class="btn btn-action px-4 py-2">
           <?= htmlspecialchars(tt('btn_sign_in', 'Oturum Aç')) ?>
         </a>
       </div>
