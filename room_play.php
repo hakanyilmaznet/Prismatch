@@ -131,7 +131,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .arena-container {
       width: min(920px, 100%);
       margin: 0 auto;
-      padding: 0 16px;
+      padding: 0 16px calc(var(--pm-footer-offset, 0px) + 88px);
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -165,6 +165,67 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       font-size: 17px;
       font-weight: 800;
       font-family: "Baloo 2", sans-serif;
+    }
+    .hud-leave-wrap {
+      min-width: 130px;
+    }
+    .hud-leave-btn {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.32);
+      border-radius: 16px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #fca5a5;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      font-family: inherit;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.08);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      text-decoration: none;
+      outline: none;
+      width: 100%;
+      height: 100%;
+      min-height: 44px;
+      box-sizing: border-box;
+    }
+    .hud-leave-btn:hover {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: rgba(239, 68, 68, 0.6);
+      color: #ffffff;
+      transform: translateY(-1.5px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.22);
+    }
+    .hud-leave-btn:active {
+      transform: translateY(0) scale(0.97);
+    }
+    .hud-leave-btn .leave-icon {
+      font-size: 16px;
+      line-height: 1;
+      display: inline-block;
+      transition: transform 0.2s ease;
+    }
+    .hud-leave-btn:hover .leave-icon {
+      transform: translateX(-2px);
+    }
+    [data-bs-theme="light"] .hud-leave-btn {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.25);
+      color: #dc2626;
+      box-shadow: 0 2px 10px rgba(220, 38, 38, 0.05);
+    }
+    [data-bs-theme="light"] .hud-leave-btn:hover {
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #b91c1c;
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.14);
     }
     /* Main Arena Stage */
     .arena-stage {
@@ -881,10 +942,37 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       .pedestal-2 { height: 72px; }
       .pedestal-3 { height: 52px; }
       .podium-col-1 .podium-num { font-size: 32px; }
-      .podium-num { font-size: 26px; }
-      .podium-col-1 .podium-avatar { width: 44px; height: 44px; font-size: 22px; }
-      .podium-avatar { width: 36px; height: 36px; font-size: 18px; }
       .podium-name { font-size: 12px; }
+      .reaction-bar {
+        bottom: 8px;
+        width: calc(100% - 16px);
+        padding: 6px 10px;
+        gap: 6px;
+        border-radius: 16px;
+      }
+      .reaction-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
+        font-size: 20px;
+        border-radius: 10px;
+      }
+      .shout-pill {
+        padding: 4px 10px;
+        font-size: 11px;
+      }
+      .hud-leave-wrap {
+        min-width: 100px;
+      }
+      .hud-leave-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-height: 38px;
+      }
+      .arena-container {
+        padding-bottom: calc(var(--pm-footer-offset, 0px) + 78px);
+      }
     }
 
     /* In-Game Debug Log Drawer & Waiting Notice Styles */
@@ -981,24 +1069,37 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .debug-log-warn { color: #facc15; }
     .debug-log-info { color: #38bdf8; }
 
-    /* Live Reaction & Party Sound Bar */
+    /* Live Reaction & Party Sound Bar (Fixed Bottom Dock) */
     .reaction-bar {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(880px, calc(100% - 24px));
+      z-index: 1040;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      background: var(--arena-panel);
-      border: 1px solid var(--arena-border);
-      border-radius: 18px;
-      padding: 8px 12px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 20px;
+      padding: 8px 14px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
       overflow-x: auto;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .reaction-bar::-webkit-scrollbar {
       display: none;
+    }
+    [data-bs-theme="light"] .reaction-bar {
+      background: rgba(255, 255, 255, 0.94);
+      border-color: rgba(0, 0, 0, 0.12);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
     }
     .reaction-group {
       display: flex;
@@ -1829,9 +1930,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <span class="hud-label"><?= htmlspecialchars(tt('room_status', 'Status')) ?></span>
         <span id="hudStatus" class="hud-val text-warning"><?= htmlspecialchars(tt('status_connecting', 'Connecting...')) ?></span>
       </div>
-      <div class="ms-auto d-flex align-items-center gap-2">
-        <button id="leaveRoomBtn" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1.5" type="button" title="<?= htmlspecialchars(tt('room_leave_btn_title', 'Odadan ayrıl ve izleyici ol')) ?>">
-          <span>🚪</span> <span class="d-none d-sm-inline"><?= htmlspecialchars(tt('room_leave_btn', 'Odadan Ayrıl')) ?></span>
+      <div class="hud-leave-wrap d-flex align-items-center">
+        <button id="leaveRoomBtn" class="hud-leave-btn w-100" type="button" title="<?= htmlspecialchars(tt('room_leave_btn_title', 'Odadan ayrıl')) ?>">
+          <span class="leave-icon" aria-hidden="true">🚪</span>
+          <span class="leave-text"><?= htmlspecialchars(tt('room_leave_btn', 'Odadan Ayrıl')) ?></span>
         </button>
       </div>
     </div>
@@ -2343,6 +2445,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       answerMs: 5000,
       countdownMs: 3000,
       eliminated: false,
+      userExplicitlyLeft: false,
+      joinedAsSpectator: false,
       answered: false,
       isHost: false,
       questionStartTs: 0,
@@ -3370,6 +3474,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <div class="stage-subtitle">${showSub}</div>
       `;
 
+      // Emoji panelini hedef renk gösterim ekranında sayfanın alt tarafına sabitle
+      const rBarShow = document.getElementById('reactionBar');
+      if (rBarShow) rBarShow.classList.remove('d-none');
+
       // HEDEF RENK GÖRÜNTÜLEME SÜRESİ GARANTİSİ:
       // Minimum süre: Bayrak modunda en az 1600ms, renk modunda en az 1200ms.
       // Asla hedefin anlık flaş yapıp veya görünmeden geçilmesine izin verilmez.
@@ -3413,6 +3521,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : STR.chooseFast}</div>
         <div class="choice-grid ${isFlag ? 'grid-loading' : ''}" id="choiceGrid"></div>
       `;
+
+      // Emoji panelini renk seçim ekranında da sayfanın alt tarafına sabitle
+      const rBarQuest = document.getElementById('reactionBar');
+      if (rBarQuest) rBarQuest.classList.remove('d-none');
 
       // Bayrak modunda: Hedef bayrak önceden belleğe alındığı için seçeneklerdeki diğer bayraklardan
       // önce yüklenip kendini ele vermemesi adına tüm bayrak dosyalarının indiğinden emin ol
@@ -3566,7 +3678,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         if (state.gameMode === 'elimination') {
           showToast(STR.wrong, false);
-          state.eliminated = true;
+          state.eliminated = false;
         } else {
           showToast(STR.wrongPenalty || STR.wrong, false);
           state.eliminated = false;
@@ -3682,7 +3794,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       });
 
       if (state.gameMode === 'elimination') {
-        state.eliminated = true;
+        state.eliminated = false;
         showToast(STR.timeUp, false);
       } else {
         state.eliminated = false;
@@ -4459,6 +4571,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.score = 0;
       state.phase = 'lobby';
       state.eliminated = false;
+      state.userExplicitlyLeft = false;
+      state.joinedAsSpectator = false;
       state.answered = false;
       state.targetColor = null;
       state.gridColors = [];
@@ -4607,6 +4721,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         state.isHost = (room.owner_id && ME_ID) ? (String(room.owner_id) === String(ME_ID)) : (String(room.owner_email || '').toLowerCase() === String(ME_EMAIL || '').toLowerCase());
         renderPlayers(data.players || []);
 
+        const meRowInit = (data.players || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
+        if (meRowInit && meRowInit.status === 'eliminated' && room.status === 'active') {
+          state.joinedAsSpectator = true;
+          state.eliminated = true;
+        } else {
+          state.eliminated = false;
+        }
+
         if (room.status === 'finished') {
           renderFinalVictory(data.players || []);
         } else if (room.status === 'waiting') {
@@ -4732,7 +4854,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         }
         renderPlayers(data.players || []);
         const meRow = (data.players || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
-        if (meRow && meRow.status === 'eliminated') {
+        if (meRow && meRow.status === 'eliminated' && (state.userExplicitlyLeft || state.joinedAsSpectator)) {
           state.eliminated = true;
           if (hudStatus) {
             hudStatus.textContent = STR.spectating;
@@ -4862,7 +4984,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     // Host Start Button Trigger
     startMatchBtn?.addEventListener('click', handleStartMatch);
 
-    // Leave Beacon: Inform server when player closes tab or navigates away
+    // Leave Beacon is only sent when user explicitly leaves via exit button
+    // (Active players should NOT be eliminated on accidental refresh, tab-switch or pagehide)
     function sendLeaveBeacon() {
       try {
         const payload = JSON.stringify({guid: GUID});
@@ -4878,11 +5001,6 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         }
       } catch(e) {}
     }
-    window.addEventListener('beforeunload', sendLeaveBeacon);
-    window.addEventListener('pagehide', sendLeaveBeacon);
-    document.querySelectorAll('a[href="rooms.php"]').forEach(el => {
-      el.addEventListener('click', () => { sendLeaveBeacon(); });
-    });
 
     // Adaptive Keep-Alive and State Synchronization Tick (Dual-channel)
     async function performTickSync() {
@@ -4893,7 +5011,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         if (Array.isArray(data.players)) {
           const meRow = data.players.find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
-          if (meRow && meRow.status === 'eliminated' && !state.eliminated) {
+          if (meRow && meRow.status === 'eliminated' && (state.userExplicitlyLeft || state.joinedAsSpectator) && !state.eliminated) {
             state.eliminated = true;
             if (hudStatus) {
               hudStatus.textContent = STR.spectating;
@@ -4961,15 +5079,22 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     function wireLeaveRoomBtn() {
       const leaveBtn = document.getElementById('leaveRoomBtn');
       leaveBtn?.addEventListener('click', async () => {
-        if (state.phase === 'lobby') {
+        if (state.phase === 'lobby' || state.eliminated || state.userExplicitlyLeft) {
           if (confirm(STR.confirmLeaveLobby || 'Odadan ayrılmak istiyor musunuz?')) {
-            sendLeaveBeacon();
+            try {
+              await fetch('api/rooms_leave.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({guid: GUID})
+              });
+            } catch(e) {}
             window.location.href = 'rooms.php';
           }
           return;
         }
 
         if (confirm(STR.confirmLeaveMatch || 'Odadan ayrılmak istediğinize emin misiniz? Oyundan elenecek ve izleyici durumuna geçeceksiniz.')) {
+          state.userExplicitlyLeft = true;
           try {
             await fetch('api/rooms_leave.php', {
               method: 'POST',

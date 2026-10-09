@@ -554,14 +554,15 @@ class RoomGameService {
                 'round' => $round
             ]);
         } elseif ($isElimination) {
-            $this->roomRepo->markEliminated($roomId, $userId, $round);
-            $this->roomRepo->logEvent($roomId, $round, $userId, $email, $isTimeout ? 'timeout' : 'eliminate', [
+            // Oda oyunlarında yarışmacılar çıkış butonuna basmadıkça izleyici moduna düşmesinler
+            $this->roomRepo->logEvent($roomId, $round, $userId, $email, $isTimeout ? 'timeout' : 'answer', [
                 'picked' => $picked !== '' ? $picked : null,
                 'target' => $target,
                 'response_ms' => $responseMs,
                 'correct' => false,
+                'score_delta' => 0,
             ]);
-            Logger::room('processAnswer:eliminated', $guid, ['user_id' => $userId, 'timeout' => $isTimeout, 'round' => $round]);
+            Logger::room('processAnswer:wrong_or_timeout', $guid, ['user_id' => $userId, 'timeout' => $isTimeout, 'round' => $round]);
         } else {
             // Points Mode (Elenmesiz mod):
             // - Yanlış seçenekte: kazanması gereken puan toplam puanından düşülsün (-pointsPenalty)
@@ -944,9 +945,7 @@ class RoomGameService {
             foreach ($unansweredPlayers as $up) {
                 $pUserId = (string)$up['user_id'];
                 $pEmail = (string)$up['email'];
-                if ($isElimination) {
-                    $this->roomRepo->markEliminated($roomId, $pUserId, $current);
-                }
+                // Oda oyunlarında yarışmacılar çıkış butonuna basmadıkça izleyici moduna düşmesinler
                 $this->roomRepo->logEvent($roomId, $current, $pUserId, $pEmail, 'timeout', [
                     'picked' => null,
                     'target' => $target,
