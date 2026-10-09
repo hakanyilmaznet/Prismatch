@@ -2731,6 +2731,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     const STR = {
       lobbyAvatarTitle: <?= json_encode(tt('lobby_avatar_title', 'Karakter Avatarını Seç (50 Avatar)')) ?>,
       lobbyAvatarSubtitle: <?= json_encode(tt('lobby_avatar_subtitle', 'Her avatar tek bir oyuncuya özeldir. Seçtiğin avatar oyun içinde ve emojilerde görünür!')) ?>,
+      victoryAvatarTitle: <?= json_encode(tt('victory_avatar_title', 'Bir Sonraki Maç İçin Avatarını Değiştir (50 Avatar)')) ?>,
+      victoryAvatarSubtitle: <?= json_encode(tt('victory_avatar_subtitle', 'Yeni maç başlamadan önce avatarını güncelleyebilirsin. Seçimin sonraki maçta aktif olacaktır!')) ?>,
       avatarTaken: <?= json_encode(tt('avatar_taken_error', 'Bu avatar başka bir oyuncu tarafından seçildi!')) ?>,
       reactionAvatarTitle: <?= json_encode(tt('reaction_avatar_title', 'Avatarımı Gönder!')) ?>,
       correct: <?= json_encode(tt('badge_correct', 'Correct!')) ?>,
@@ -4367,99 +4369,116 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
     }
 
-    function renderLobbyAvatars() {
-      const container = document.getElementById('lobbyAvatarContainer');
-      if (!container) return;
-      if (state.phase !== 'lobby') {
-        container.innerHTML = '';
-        return;
-      }
+    function renderLobbyAvatars(customContainerId = null) {
+      const containerIds = customContainerId ? [customContainerId] : ['lobbyAvatarContainer', 'victoryAvatarContainer'];
 
-      const avatars = state.avatars || ALL_AVATARS || [];
-      const players = state.players || [];
-      const myUid = String(ME_ID);
-      const myEmail = ME_EMAIL;
+      containerIds.forEach(cId => {
+        const container = document.getElementById(cId);
+        if (!container) return;
 
-      // Find current user's avatar
-      const meRow = players.find(p => p.email === myEmail || String(p.user_id) === myUid);
-      const myAvatarId = meRow && meRow.avatar ? String(meRow.avatar) : state.myAvatar;
-
-      // Map which player owns each avatar ID
-      const avatarOwners = {};
-      players.forEach(p => {
-        if (p.avatar && p.status !== 'eliminated') {
-          avatarOwners[String(p.avatar)] = p;
+        if (cId === 'lobbyAvatarContainer' && state.phase !== 'lobby') {
+          container.innerHTML = '';
+          return;
         }
-      });
+        if (cId === 'victoryAvatarContainer' && state.phase !== 'finished') {
+          container.innerHTML = '';
+          return;
+        }
 
-      let myAvatarObj = avatars.find(a => String(a.id) === String(myAvatarId)) || avatars[0];
+        const isVictory = (cId === 'victoryAvatarContainer' || state.phase === 'finished');
+        const avatars = state.avatars || ALL_AVATARS || [];
+        const players = state.players || [];
+        const myUid = String(ME_ID);
+        const myEmail = ME_EMAIL;
 
-      let html = `
-        <div class="lobby-avatars-card" id="lobbyAvatarsCard">
-          <div class="lobby-avatars-header">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <span class="fs-4">🎭</span>
-              <div>
-                <div class="fw-bold fs-6 text-white">${escapeHtml(STR.lobbyAvatarTitle || 'Karakter Avatarını Seç (50 Avatar)')}</div>
-                <div class="small text-secondary">${escapeHtml(STR.lobbyAvatarSubtitle || 'Her avatar tek bir oyuncuya özeldir. Seçtiğin avatar oyun içinde ve emojilerde görünür!')}</div>
+        // Find current user's avatar
+        const meRow = players.find(p => p.email === myEmail || String(p.user_id) === myUid);
+        const myAvatarId = meRow && meRow.avatar ? String(meRow.avatar) : state.myAvatar;
+
+        // Map which player owns each avatar ID
+        const avatarOwners = {};
+        players.forEach(p => {
+          if (p.avatar && p.status !== 'eliminated') {
+            avatarOwners[String(p.avatar)] = p;
+          }
+        });
+
+        let myAvatarObj = avatars.find(a => String(a.id) === String(myAvatarId)) || avatars[0];
+
+        const cardTitle = isVictory 
+          ? (STR.victoryAvatarTitle || 'Bir Sonraki Maç İçin Avatarını Değiştir (50 Avatar)')
+          : (STR.lobbyAvatarTitle || 'Karakter Avatarını Seç (50 Avatar)');
+        const cardSubtitle = isVictory
+          ? (STR.victoryAvatarSubtitle || 'Yeni maç başlamadan önce avatarını güncelleyebilirsin. Seçimin sonraki maçta aktif olacaktır!')
+          : (STR.lobbyAvatarSubtitle || 'Her avatar tek bir oyuncuya özeldir. Seçtiğin avatar oyun içinde ve emojilerde görünür!');
+
+        let html = `
+          <div class="lobby-avatars-card" id="${cId}Card">
+            <div class="lobby-avatars-header">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="fs-4">🎭</span>
+                <div>
+                  <div class="fw-bold fs-6 text-white">${escapeHtml(cardTitle)}</div>
+                  <div class="small text-secondary">${escapeHtml(cardSubtitle)}</div>
+                </div>
+              </div>
+              <div class="my-active-avatar-badge" style="background: ${myAvatarObj.bg || '#38bdf8'}; box-shadow: 0 0 16px ${myAvatarObj.color}66;">
+                <span class="avatar-icon-large">${myAvatarObj.icon}</span>
+                <span class="avatar-name-large">${escapeHtml(myAvatarObj.name)}</span>
               </div>
             </div>
-            <div class="my-active-avatar-badge" style="background: ${myAvatarObj.bg || '#38bdf8'}; box-shadow: 0 0 16px ${myAvatarObj.color}66;">
-              <span class="avatar-icon-large">${myAvatarObj.icon}</span>
-              <span class="avatar-name-large">${escapeHtml(myAvatarObj.name)}</span>
-            </div>
-          </div>
-          <div class="lobby-avatars-grid">
-      `;
+            <div class="lobby-avatars-grid">
+        `;
 
-      avatars.forEach(av => {
-        const owner = avatarOwners[String(av.id)];
-        const isSelectedByMe = owner ? (owner.email === myEmail || String(owner.user_id) === myUid) : (String(av.id) === String(myAvatarId));
-        const isTakenByOther = owner && !isSelectedByMe;
+        avatars.forEach(av => {
+          const owner = avatarOwners[String(av.id)];
+          const isSelectedByMe = owner ? (owner.email === myEmail || String(owner.user_id) === myUid) : (String(av.id) === String(myAvatarId));
+          const isTakenByOther = owner && !isSelectedByMe;
 
-        let extraClass = '';
-        let badgeHtml = '';
-        let disabledAttr = '';
+          let extraClass = '';
+          let badgeHtml = '';
+          let disabledAttr = '';
 
-        if (isSelectedByMe) {
-          extraClass = ' is-mine';
-          badgeHtml = `<span class="avatar-status-badge badge-mine">✓ Sen</span>`;
-        } else if (isTakenByOther) {
-          extraClass = ' is-taken';
-          disabledAttr = 'disabled';
-          const ownerName = getPlayerDisplayName(owner);
-          badgeHtml = `<span class="avatar-status-badge badge-taken" title="${escapeHtml(ownerName)}">${escapeHtml(ownerName)}</span>`;
-        }
+          if (isSelectedByMe) {
+            extraClass = ' is-mine';
+            badgeHtml = `<span class="avatar-status-badge badge-mine">✓ Sen</span>`;
+          } else if (isTakenByOther) {
+            extraClass = ' is-taken';
+            disabledAttr = 'disabled';
+            const ownerName = getPlayerDisplayName(owner);
+            badgeHtml = `<span class="avatar-status-badge badge-taken" title="${escapeHtml(ownerName)}">${escapeHtml(ownerName)}</span>`;
+          }
+
+          html += `
+            <button type="button" 
+                    class="avatar-tile-btn${extraClass}" 
+                    data-avatar-id="${av.id}"
+                    ${disabledAttr}
+                    style="--avatar-color: ${av.color}; --avatar-bg: ${av.bg};"
+                    title="${escapeHtml(av.name)}${isTakenByOther ? ' (' + escapeHtml(getPlayerDisplayName(owner)) + ' tarafından seçildi)' : ''}">
+              <span class="avatar-tile-icon">${av.icon}</span>
+              <span class="avatar-tile-name">${escapeHtml(av.name)}</span>
+              ${badgeHtml}
+            </button>
+          `;
+        });
 
         html += `
-          <button type="button" 
-                  class="avatar-tile-btn${extraClass}" 
-                  data-avatar-id="${av.id}"
-                  ${disabledAttr}
-                  style="--avatar-color: ${av.color}; --avatar-bg: ${av.bg};"
-                  title="${escapeHtml(av.name)}${isTakenByOther ? ' (' + escapeHtml(getPlayerDisplayName(owner)) + ' tarafından seçildi)' : ''}">
-            <span class="avatar-tile-icon">${av.icon}</span>
-            <span class="avatar-tile-name">${escapeHtml(av.name)}</span>
-            ${badgeHtml}
-          </button>
-        `;
-      });
-
-      html += `
+            </div>
           </div>
-        </div>
-      `;
+        `;
 
-      container.innerHTML = html;
+        container.innerHTML = html;
 
-      // Click handler
-      container.querySelectorAll('.avatar-tile-btn:not(.is-taken)').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const avId = btn.getAttribute('data-avatar-id');
-          if (avId) {
-            chooseAvatar(avId);
-          }
+        // Click handler
+        container.querySelectorAll('.avatar-tile-btn:not(.is-taken)').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const avId = btn.getAttribute('data-avatar-id');
+            if (avId) {
+              chooseAvatar(avId);
+            }
+          });
         });
       });
     }
@@ -4573,10 +4592,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       if (state.phase === 'lobby') {
         renderLobbyTeams();
-        renderLobbyAvatars();
+        renderLobbyAvatars('lobbyAvatarContainer');
         if (state.isHost) {
           updateStartButtonState();
         }
+      } else if (state.phase === 'finished') {
+        renderLobbyAvatars('victoryAvatarContainer');
       }
 
       updateTeamBattleUI();
@@ -5693,6 +5714,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <a class="btn btn-outline-secondary" href="index.php">🏠 ${STR.backHome || 'Ana Sayfa'}</a>
           </div>
 
+          <div id="victoryAvatarContainer" class="w-100 my-3"></div>
+
           <div id="personalStatsSection" class="personal-stats-section">
             <div class="stats-header-bar">
               <h3>🎯 ${STR.personalStatsTitle}</h3>
@@ -5741,6 +5764,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       `;
 
       loadPlayerStatsTable();
+      renderLobbyAvatars('victoryAvatarContainer');
 
       if (state.isHost) {
         const restartMatchBtn = document.getElementById('restartMatchBtn');
@@ -6002,6 +6026,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             </div>
           </div>
           <div id="lobbyTeamsContainer"></div>
+          <div id="lobbyAvatarContainer" class="w-100"></div>
           <div id="lobbyRulesContainer">${getLobbyRulesHtml(state.gameMode)}</div>
         </div>
       `;
