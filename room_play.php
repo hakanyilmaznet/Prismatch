@@ -2792,6 +2792,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       startMatch: <?= json_encode(tt('room_start_btn', 'Start Match')) ?>,
       copyInvite: <?= json_encode(tt('room_copy_invite', 'Copy Invite Link')) ?>,
       inviteCopied: <?= json_encode(tt('room_invite_copied', 'Invite link copied to clipboard! Share it with your friends.')) ?>,
+      shareCopied: <?= json_encode(tt('rooms_share_copied', 'Link copied.')) ?>,
+      copyLogs: <?= json_encode(tt('room_copy_logs', 'Copy')) ?>,
       shareWhatsapp: <?= json_encode(tt('rooms_share_whatsapp', 'WhatsApp ile Gönder')) ?>,
       shareWhatsappText: <?= json_encode(tt('rooms_share_whatsapp_text', "Prismatch'te benimle oda oyununa katıl! 🎮 Bağlantı:")) ?>,
       privateBadge: <?= json_encode(tt('rooms_private_badge', 'Private')) ?>,
@@ -2823,6 +2825,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       colCorrect: <?= json_encode(tt('room_col_correct', 'Doğru')) ?>,
       statTimeoutBadge: <?= json_encode(tt('room_stat_timeout_badge', 'Süre Doldu')) ?>,
       modeTeams: <?= json_encode(tt('rooms_mode_teams_short', 'Takım Savaşı')) ?>,
+      modeFlags: <?= json_encode(tt('rooms_mode_flags_short', 'Bayrak Modu')) ?>,
+      roomsJoin: <?= json_encode(tt('rooms_join', 'Takımına Katıl')) ?>,
       teamRed: <?= json_encode(tt('room_team_red', '🔴 Kırmızı Takım')) ?>,
       teamBlue: <?= json_encode(tt('room_team_blue', '🔵 Mavi Takım')) ?>,
       joinTeamRed: <?= json_encode(tt('room_join_team_red', '🔴 Kırmızı Takıma Katıl')) ?>,
@@ -2874,6 +2878,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       powerupShieldReady: <?= json_encode(tt('powerup_shield_ready', '🛡️ Prizma Kalkanı: Gelecek ilk sabotajı geri yansıtır! (Hazır!)')) ?>,
       powerupShieldLocked: <?= json_encode(tt('powerup_shield_title_locked', 'Prizma Kalkanı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)')) ?>,
       powerupShieldActivated: <?= json_encode(tt('powerup_shield_toast', 'Kalkan aktif! Gelen tüm sabotajlar engellenir.')) ?>,
+      powerupMirrorStreakReq: <?= json_encode(tt('powerup_mirror_streak_req', 'Ayna sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)')) ?>,
+      powerupMirrorFired: <?= json_encode(tt('powerup_mirror_fired', '🪞 Lider {target} hedeflendi! Ayna fırlatıldı!')) ?>,
+      powerupFreezeStreakReq: <?= json_encode(tt('powerup_freeze_streak_req', 'Buz sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)')) ?>,
+      powerupFreezeFired: <?= json_encode(tt('powerup_freeze_fired', '🧊 Lider {target} hedeflendi! Buz fırlatıldı!')) ?>,
+      powerupBlackoutStreakReq: <?= json_encode(tt('powerup_blackout_streak_req', 'Fener sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)')) ?>,
+      powerupBlackoutFired: <?= json_encode(tt('powerup_blackout_fired', '🔦 Lider {target} hedeflendi! Fener karartması fırlatıldı!')) ?>,
+      powerupShieldStreakReq: <?= json_encode(tt('powerup_shield_streak_req', 'Prizma kalkanı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)')) ?>,
       mirrorAlert: <?= json_encode(tt('mirror_alert', '🪞 {attacker} ekranını ters çevirdi!')) ?>,
       freezeAlert: <?= json_encode(tt('freeze_alert', '🧊 {attacker} seni dondurdu!')) ?>,
       shieldActiveTitle: <?= json_encode(tt('shield_active_title', '🛡️ PRİZMA KALKANI AKTİF!')) ?>,
@@ -6582,10 +6593,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const url = window.location.href;
         try {
           await navigator.clipboard.writeText(url);
-          copyBtn.textContent = '✅ ' + STR.shareCopied;
+          copyBtn.textContent = '✅ ' + (STR.shareCopied || 'Kopyalandı!');
           showToast(STR.inviteCopied, true);
           setTimeout(() => {
-            copyBtn.textContent = '🔗 ' + STR.copyInvite;
+            copyBtn.textContent = '🔗 ' + (STR.copyInvite || 'Davet Bağlantısını Kopyala');
           }, 2000);
         } catch(e) {
           showToast(STR.inviteCopied, true);
