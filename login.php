@@ -64,8 +64,17 @@ $seoTitle = t('home_cta_login') . ' - ' . t('app_name');
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <title><?= htmlspecialchars($seoTitle) ?></title>
-  <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <?= seo_meta([
+    'title' => $seoTitle,
+    'description' => t('login_local_desc'),
+    'url' => seo_current_url(),
+    'image' => '/logo.png',
+    'type' => 'website',
+    'robots' => 'noindex,nofollow',
+    'lang' => $lang,
+    'site_name' => t('app_name'),
+  ]) ?>
   <style>
     body {
       padding-top: calc(var(--pm-header-offset, 0px) + 20px);

@@ -508,8 +508,8 @@ $isRooms = ($currentPage === 'rooms.php' || $currentPage === 'room_play.php' || 
     <img src="logo.svg" alt="<?= htmlspecialchars(tt('app_name', 'Prismatch')) ?>" width="40" height="40" fetchpriority="high" />
     <span class="pm-name"><?= htmlspecialchars(tt('app_name', 'Prismatch')) ?></span>
   </a>
-  <button class="navbar-toggler" type="button" id="pmNavToggle" aria-controls="pmNav" aria-expanded="false" aria-label="Toggle navigation">
-    <img class="bi-icon" src="bootstrap-icons/list.svg" alt="" width="22" height="22" />
+  <button class="navbar-toggler" type="button" id="pmNavToggle" aria-controls="pmNav" aria-expanded="false" aria-label="<?= htmlspecialchars(tt('a11y_toggle_nav', 'Toggle navigation')) ?>">
+    <img class="bi-icon" src="bootstrap-icons/list.svg" alt="" aria-hidden="true" width="22" height="22" />
   </button>
   <div class="navbar-collapse" id="pmNav">
     <ul class="navbar-nav pm-nav">

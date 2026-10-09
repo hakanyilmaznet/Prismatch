@@ -3,7 +3,7 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://www.prismatch.online/</loc>
-    <lastmod>2026-10-01</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/" />
@@ -29,7 +29,7 @@
   </url>
   <url>
     <loc>https://www.prismatch.online/play.php</loc>
-    <lastmod>2026-10-01</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/play.php" />
@@ -55,7 +55,7 @@
   </url>
   <url>
     <loc>https://www.prismatch.online/play.php?daily=1</loc>
-    <lastmod>2026-10-01</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/play.php?daily=1" />
@@ -81,7 +81,7 @@
   </url>
   <url>
     <loc>https://www.prismatch.online/rooms.php</loc>
-    <lastmod>2026-10-01</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/rooms.php" />
@@ -107,7 +107,7 @@
   </url>
   <url>
     <loc>https://www.prismatch.online/daily_leaderboard.php</loc>
-    <lastmod>2026-10-01</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/daily_leaderboard.php" />
@@ -133,7 +133,7 @@
   </url>
   <url>
     <loc>https://www.prismatch.online/privacy.php</loc>
-    <lastmod>2026-10-01</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/privacy.php" />
@@ -159,7 +159,7 @@
   </url>
   <url>
     <loc>https://www.prismatch.online/terms.php</loc>
-    <lastmod>2026-10-01</lastmod>
+    <lastmod>2026-10-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.prismatch.online/terms.php" />

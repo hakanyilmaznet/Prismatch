@@ -292,7 +292,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
               <?= htmlspecialchars(tt('teams_config_desc', 'Takım sayısını (2-4) ve takımlarınızın özel isimlerini belirleyin.')) ?>
             </div>
           </div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Takım Sayısı">
+          <div class="btn-group btn-group-sm" role="group" aria-label="<?= htmlspecialchars(tt('teams_count_unit', 'Teams')) ?>">
             <input type="radio" class="btn-check" name="teamCountRadio" id="teamCount2" value="2" checked autocomplete="off">
             <label class="btn btn-outline-warning fw-semibold px-3" for="teamCount2">2 <?= htmlspecialchars(tt('teams_count_unit', 'Takım')) ?></label>
 

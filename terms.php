@@ -128,7 +128,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
-  <title><?= h(L('title')) ?> � <?= h(L('app')) ?></title>
+  <title><?= h(L('title')) ?> - <?= h(L('app')) ?></title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <?= seo_meta([
     'title' => $seoTitle,
@@ -140,7 +140,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     'lang' => $lang,
     'site_name' => L('app'),
     'breadcrumbs' => [
-      ['name' => 'Home', 'url' => '/'],
+      ['name' => tt('nav_home', 'Home'), 'url' => '/'],
       ['name' => L('title'), 'url' => '/terms.php'],
     ],
   ]) ?>

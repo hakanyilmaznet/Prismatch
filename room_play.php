@@ -2477,7 +2477,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     <!-- Hot Potato Bomb Banner (Hot potato mode only) -->
     <div id="hotPotatoBanner" class="hot-potato-banner d-none">
       <span class="fs-5">💣</span>
-      <span id="hotPotatoText">Bomba bekleniyor...</span>
+      <span id="hotPotatoText"><?= htmlspecialchars(tt('bomb_waiting', 'Bomba bekleniyor...')) ?></span>
     </div>
 
     <!-- Spectator Betting & Cheer Bar (Eliminated/Spectator players only) -->
@@ -2509,8 +2509,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       <!-- Sabotage Overlays -->
       <div id="freezeOverlay" class="freeze-overlay d-none">
         <div class="freeze-cracks">🧊💥</div>
-        <div class="freeze-title fw-bold fs-5 text-white">DONMA SABOTAJI!</div>
-        <div class="freeze-hint">Buzu kırmak için 2 kez tıkla! 🔨</div>
+        <div class="freeze-title fw-bold fs-5 text-white"><?= htmlspecialchars(tt('freeze_sabotage_title', 'DONMA SABOTAJI!')) ?></div>
+        <div class="freeze-hint"><?= htmlspecialchars(tt('freeze_hint', 'Buzu kırmak için 2 kez tıkla! 🔨')) ?></div>
       </div>
       <div id="blackoutOverlay" class="blackout-overlay d-none"></div>
 
@@ -2865,6 +2865,31 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       rulePointsDesc: <?= json_encode(tt('lobby_rule_points_desc', 'Elenme yok! Doğru cevap puan kazandırır, yanlış seçim puan düşürür. 25 turun sonunda en yüksek puanlı kazanır.')) ?>,
       ruleFlagsDesc: <?= json_encode(tt('lobby_rule_flags_desc', '250+ ülke bayrağı! Elenme yok, doğru bayrağı en hızlı bulan ve en çok puanı toplayan şampiyon olur.')) ?>,
       ruleTeamsDesc: <?= json_encode(tt('lobby_rule_teams_desc', 'Takımını seç! Tüm takım üyelerinin bireysel puanları takım havuzuna eklenir. En yüksek skoru toplayan takım kazanır.')) ?>,
+      powerupMirrorReady: <?= json_encode(tt('powerup_mirror_ready', '🪞 Ayna Sabotajı: Liderin ekranını ters çevir! (Hazır!)')) ?>,
+      powerupMirrorLocked: <?= json_encode(tt('powerup_mirror_title_locked', 'Ayna Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)')) ?>,
+      powerupFreezeReady: <?= json_encode(tt('powerup_freeze_ready', '🧊 Buz Sabotajı: Liderin şıklarını dondur! (Hazır!)')) ?>,
+      powerupFreezeLocked: <?= json_encode(tt('powerup_freeze_title_locked', 'Buz Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)')) ?>,
+      powerupBlackoutReady: <?= json_encode(tt('powerup_blackout_ready', '🔦 Fener Sabotajı: Liderin ekranını karart! (Hazır!)')) ?>,
+      powerupBlackoutLocked: <?= json_encode(tt('powerup_blackout_title_locked', 'Fener Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)')) ?>,
+      powerupShieldReady: <?= json_encode(tt('powerup_shield_ready', '🛡️ Prizma Kalkanı: Gelecek ilk sabotajı geri yansıtır! (Hazır!)')) ?>,
+      powerupShieldLocked: <?= json_encode(tt('powerup_shield_title_locked', 'Prizma Kalkanı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)')) ?>,
+      powerupShieldActivated: <?= json_encode(tt('powerup_shield_toast', 'Kalkan aktif! Gelen tüm sabotajlar engellenir.')) ?>,
+      mirrorAlert: <?= json_encode(tt('mirror_alert', '🪞 {attacker} ekranını ters çevirdi!')) ?>,
+      freezeAlert: <?= json_encode(tt('freeze_alert', '🧊 {attacker} seni dondurdu!')) ?>,
+      shieldActiveTitle: <?= json_encode(tt('shield_active_title', '🛡️ PRİZMA KALKANI AKTİF!')) ?>,
+      shieldActiveDesc: <?= json_encode(tt('shield_active_desc', 'Gelecek ilk sabotaj düşmana geri yansıtılacak!')) ?>,
+      freezeBreakClicks: <?= json_encode(tt('freeze_break_clicks', 'Kırmak için dokun! ({clicksLeft})')) ?>,
+      avatarTakenBy: <?= json_encode(tt('avatar_taken_by', '({player} tarafından seçildi)')) ?>,
+      bombWaiting: <?= json_encode(tt('bomb_waiting', 'Bomba bekleniyor...')) ?>,
+      bombPassed: <?= json_encode(tt('bomb_passed', '💣 Bomba: {player} oyuncusuna paslandı!')) ?>,
+      bombPassedSelf: <?= json_encode(tt('bomb_passed_self', '💣 Bombayı {player} oyuncusuna pasladın!')) ?>,
+      bombExplodedSelf: <?= json_encode(tt('bomb_exploded_self', '💥 BOMBA SENDE PATLADI!')) ?>,
+      bombPenaltyPts: <?= json_encode(tt('bomb_penalty_pts', '-500 Ceza Puanı!')) ?>,
+      bombTimeoutExploded: <?= json_encode(tt('bomb_timeout_exploded', 'Süre doldu, patlama yaşandı!')) ?>,
+      bombYouHold: <?= json_encode(tt('bomb_you_hold', '💣 BOMBA SENDE! Çabuk doğru rengi seç ve pasla!')) ?>,
+      bombOtherHolds: <?= json_encode(tt('bomb_other_holds', '💣 Bomba: {player} oyuncusunda!')) ?>,
+      spectatorBetsTitle: <?= json_encode(tt('spectator_bets_title', 'İzleyici Arenası: Bir Sonraki Turun Galibini Tahmin Et (+250 Puan)')) ?>,
+      spectatorBetPlaced: <?= json_encode(tt('spectator_bet_placed', '🔮 {player} için tahmin yapıldı! Bol şans!')) ?>,
     };
 
     function escapeHtml(s) {
@@ -3879,7 +3904,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       updatePowerupUI();
       playReactionSound('shield');
       showToast(STR.powerupShieldActivated || '🛡️ Prizma Kalkanı Aktif! Gelecek ilk sabotaj yansıtılacak!', true);
-      showAnnouncer('🛡️ PRİZMA KALKANI AKTİF!', 'Gelecek ilk sabotaj düşmana geri yansıtılacak!', 'primary', 2600);
+      showAnnouncer(STR.shieldActiveTitle || '🛡️ PRİZMA KALKANI AKTİF!', STR.shieldActiveDesc || 'Gelecek ilk sabotaj düşmana geri yansıtılacak!', 'primary', 2600);
 
       fetch('api/rooms_powerup.php', {
         method: 'POST',
@@ -3925,7 +3950,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       const banner = document.createElement('div');
       banner.className = 'mirror-alert-tag';
       banner.id = 'mirrorAlertTag';
-      banner.textContent = `🪞 ${attackerName} ekranını ters çevirdi!`;
+      banner.textContent = (STR.mirrorAlert || '🪞 {attacker} ekranını ters çevirdi!').replace('{attacker}', attackerName);
       document.body.appendChild(banner);
 
       setTimeout(() => {
@@ -3950,8 +3975,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       overlay.className = 'freeze-overlay';
       overlay.innerHTML = `
         <div class="freeze-cracks">🧊❄️</div>
-        <div class="fw-bold mt-1">${escapeHtml(attackerName)} seni dondurdu!</div>
-        <div class="freeze-hint" id="freezeHint">Kırmak için 2 kez dokun! (2)</div>
+        <div class="fw-bold mt-1">${escapeHtml((STR.freezeAlert || '{attacker} seni dondurdu!').replace('{attacker}', attackerName))}</div>
+        <div class="freeze-hint" id="freezeHint">${escapeHtml((STR.freezeBreakClicks || 'Kırmak için dokun! ({clicksLeft})').replace('{clicksLeft}', 2))}</div>
       `;
 
       let clicksLeft = 2;
@@ -3959,7 +3984,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         clicksLeft--;
         playReactionSound('freeze');
         const hint = document.getElementById('freezeHint');
-        if (hint) hint.textContent = `Kırmak için dokun! (${clicksLeft})`;
+        if (hint) hint.textContent = (STR.freezeBreakClicks || 'Kırmak için dokun! ({clicksLeft})').replace('{clicksLeft}', clicksLeft);
         if (clicksLeft <= 0) {
           overlay.style.transition = 'opacity 0.2s, transform 0.2s';
           overlay.style.opacity = '0';
@@ -4455,7 +4480,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                     data-avatar-id="${av.id}"
                     ${disabledAttr}
                     style="--avatar-color: ${av.color}; --avatar-bg: ${av.bg};"
-                    title="${escapeHtml(av.name)}${isTakenByOther ? ' (' + escapeHtml(getPlayerDisplayName(owner)) + ' tarafından seçildi)' : ''}">
+                    title="${escapeHtml(av.name)}${isTakenByOther ? ' ' + escapeHtml((STR.avatarTakenBy || '({player} tarafından seçildi)').replace('{player}', getPlayerDisplayName(owner))) : ''}">
               <span class="avatar-tile-icon">${av.icon}</span>
               <span class="avatar-tile-name">${escapeHtml(av.name)}</span>
               ${badgeHtml}
@@ -4986,8 +5011,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             const hpText = document.getElementById('hotPotatoText');
             const hpBanner = document.getElementById('hotPotatoBanner');
             if (hpBanner) hpBanner.classList.remove('is-mine');
-            if (hpText) hpText.textContent = `💣 Bomba: ${getPlayerDisplayName(nextHolder)} oyuncusuna paslandı!`;
-            showToast(`💣 Bombayı ${getPlayerDisplayName(nextHolder)} oyuncusuna pasladın!`, true);
+            if (hpText) hpText.textContent = (STR.bombPassed || '💣 Bomba: {player} oyuncusuna paslandı!').replace('{player}', getPlayerDisplayName(nextHolder));
+            showToast((STR.bombPassedSelf || '💣 Bombayı {player} oyuncusuna pasladın!').replace('{player}', getPlayerDisplayName(nextHolder)), true);
             playReactionSound('bomb_tick');
           }
         }
@@ -5024,8 +5049,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         if (state.gameMode === 'hot_potato' && String(state.bombHolderId) === String(ME_ID)) {
           playReactionSound('bomb_boom');
-          showAnnouncer('💥 BOMBA SENDE PATLADI!', '-500 Ceza Puanı!', 'warning', 3500);
-          showToast('💥 BOMBA SENDE PATLADI!', false);
+          showAnnouncer(STR.bombExplodedSelf || '💥 BOMBA SENDE PATLADI!', STR.bombPenaltyPts || '-500 Ceza Puanı!', 'warning', 3500);
+          showToast(STR.bombExplodedSelf || '💥 BOMBA SENDE PATLADI!', false);
         } else if (state.gameMode === 'elimination') {
           showToast(STR.wrong, false);
           state.eliminated = false;
@@ -5137,8 +5162,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       if (state.gameMode === 'hot_potato' && String(state.bombHolderId) === String(ME_ID)) {
         playReactionSound('bomb_boom');
-        showAnnouncer('💥 BOMBA SENDE PATLADI!', 'Süre doldu, patlama yaşandı!', 'warning', 3500);
-        showToast('💥 BOMBA SENDE PATLADI!', false);
+        showAnnouncer(STR.bombExplodedSelf || '💥 BOMBA SENDE PATLADI!', STR.bombTimeoutExploded || 'Süre doldu, patlama yaşandı!', 'warning', 3500);
+        showToast(STR.bombExplodedSelf || '💥 BOMBA SENDE PATLADI!', false);
       }
 
       state.myRoundStats.push({
@@ -5386,7 +5411,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           const holderObj = (state.players || []).find(p => String(p.user_id) === String(state.bombHolderId));
           const holderName = holderObj ? getPlayerDisplayName(holderObj) : 'Lider';
           const hpText = document.getElementById('hotPotatoText');
-          if (hpText) hpText.textContent = isMine ? '💣 BOMBA SENDE! Çabuk doğru rengi seç ve pasla!' : `💣 Bomba: ${holderName} oyuncusunda!`;
+          if (hpText) {
+            hpText.textContent = isMine 
+              ? (STR.bombYouHold || '💣 BOMBA SENDE! Çabuk doğru rengi seç ve pasla!') 
+              : (STR.bombOtherHolds || '💣 Bomba: {player} oyuncusunda!').replace('{player}', holderName);
+          }
         }
       } else {
         document.getElementById('hotPotatoBanner')?.classList.add('d-none');

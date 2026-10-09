@@ -1462,7 +1462,7 @@ $howToData = [
       </div>
 
       <!-- INTERACTIVE PLAYABLE GAME DEMO CARD -->
-      <div class="pm-mini-arena" aria-label="Interactive Game Demo">
+      <div class="pm-mini-arena" aria-label="<?= htmlspecialchars(tt('a11y_demo_game', 'Interactive Game Demo')) ?>">
         <div class="pm-mini-top">
           <div class="pm-live-badge">
             <span class="pulse-dot"></span>
@@ -1471,10 +1471,10 @@ $howToData = [
           <div class="pm-live-stats">
             <span><?= htmlspecialchars(tt('home_interactive_stage', 'Aşama')) ?> <span id="demoStage" style="color:#ff6b5b; font-weight:800;">1</span> · 
             <span id="demoScore" style="color:#10b981; font-weight:800;">0</span> XP</span>
-            <button id="demoMuteBtn" class="pm-mini-icon-btn" type="button" aria-label="Toggle Sound" title="Sound">
+            <button id="demoMuteBtn" class="pm-mini-icon-btn" type="button" aria-label="<?= htmlspecialchars(tt('a11y_toggle_sound', 'Toggle Sound')) ?>" title="<?= htmlspecialchars(tt('a11y_toggle_sound', 'Sound')) ?>">
               <span id="demoMuteIcon">🔊</span>
             </button>
-            <button id="demoRestartBtn" class="pm-mini-icon-btn" type="button" aria-label="Restart Demo" title="<?= htmlspecialchars(tt('btn_restart', 'Restart')) ?>">
+            <button id="demoRestartBtn" class="pm-mini-icon-btn" type="button" aria-label="<?= htmlspecialchars(tt('a11y_restart_demo', 'Restart Demo')) ?>" title="<?= htmlspecialchars(tt('btn_restart', 'Restart')) ?>">
               <span>🔄</span>
             </button>
           </div>
@@ -1488,7 +1488,7 @@ $howToData = [
           </div>
         </div>
 
-        <div id="demoGrid" class="pm-mini-grid" role="region" aria-label="Demo color grid">
+        <div id="demoGrid" class="pm-mini-grid" role="region" aria-label="<?= htmlspecialchars(tt('a11y_demo_grid', 'Demo color grid')) ?>">
           <!-- 9 dynamic color tiles injected by script -->
         </div>
 

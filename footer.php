@@ -248,10 +248,10 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
       .pm-debug-msg{ font-weight:600; }
       .pm-debug-loc{ opacity:.7; }
     </style>
-    <div class="pm-debug-panel" role="region" aria-label="PHP Debug Panel" id="pmDebugPanel">
+    <div class="pm-debug-panel" role="region" aria-label="<?= htmlspecialchars(tt('a11y_debug_panel', 'PHP Debug Panel')) ?>" id="pmDebugPanel">
       <div class="pm-debug-head">
         <div class="pm-debug-title">
-          PHP Debug <span class="pm-debug-head-count" id="pmDebugHeadCount">(<?= count($pmErrs) ?>)</span>
+          <?= htmlspecialchars(tt('debug_panel_title', 'PHP Debug')) ?> <span class="pm-debug-head-count" id="pmDebugHeadCount">(<?= count($pmErrs) ?>)</span>
           <span class="pm-debug-min-count" id="pmDebugMinCount"><?= count($pmErrs) ?></span>
         </div>
         <div class="d-flex align-items-center gap-2">
@@ -271,7 +271,7 @@ function _h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8
       </div>
     </div>
     <button class="pm-debug-pill" type="button" id="pmDebugPill" aria-label="<?= htmlspecialchars(t('debug_show_panel')) ?>">
-      Debug <span class="pm-debug-count">(<?= count($pmErrs) ?>)</span>
+      <?= htmlspecialchars(tt('debug_panel_title', 'Debug')) ?> <span class="pm-debug-count">(<?= count($pmErrs) ?>)</span>
     </button>
     <div class="pm-debug-tooltip" id="pmDebugTooltip" role="tooltip" aria-hidden="true"></div>
     <script>

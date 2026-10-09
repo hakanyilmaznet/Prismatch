@@ -1468,7 +1468,7 @@ $selectedCountryFlag = $countryFilter !== '' ? ($allCountries[$countryFilter]['f
             <?php else: ?>
               <span id="countryBtnFlag" class="countryItemAllIcon">🌍</span>
               <span id="countryBtnText" class="countryBtnText"><?= h(tt('filter_all_countries', 'Tüm Ülkeler')) ?></span>
-              <span id="countryBtnCode" class="countryBtnCode">ALL</span>
+              <span id="countryBtnCode" class="countryBtnCode"><?= h(tt('filter_country_all_code', 'ALL')) ?></span>
             <?php endif; ?>
           </span>
           <span class="countryCaret" aria-hidden="true"></span>
