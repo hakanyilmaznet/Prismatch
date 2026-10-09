@@ -16,6 +16,10 @@ if (ini_get("session.use_cookies")) {
         $params["httponly"]
     );
 }
+
+// Clear persistent user cookie
+setcookie('pm_persistent_uid', '', time() - 42000, '/', '', COOKIE_SECURE, true);
+
 session_destroy();
 
 header('Location: ' . APP_BASE_URL);

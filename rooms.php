@@ -158,11 +158,11 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       <div class="fs-1 mb-2">🎮</div>
       <h2 class="h5 fw-bold mb-2"><?= htmlspecialchars(tt('rooms_guest_banner_title', 'Çok Oyunculu Odalara Katılın!')) ?></h2>
       <p class="text-secondary small mb-3 mx-auto" style="max-width:540px;">
-        <?= htmlspecialchars(tt('rooms_guest_banner_desc', 'Arkadaşlarınızla canlı yarışmak veya yeni bir oda kurmak için Google ile oturum açın.')) ?>
+        <?= htmlspecialchars(tt('rooms_guest_banner_desc', 'Arkadaşlarınızla canlı yarışmak veya yeni bir oda kurmak için oturum açın.')) ?>
       </p>
       <div>
         <a href="login.php?next=<?= rawurlencode('rooms.php') ?>" class="btn btn-action px-4 py-2">
-          <?= htmlspecialchars(tt('home_cta_login', 'Login with Google')) ?>
+          <?= htmlspecialchars(tt('btn_sign_in', 'Oturum Aç')) ?>
         </a>
       </div>
     </div>

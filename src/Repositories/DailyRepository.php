@@ -240,7 +240,7 @@ class DailyRepository implements DailyRepositoryInterface {
         $orderCorrect = isset($cols['total_correct']) ? 'total_correct DESC,' : (isset($cols['correct_count']) ? 'correct_count DESC,' : '');
 
         $rawEmailCol = isset($cols['email']) ? 'email' : (isset($cols['user_email']) ? 'user_email' : "''");
-        $tempFilter = "AND NOT (({$rawEmailCol} LIKE '%@prismatch' OR {$rawEmailCol} LIKE '%@local.player') AND created_at < DATE_SUB(NOW(), INTERVAL 1 DAY))";
+        $tempFilter = ""; // Tüm kullanıcılar kalıcıdır
 
         $modeFilter = "";
         $params = [':d' => $dayUtc];

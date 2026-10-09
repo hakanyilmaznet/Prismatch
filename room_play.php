@@ -1565,18 +1565,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     .ink-splat-blot {
       position: absolute;
-      width: 170px;
-      height: 170px;
+      width: 36px;
+      height: 36px;
       cursor: pointer;
-      fill: #140424;
-      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
-      animation: splatPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      filter: drop-shadow(0 3px 8px rgba(0,0,0,0.6));
+      animation: splatPop 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
       user-select: none;
       transition: transform 0.15s ease, opacity 0.15s ease;
     }
     .ink-splat-blot:hover {
-      transform: scale(1.08);
-      filter: drop-shadow(0 8px 18px rgba(168, 85, 247, 0.5));
+      transform: scale(1.35);
+      filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.4));
     }
     .ink-splat-blot.blot-popped {
       animation: blotDisappear 0.2s ease forwards;
@@ -2876,6 +2875,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
 
     function openSabotageModal() {
+      // Oyuncu seçimi iptal edildi: Doğrudan lider rakip hedeflenir
+      fireInkSabotage();
+    }
+
+    function fireInkSabotage() {
       if (!state.powerups.ink_available) {
         const streak = state.powerups.ink_streak || 0;
         showToast((STR.powerupInkStreakReq || 'Mürekkep sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)').replace('{streak}', streak));
@@ -2894,64 +2898,21 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         return;
       }
 
-      if (rivals.length === 1) {
-        const rivalName = rivals[0].user_name || rivals[0].email.split('@')[0];
-        fireInkSabotage(rivals[0].user_id, rivalName);
-        return;
-      }
-
-      const modal = document.getElementById('sabotageModal');
-      const list = document.getElementById('sabotageTargetsList');
-      if (!modal || !list) return;
-
+      // SADECE lider rakip oyuncuyu hedefle
       const sortedRivals = [...rivals].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
       const leader = sortedRivals[0];
-      const leaderName = leader.user_name || leader.email.split('@')[0];
+      const leaderName = leader.user_name || (leader.email ? leader.email.split('@')[0] : (STR.player || 'Lider'));
 
-      list.innerHTML = '';
+      // Rastgele canlı mürekkep rengi
+      const inkColors = ['#ff007f', '#00e5ff', '#39ff14', '#ffe600', '#a855f7', '#ff3d00', '#00ff88', '#ec4899', '#3b82f6', '#ff5722', '#8a2be2', '#00f5d4'];
+      const chosenColor = inkColors[Math.floor(Math.random() * inkColors.length)];
 
-      // Leader option
-      const leadBtn = document.createElement('button');
-      leadBtn.type = 'button';
-      leadBtn.className = 'sabotage-target-btn';
-      leadBtn.innerHTML = `
-        <span>🥇 <strong>${escapeHtml(leaderName)}</strong> ${STR.sabotageLeader || '(Lider)'}</span>
-        <span class="badge bg-warning text-dark">${leader.score || 0} pts</span>
-      `;
-      leadBtn.onclick = () => {
-        modal.classList.add('d-none');
-        fireInkSabotage(leader.user_id, leaderName);
-      };
-      list.appendChild(leadBtn);
-
-      // Remaining rivals
-      sortedRivals.slice(1).forEach(r => {
-        const rName = r.user_name || r.email.split('@')[0];
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'sabotage-target-btn';
-        btn.innerHTML = `
-          <span>🎯 ${escapeHtml(rName)}</span>
-          <span class="badge bg-secondary">${r.score || 0} pts</span>
-        `;
-        btn.onclick = () => {
-          modal.classList.add('d-none');
-          fireInkSabotage(r.user_id, rName);
-        };
-        list.appendChild(btn);
-      });
-
-      modal.classList.remove('d-none');
-    }
-
-    function fireInkSabotage(targetUserId, targetName) {
-      if (!state.powerups.ink_available) return;
       state.powerups.ink_available = false;
       state.powerups.ink_streak = 0;
       updatePowerupUI();
 
       playReactionSound('ink_splat');
-      showToast((STR.powerupInkFired || '🦑 {target} hedeflendi! Mürekkep fırlatıldı!').replace('{target}', targetName.split('@')[0]));
+      showToast((STR.powerupInkFired || '🦑 Lider {target} hedeflendi! Mürekkep fırlatıldı!').replace('{target}', leaderName.split('@')[0]));
 
       fetch('api/rooms_powerup.php', {
         method: 'POST',
@@ -2959,12 +2920,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         body: JSON.stringify({
           guid: GUID,
           type: 'ink_splat',
-          target_user_id: targetUserId
+          target_user_id: leader.user_id,
+          color: chosenColor
         })
       }).catch(e => RoomLogger.warn('Powerup', 'Ink sabotage report error', e));
     }
 
-    function triggerInkSplatEffect(attackerName) {
+    function triggerInkSplatEffect(attackerName, splatColor) {
+      const color = (splatColor && typeof splatColor === 'string' && splatColor.startsWith('#')) ? splatColor : '#ff007f';
       playReactionSound('ink_splat');
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
@@ -2977,39 +2940,49 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       const banner = document.createElement('div');
       banner.className = 'ink-alert-banner';
-      banner.innerHTML = (STR.powerupInkAlert || '🦑 <strong>{attacker}</strong> sana mürekkep fırlattı!<br><span style="font-size: 13px; font-weight: normal; opacity: 0.9;">Pikselleri açmak için lekelere tıkla!</span>').replace('{attacker}', escapeHtml(attackerName));
+      banner.style.background = `linear-gradient(135deg, ${color}, #0f172a)`;
+      banner.style.boxShadow = `0 8px 30px rgba(0, 0, 0, 0.5), 0 0 24px ${color}80`;
+      banner.innerHTML = (STR.powerupInkAlert || '🦑 <strong>{attacker}</strong> sana mürekkep fırlattı!<br><span style="font-size: 13px; font-weight: normal; opacity: 0.9;">Temizlemek için damlalara tıkla!</span>').replace('{attacker}', escapeHtml(attackerName));
       overlay.appendChild(banner);
 
       const blotSvgPaths = [
         'M48.7,11.2 C66.8,4.1 82.5,18.4 88.3,34.8 C94.2,51.6 89.1,72.4 75.3,83.7 C61.2,95.3 39.8,94.9 24.1,84.1 C9.2,73.8 2.1,54.7 6.4,37.2 C10.6,20.1 30.1,18.5 48.7,11.2 Z',
         'M35.2,8.4 C52.1,-1.2 75.3,4.7 85.6,20.5 C95.9,36.4 91.2,60.1 79.4,74.6 C67.9,88.7 46.8,96.3 30.1,88.2 C13.7,80.3 3.5,60.8 7.4,43.2 C11.2,26.1 18.2,17.9 35.2,8.4 Z',
-        'M53.1,14.5 C68.4,9.2 84.6,22.1 89.2,37.8 C93.7,53.2 84.1,70.5 71.3,79.8 C58.2,89.4 38.6,87.6 25.4,77.3 C12.8,67.4 8.4,49.2 14.2,34.5 C20.1,19.3 37.4,19.8 53.1,14.5 Z'
+        'M53.1,14.5 C68.4,9.2 84.6,22.1 89.2,37.8 C93.7,53.2 84.1,70.5 71.3,79.8 C58.2,89.4 38.6,87.6 25.4,77.3 C12.8,67.4 8.4,49.2 14.2,34.5 C20.1,19.3 37.4,19.8 53.1,14.5 Z',
+        'M50,15 C65,10 80,25 85,45 C90,65 75,85 55,85 C35,85 15,70 15,50 C15,30 35,20 50,15 Z',
+        'M45,5 C60,20 85,30 85,55 C85,80 60,95 40,85 C20,75 10,50 20,30 C30,10 40,2 45,5 Z'
       ];
 
-      const blotCount = 4;
-      let remainingBlots = blotCount;
+      // Küçük damlalar, tüm ekrana yayılmış (40 damla)
+      const dropCount = 40;
+      let remainingBlots = dropCount;
 
-      const coords = [
-        { left: '26%', top: '36%' },
-        { left: '72%', top: '40%' },
-        { left: '44%', top: '56%' },
-        { left: '62%', top: '72%' },
-      ];
+      const cols = 8;
+      const rows = 5;
+      for (let i = 0; i < dropCount; i++) {
+        const cCol = i % cols;
+        const cRow = Math.floor(i / cols);
+        // Izgara hücresi içerisinde rastgele yerleşim (tüm ekrana homojen yayılım)
+        const leftPercent = Math.min(94, Math.max(4, ((cCol + 0.15 + Math.random() * 0.7) / cols) * 100));
+        const topPercent = Math.min(92, Math.max(6, ((cRow + 0.15 + Math.random() * 0.7) / rows) * 100));
+        const sizePx = Math.floor(22 + Math.random() * 24); // 22px - 46px küçük damla boyutu
+        const rot = Math.floor(Math.random() * 360);
+        const pathData = blotSvgPaths[i % blotSvgPaths.length];
 
-      coords.forEach((c, idx) => {
         const blot = document.createElement('div');
         blot.className = 'ink-splat-blot';
-        blot.style.left = c.left;
-        blot.style.top = c.top;
-        blot.style.transform = `translate(-50%, -50%) rotate(${idx * 75}deg) scale(${0.9 + Math.random() * 0.4})`;
+        blot.style.width = `${sizePx}px`;
+        blot.style.height = `${sizePx}px`;
+        blot.style.left = `${leftPercent.toFixed(1)}%`;
+        blot.style.top = `${topPercent.toFixed(1)}%`;
+        blot.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
+        blot.style.animationDelay = `${(Math.random() * 0.15).toFixed(2)}s`;
 
-        const pathData = blotSvgPaths[idx % blotSvgPaths.length];
         blot.innerHTML = `
           <svg viewBox="0 0 100 100" width="100%" height="100%">
-            <path d="${pathData}" fill="#140424"></path>
-            <circle cx="20" cy="18" r="4" fill="#140424"></circle>
-            <circle cx="85" cy="80" r="5" fill="#140424"></circle>
-            <circle cx="15" cy="75" r="3.5" fill="#140424"></circle>
+            <path d="${pathData}" fill="${color}"></path>
+            <circle cx="20" cy="18" r="4" fill="${color}"></circle>
+            <circle cx="85" cy="80" r="5" fill="${color}"></circle>
           </svg>
         `;
 
@@ -3017,7 +2990,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           e.stopPropagation();
           playReactionSound('ink_pop');
           blot.classList.add('blot-popped');
-          setTimeout(() => blot.remove(), 200);
+          setTimeout(() => blot.remove(), 180);
           remainingBlots--;
           if (remainingBlots <= 0) {
             clearInkOverlay();
@@ -3025,7 +2998,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         });
 
         overlay.appendChild(blot);
-      });
+      }
 
       document.body.appendChild(overlay);
 
@@ -3033,12 +3006,12 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         overlay.classList.add('is-clearing');
         setTimeout(() => {
           if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        }, 400);
+        }, 350);
       }
 
       setTimeout(() => {
         clearInkOverlay();
-      }, 2800);
+      }, 3400);
     }
 
     function updateTeamBattleUI() {
@@ -4910,11 +4883,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         if (data.type === 'ink_splat') {
           if (String(data.target_user_id) === String(ME_ID) || data.target_email === ME_EMAIL) {
-            triggerInkSplatEffect(data.from_name || (STR.player || 'Player'));
+            triggerInkSplatEffect(data.from_name || (STR.player || 'Player'), data.color);
           } else {
-            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Player');
+            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
             const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
-            showToast((STR.powerupInkBrdcst || '🦑 {attacker}, {victim} oyuncusuna mürekkep fırlattı!').replace('{attacker}', attackerName).replace('{victim}', victimName));
+            showToast((STR.powerupInkBrdcst || '🦑 {attacker}, lider {victim} oyuncusuna mürekkep fırlattı!').replace('{attacker}', attackerName).replace('{victim}', victimName));
             playReactionSound('ink_splat');
           }
         } else if (data.type === 'fifty_fifty') {
@@ -4934,7 +4907,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     document.getElementById('powerupInkBtn')?.addEventListener('click', (e) => {
       e.preventDefault();
-      openSabotageModal();
+      fireInkSabotage();
     });
 
     document.getElementById('closeSabotageModalBtn')?.addEventListener('click', (e) => {

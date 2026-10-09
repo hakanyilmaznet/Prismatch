@@ -96,11 +96,29 @@ if ($linkUserId) {
 }
 
 // Session: email as primary identity
+$uid = (string)($user['id'] ?? '');
 $_SESSION['user_email'] = (string)($user['email'] ?? $email);
-$_SESSION['user_id'] = (string)($user['id'] ?? '');
+$_SESSION['user_id'] = $uid;
 $_SESSION['user_name'] = user_display_name_from_row($user);
 $_SESSION['login_provider'] = 'google';
 $_SESSION['is_guest'] = false;
+
+// Persistent session cookie (1 year)
+$cookieExpire = time() + 31536000;
+if ($uid !== '') {
+  if (PHP_VERSION_ID >= 70300) {
+    setcookie('pm_persistent_uid', $uid, [
+      'expires' => $cookieExpire,
+      'path' => '/',
+      'domain' => '',
+      'secure' => defined('COOKIE_SECURE') ? COOKIE_SECURE : false,
+      'httponly' => true,
+      'samesite' => 'Lax'
+    ]);
+  } else {
+    setcookie('pm_persistent_uid', $uid, $cookieExpire, '/', '', defined('COOKIE_SECURE') ? COOKIE_SECURE : false, true);
+  }
+}
 
 $next = $_SESSION['login_next'] ?? '';
 unset($_SESSION['login_next']);

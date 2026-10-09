@@ -22,6 +22,7 @@ $input = json_decode($raw, true) ?? [];
 $guid = trim((string)($input['guid'] ?? ($_POST['guid'] ?? '')));
 $type = trim((string)($input['type'] ?? ($_POST['type'] ?? '')));
 $targetUserId = isset($input['target_user_id']) ? trim((string)$input['target_user_id']) : (isset($_POST['target_user_id']) ? trim((string)$_POST['target_user_id']) : null);
+$color = isset($input['color']) ? trim((string)$input['color']) : (isset($_POST['color']) ? trim((string)$_POST['color']) : null);
 
 if ($guid === '' || $type === '') {
     http_response_code(400);
@@ -38,7 +39,7 @@ if ($userName === '') {
 }
 
 $service = new RoomGameService();
-$result = $service->usePowerup($guid, (string)$userId, (string)$email, $userName, $type, $targetUserId);
+$result = $service->usePowerup($guid, (string)$userId, (string)$email, $userName, $type, $targetUserId, $color);
 
 if (!($result['ok'] ?? false)) {
     $code = (int)($result['code'] ?? 400);

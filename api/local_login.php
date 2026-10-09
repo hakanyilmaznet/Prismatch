@@ -31,16 +31,34 @@ try {
   $clientId = trim((string)($data['user_id'] ?? ''));
 
   $user = ensure_local_user($username);
+  $uid = (string)($user['id'] ?? '');
   $_SESSION['user_email'] = (string)($user['email'] ?? $username);
-  $_SESSION['user_id'] = (string)($user['id'] ?? '');
+  $_SESSION['user_id'] = $uid;
   $_SESSION['user_name'] = $username;
   $_SESSION['local_user_id'] = $clientId !== '' ? $clientId : null;
   $_SESSION['login_provider'] = 'local';
-  $_SESSION['is_guest'] = true;
+  $_SESSION['is_guest'] = false;
+
+  // Kalıcı oturum çerezi (1 yıl - kullanıcı oturumu kapatana kadar açık kalır)
+  $cookieExpire = time() + 31536000;
+  if ($uid !== '') {
+    if (PHP_VERSION_ID >= 70300) {
+      setcookie('pm_persistent_uid', $uid, [
+        'expires' => $cookieExpire,
+        'path' => '/',
+        'domain' => '',
+        'secure' => defined('COOKIE_SECURE') ? COOKIE_SECURE : false,
+        'httponly' => true,
+        'samesite' => 'Lax'
+      ]);
+    } else {
+      setcookie('pm_persistent_uid', $uid, $cookieExpire, '/', '', defined('COOKIE_SECURE') ? COOKIE_SECURE : false, true);
+    }
+  }
 
   echo json_encode([
     'ok' => true,
-    'user_id' => (string)($user['id'] ?? ''),
+    'user_id' => $uid,
     'username' => $username,
   ], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {

@@ -88,10 +88,6 @@ class RoomRepository implements RoomRepositoryInterface {
             FROM rooms r
             LEFT JOIN room_players rp ON rp.room_id = r.id
             WHERE (r.owner_id = :owner_id OR rp.user_id = :player_id)
-              AND NOT (
-                (r.owner_email LIKE '%@prismatch' OR r.owner_email LIKE '%@local.player')
-                AND r.created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
-              )
             ORDER BY r.created_at DESC
             LIMIT :lim
         ");
@@ -111,10 +107,6 @@ class RoomRepository implements RoomRepositoryInterface {
             LEFT JOIN room_players rp ON rp.room_id = r.id
             WHERE (r.is_private = 0 OR r.is_private IS NULL)
               AND r.status IN ('waiting', 'active')
-              AND NOT (
-                (r.owner_email LIKE '%@prismatch' OR r.owner_email LIKE '%@local.player')
-                AND r.created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
-              )
             GROUP BY r.id
             ORDER BY (r.status = 'waiting') DESC, r.created_at DESC
             LIMIT :lim

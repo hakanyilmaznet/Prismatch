@@ -58,8 +58,8 @@ function ensure_user_by_email(string $email): array {
 }
 
 function is_temporary_email(string $email): bool {
-    $lower = strtolower(trim($email));
-    return str_ends_with($lower, '@prismatch') || str_ends_with($lower, '@local.player');
+    // Tüm kullanıcılar kalıcıdır
+    return false;
 }
 
 function ensure_local_user(string $username): array {

@@ -1171,6 +1171,7 @@ class RoomGameService {
      * @param string $userName Attacker user display name
      * @param string $type Powerup type ('fifty_fifty' or 'ink_splat')
      * @param string|null $targetUserId Optional target user ID for sabotage
+     * @param string|null $color Optional custom splat color hex
      * @return array{ok: bool, error?: string, code?: int, payload?: array<string, mixed>}
      */
     public function usePowerup(
@@ -1179,7 +1180,8 @@ class RoomGameService {
         string $userEmail,
         string $userName,
         string $type,
-        ?string $targetUserId = null
+        ?string $targetUserId = null,
+        ?string $color = null
     ): array {
         $allowed = ['fifty_fifty', 'ink_splat'];
         if (!in_array($type, $allowed, true)) {
@@ -1226,30 +1228,20 @@ class RoomGameService {
 
         $targetPlayer = null;
         $targetName = null;
+        $splatColor = null;
         if ($type === 'ink_splat') {
-            // Find target player
-            if ($targetUserId !== null && $targetUserId !== '' && $targetUserId !== $userId) {
-                foreach ($players as $p) {
-                    if ((string)$p['user_id'] === $targetUserId && ($p['status'] ?? '') !== 'eliminated') {
-                        $targetPlayer = $p;
-                        break;
-                    }
-                }
+            // Mürekkep sıçratmada oyuncu seçimi iptal: SADECE lider rakip oyuncuya gönderilir
+            $rivals = array_values(array_filter($players, function ($p) use ($userId, $userEmail) {
+                return (string)$p['user_id'] !== $userId
+                    && (string)($p['email'] ?? '') !== $userEmail
+                    && ($p['status'] ?? '') !== 'eliminated';
+            }));
+            if (empty($rivals)) {
+                return ['ok' => false, 'code' => 400, 'error' => 'no_target_available'];
             }
-
-            // If no specific target selected or target not found, pick the highest scoring rival
-            if (!$targetPlayer) {
-                $rivals = array_values(array_filter($players, function ($p) use ($userId, $userEmail) {
-                    return (string)$p['user_id'] !== $userId
-                        && (string)($p['email'] ?? '') !== $userEmail
-                        && ($p['status'] ?? '') !== 'eliminated';
-                }));
-                if (empty($rivals)) {
-                    return ['ok' => false, 'code' => 400, 'error' => 'no_target_available'];
-                }
-                usort($rivals, fn($a, $b) => ((int)($b['score'] ?? 0)) <=> ((int)($a['score'] ?? 0)));
-                $targetPlayer = $rivals[0];
-            }
+            usort($rivals, fn($a, $b) => ((int)($b['score'] ?? 0)) <=> ((int)($a['score'] ?? 0)));
+            $targetPlayer = $rivals[0];
+            $targetUserId = (string)$targetPlayer['user_id'];
 
             if ($targetPlayer) {
                 $targetName = (string)($targetPlayer['user_name'] ?? '');
@@ -1258,9 +1250,13 @@ class RoomGameService {
                     $targetName = $parts[0] !== '' ? $parts[0] : (string)$targetPlayer['email'];
                 }
                 if ($targetName === '') {
-                    $targetName = 'Rakip';
+                    $targetName = 'Lider';
                 }
             }
+
+            // Rastgele canlı mürekkep rengi
+            $inkPalette = ['#ff007f', '#00e5ff', '#39ff14', '#ffe600', '#a855f7', '#ff3d00', '#00ff88', '#ec4899', '#3b82f6', '#ff5722', '#8a2be2', '#00f5d4'];
+            $splatColor = ($color !== null && preg_match('/^#[0-9a-fA-F]{6}$/', $color)) ? $color : $inkPalette[array_rand($inkPalette)];
         }
 
         // Record in room_events
@@ -1273,6 +1269,7 @@ class RoomGameService {
             'target_user_id' => $targetPlayer ? (string)$targetPlayer['user_id'] : null,
             'target_name' => $targetName,
             'target_email' => $targetPlayer ? (string)($targetPlayer['email'] ?? '') : null,
+            'color' => $splatColor,
             'round' => (int)($room['current_round'] ?? 1),
             'ts' => (int)(microtime(true) * 1000),
         ];

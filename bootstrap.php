@@ -95,12 +95,15 @@ if (!$isLocal && $host && stripos($host, 'www.') !== 0) {
 // --- Autoloader for SOLID architecture ---
 require_once __DIR__ . '/src/autoload.php';
 
-// --- Session ---
+// --- Session (Persists permanently until user explicitly logs out) ---
+$sessionLifetime = 31536000; // 1 year (365 days)
+@ini_set('session.gc_maxlifetime', (string)$sessionLifetime);
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
   session_name(SESSION_NAME);
   if (PHP_VERSION_ID >= 70300) {
     session_set_cookie_params([
-      'lifetime' => 0,
+      'lifetime' => $sessionLifetime,
       'path' => '/',
       'domain' => '',
       'secure' => COOKIE_SECURE,
@@ -108,9 +111,22 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
       'samesite' => 'Lax'
     ]);
   } else {
-    session_set_cookie_params(0, '/', '', COOKIE_SECURE, true);
+    session_set_cookie_params($sessionLifetime, '/', '', COOKIE_SECURE, true);
   }
   session_start();
+}
+
+// --- Restore persistent session if user closed browser or PHP GC ran ---
+if (empty($_SESSION['user_id']) && !empty($_COOKIE['pm_persistent_uid'])) {
+  require_once __DIR__ . '/db.php';
+  $pUser = find_user_by_id((string)$_COOKIE['pm_persistent_uid']);
+  if ($pUser) {
+    $_SESSION['user_id'] = (string)$pUser['id'];
+    $_SESSION['user_email'] = (string)($pUser['email'] ?? '');
+    $_SESSION['user_name'] = user_display_name_from_row($pUser);
+    $_SESSION['login_provider'] = $pUser['login_provider'] ?? 'local';
+    $_SESSION['is_guest'] = false;
+  }
 }
 
 // --- i18n ---
