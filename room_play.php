@@ -292,27 +292,6 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       100% { transform: scale(1); opacity: 1; }
     }
     /* Target Color Card */
-    .target-box-area {
-      width: min(440px, 92vw, calc(100dvh - 310px));
-      min-width: min(260px, 100%);
-      max-width: 100%;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 6px auto 0 auto;
-    }
-    body:has(#powerupBar:not(.d-none)) .target-box-area {
-      width: min(440px, 92vw, calc(100dvh - 350px));
-    }
-    .target-box-area .target-box {
-      width: 100%;
-      margin: 0 auto;
-    }
-    .target-box-area .big-countdown {
-      margin: 0 auto;
-    }
-
     .target-box {
       width: min(440px, 92%);
       aspect-ratio: 16/9;
@@ -4768,10 +4747,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       if (state.round > 1 || state.countdownMs <= 1000) {
         stageContent.innerHTML = `
           <h2 class="stage-title">${remTitle}</h2>
+          <div class="fs-1 my-3">${isFlag ? '🚩' : '🎯'}</div>
           <div class="stage-subtitle">${STR.watchScreen}</div>
-          <div class="target-box-area">
-            <div class="fs-1 my-3">${isFlag ? '🚩' : '🎯'}</div>
-          </div>
         `;
 
         // Tüm oyuncuların aynı anda hedef renge geçmesi için senkronize geçiş
@@ -4790,10 +4767,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       stageContent.innerHTML = `
         <h2 class="stage-title">${remTitle}</h2>
+        <div class="big-countdown" id="countdownNum">${remaining}</div>
         <div class="stage-subtitle">${STR.watchScreen}</div>
-        <div class="target-box-area">
-          <div class="big-countdown" id="countdownNum">${remaining}</div>
-        </div>
       `;
 
       state.countdownInterval = setInterval(() => {
@@ -4839,10 +4814,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       stageContent.innerHTML = `
         <h2 class="stage-title">${remTitle}</h2>
+        ${boxHtml}
         <div class="stage-subtitle">${showSub}</div>
-        <div class="target-box-area">
-          ${boxHtml}
-        </div>
       `;
 
       // Emoji panelini hedef renk gösterim ekranında sayfanın alt tarafına sabitle

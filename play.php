@@ -354,24 +354,6 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       100%{ opacity:1; transform: scale(1.0); }
     }
 
-    .target-box-area {
-      width: min(440px, 92vw, calc(100dvh - 300px));
-      min-width: min(260px, 100%);
-      max-width: 100%;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto;
-    }
-    .target-box-area .target-card {
-      width: 100%;
-      margin: 0 auto;
-    }
-    .target-box-area .countdown {
-      margin: 0 auto;
-    }
-
     .target-card{
       width: min(420px, 90%);
       aspect-ratio: 16/9;
@@ -1793,14 +1775,10 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       ? tjs('remember_flag', 'Remember this flag!')
       : tjs('countdown_help', 'Remember the shown color, then pick it from the grid.');
 
-    const boxArea = document.createElement("div");
-    boxArea.className = "target-box-area";
-    boxArea.appendChild(cd);
-
     render(makeStack(
       h1(tjs('app_name', 'Prismatch')),
       p(helpText),
-      boxArea
+      cd
     ));
 
     updateHUD(state.answerMs);
@@ -1836,14 +1814,10 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       card.className = "target-card target-box-flag";
       card.innerHTML = `<img src="${state.targetColor}" class="target-flag-img" alt="Target Flag" loading="eager">`;
 
-      const boxArea = document.createElement("div");
-      boxArea.className = "target-box-area";
-      boxArea.appendChild(card);
-
       render(makeStack(
         h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`),
         p(tjs('remember_flag', 'Remember this flag!')),
-        boxArea
+        card
       ));
       setBadge(tjs('badge_showing_target_flag', 'Showing target flag...'));
     } else {
@@ -1853,14 +1827,10 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       card.className = "target-card";
       card.style.background = state.targetColor;
 
-      const boxArea = document.createElement("div");
-      boxArea.className = "target-box-area";
-      boxArea.appendChild(card);
-
       render(makeStack(
         h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`),
         p(tjs('remember_this', 'Remember this color.')),
-        boxArea
+        card
       ));
       setBadge(tjs('badge_showing_target', 'Showing target…'));
     }
