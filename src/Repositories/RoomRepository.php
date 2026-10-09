@@ -202,10 +202,30 @@ class RoomRepository implements RoomRepositoryInterface {
         return $ok;
     }
 
+    public function setPlayerAvatar(string $roomId, string $userId, string $avatar): bool {
+        // Seçilmiş avatarı diğer aktif oyuncular seçemesin
+        $check = $this->pdo->prepare("
+            SELECT user_id FROM room_players 
+            WHERE room_id = :rid AND avatar = :av AND user_id != :uid AND status != 'eliminated' 
+            LIMIT 1
+        ");
+        $check->execute([':rid' => $roomId, ':av' => $avatar, ':uid' => $userId]);
+        if ($check->fetch()) {
+            return false;
+        }
+
+        $stmt = $this->pdo->prepare("UPDATE room_players SET avatar = :av WHERE room_id = :rid AND user_id = :uid");
+        $ok = $stmt->execute([':av' => $avatar, ':rid' => $roomId, ':uid' => $userId]);
+        if ($ok) {
+            $this->touchRoom($roomId);
+        }
+        return $ok;
+    }
+
     public function listPlayers(string $roomId): array {
         $cutoff = (new \DateTimeImmutable('-8 seconds', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s.v');
         $stmt = $this->pdo->prepare("
-            SELECT user_id, email, status, eliminated_round, score, correct, joined_at, last_active, team,
+            SELECT user_id, email, status, eliminated_round, score, correct, joined_at, last_active, team, avatar,
                    CASE WHEN last_active IS NOT NULL AND last_active >= :cutoff THEN 1 ELSE 0 END AS is_online
             FROM room_players
             WHERE room_id = :rid
@@ -220,6 +240,7 @@ class RoomRepository implements RoomRepositoryInterface {
             $r['name'] = $displayName;
             $r['nickname'] = $displayName;
             $r['user_name'] = $displayName;
+            $r['avatar'] = !empty($r['avatar']) ? (string)$r['avatar'] : null;
         }
         return $rows;
     }

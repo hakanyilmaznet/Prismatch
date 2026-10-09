@@ -1901,6 +1901,159 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       background: rgba(0, 0, 0, 0.03);
       border-color: rgba(0, 0, 0, 0.08);
     }
+
+    /* Lobby Avatars Chooser (50 Avatars) */
+    .lobby-avatars-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--arena-border);
+      border-radius: 20px;
+      padding: 16px 20px;
+      max-width: 820px;
+      width: 100%;
+      margin: 18px auto 0;
+      text-align: left;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    .lobby-avatars-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--arena-border);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .my-active-avatar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      animation: alertBounce 0.3s ease;
+    }
+    .my-active-avatar-badge .avatar-icon-large {
+      font-size: 18px;
+    }
+    .lobby-avatars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .lobby-avatars-grid::-webkit-scrollbar {
+      width: 5px;
+    }
+    .lobby-avatars-grid::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+    .avatar-tile-btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px 6px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--arena-border);
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      color: #fff;
+      outline: none;
+      user-select: none;
+    }
+    .avatar-tile-btn:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.05);
+      background: var(--avatar-bg, rgba(255, 255, 255, 0.12));
+      border-color: var(--avatar-color, #38bdf8);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), 0 0 10px var(--avatar-color, #38bdf8);
+    }
+    .avatar-tile-btn.is-mine {
+      background: var(--avatar-bg, rgba(56, 189, 248, 0.2)) !important;
+      border: 2px solid #38bdf8 !important;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.6) !important;
+      transform: scale(1.04);
+    }
+    .avatar-tile-btn.is-taken {
+      opacity: 0.35;
+      filter: grayscale(65%);
+      cursor: not-allowed;
+      pointer-events: none;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .avatar-tile-icon {
+      font-size: 24px;
+      line-height: 1.1;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .avatar-tile-name {
+      font-size: 9.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 64px;
+      opacity: 0.85;
+      text-align: center;
+    }
+    .avatar-status-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .avatar-status-badge.badge-mine {
+      background: #38bdf8;
+      color: #0b1120;
+      box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+    }
+    .avatar-status-badge.badge-taken {
+      background: #64748b;
+      color: #fff;
+      max-width: 50px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .player-pill-avatar {
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      line-height: 1;
+    }
+    .reaction-avatar-btn {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(56, 189, 248, 0.22)) !important;
+      border: 1.5px solid var(--avatar-glow, #38bdf8) !important;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+    }
+    .reaction-avatar-btn:hover {
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
+      transform: scale(1.15) !important;
+    }
+    [data-bs-theme="light"] .lobby-avatars-card {
+      background: rgba(255, 255, 255, 0.88);
+      border-color: rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+    [data-bs-theme="light"] .avatar-tile-btn {
+      background: rgba(0, 0, 0, 0.03);
+      color: #1e293b;
+    }
   </style>
 </head>
 <body class="pm-has-fixed-header">
@@ -2021,6 +2174,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             <div id="minPlayersNotice" class="small text-warning mt-2 fw-semibold text-center"></div>
           </div>
         <div id="lobbyTeamsContainer"></div>
+        <div id="lobbyAvatarContainer" class="w-100"></div>
         <div id="lobbyRulesContainer"></div>
       </div>
     </main>
@@ -2028,6 +2182,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     <!-- Live Team Reaction & Sound Effects Bar -->
     <div id="reactionBar" class="reaction-bar" aria-label="<?= htmlspecialchars(tt('reaction_bar_aria', 'Canlı Tepkiler')) ?>">
       <div class="reaction-group">
+        <!-- User's Custom Chosen Avatar Reaction -->
+        <button type="button" class="reaction-btn reaction-avatar-btn" id="myAvatarReactionBtn" title="<?= htmlspecialchars(tt('reaction_avatar_title', 'Benim Avatarım!')) ?>">
+          <span class="reaction-icon" id="myAvatarReactionIcon">💎</span>
+        </button>
         <button type="button" class="reaction-btn" data-emoji="🔥" data-sound="fire" title="<?= htmlspecialchars(tt('reaction_fire_title', 'Alev / Fire!')) ?>">
           <span class="reaction-icon">🔥</span>
         </button>
@@ -2138,8 +2296,13 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     const ROOM_GAME_MODE = <?= json_encode($room['game_mode'] ?? 'elimination') ?>;
     const ROOM_TEAMS = <?= json_encode($roomTeams, JSON_UNESCAPED_UNICODE) ?>;
     const ALL_FLAGS = <?= json_encode((($room['game_mode'] ?? '') === 'flags') ? \Prismatch\Services\RoomGameService::getFlagPalette() : []) ?>;
+    const ALL_AVATARS = <?= json_encode(\Prismatch\Services\RoomGameService::getConceptAvatars(), JSON_UNESCAPED_UNICODE) ?>;
 
     const STR = {
+      lobbyAvatarTitle: <?= json_encode(tt('lobby_avatar_title', 'Karakter Avatarını Seç (50 Avatar)')) ?>,
+      lobbyAvatarSubtitle: <?= json_encode(tt('lobby_avatar_subtitle', 'Her avatar tek bir oyuncuya özeldir. Seçtiğin avatar oyun içinde ve emojilerde görünür!')) ?>,
+      avatarTaken: <?= json_encode(tt('avatar_taken_error', 'Bu avatar başka bir oyuncu tarafından seçildi!')) ?>,
+      reactionAvatarTitle: <?= json_encode(tt('reaction_avatar_title', 'Avatarımı Gönder!')) ?>,
       correct: <?= json_encode(tt('badge_correct', 'Correct!')) ?>,
       wrong: <?= json_encode(tt('badge_wrong', 'Wrong color!')) ?>,
       wrongPenalty: <?= json_encode(tt('room_wrong_points', 'Wrong pick! Points deducted.')) ?>,
@@ -2468,6 +2631,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         { id: 'blue', name: 'Blue', color: '#3b82f6' }
       ],
       myTeam: (Array.isArray(ROOM_TEAMS) && ROOM_TEAMS[0]) ? ROOM_TEAMS[0].id : 'red',
+      myAvatar: null,
+      avatars: (Array.isArray(ALL_AVATARS) && ALL_AVATARS.length > 0) ? ALL_AVATARS : [],
       teamSummary: null,
       targetShowTimer: null,
       serverTimeOffsetMs: 0,
@@ -3135,9 +3300,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                   ${members.length === 0 ? `<div class="text-secondary small fst-italic">${escapeHtml(STR.noMembersYet || 'Henüz kimse yok')}</div>` : members.map(m => {
                     const isMe = m.email === ME_EMAIL || String(m.user_id) === String(ME_ID);
                     const mName = m.email ? m.email.split('@')[0] : (m.nickname || STR.player);
+                    const mAvObj = (state.avatars || ALL_AVATARS || []).find(a => String(a.id) === String(m.avatar));
                     return `
                       <div class="team-member-item">
                         <span class="team-dot dot-${t.id}" style="background: ${t.color}; width: 8px; height: 8px;"></span>
+                        ${mAvObj ? `<span class="me-1" title="${escapeHtml(mAvObj.name)}">${mAvObj.icon}</span>` : ''}
                         <span class="text-truncate" style="max-width: 140px;">${escapeHtml(mName)}</span>
                         ${isMe ? `<span class="badge bg-${btnTheme} text-light fs-8 py-0 px-1 ms-1">${STR.you}</span>` : ''}
                       </div>
@@ -3254,6 +3421,147 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     }
     window.joinTeam = joinTeam;
 
+    function updateMyAvatarUI() {
+      const myBtn = document.getElementById('myAvatarReactionBtn');
+      const myIcon = document.getElementById('myAvatarReactionIcon');
+      if (!myBtn || !myIcon) return;
+
+      const avatars = state.avatars || ALL_AVATARS || [];
+      const currentAv = avatars.find(a => String(a.id) === String(state.myAvatar)) || avatars[0];
+      if (currentAv) {
+        myIcon.textContent = currentAv.icon;
+        myBtn.style.setProperty('--avatar-glow', currentAv.color || '#38bdf8');
+        myBtn.title = `${currentAv.name} (${STR.reactionAvatarTitle || 'Avatarımı Gönder!'})`;
+      }
+    }
+
+    function renderLobbyAvatars() {
+      const container = document.getElementById('lobbyAvatarContainer');
+      if (!container) return;
+      if (state.phase !== 'lobby') {
+        container.innerHTML = '';
+        return;
+      }
+
+      const avatars = state.avatars || ALL_AVATARS || [];
+      const players = state.players || [];
+      const myUid = String(ME_ID);
+      const myEmail = ME_EMAIL;
+
+      // Find current user's avatar
+      const meRow = players.find(p => p.email === myEmail || String(p.user_id) === myUid);
+      const myAvatarId = meRow && meRow.avatar ? String(meRow.avatar) : state.myAvatar;
+
+      // Map which player owns each avatar ID
+      const avatarOwners = {};
+      players.forEach(p => {
+        if (p.avatar && p.status !== 'eliminated') {
+          avatarOwners[String(p.avatar)] = p;
+        }
+      });
+
+      let myAvatarObj = avatars.find(a => String(a.id) === String(myAvatarId)) || avatars[0];
+
+      let html = `
+        <div class="lobby-avatars-card" id="lobbyAvatarsCard">
+          <div class="lobby-avatars-header">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="fs-4">🎭</span>
+              <div>
+                <div class="fw-bold fs-6 text-white">${escapeHtml(STR.lobbyAvatarTitle || 'Karakter Avatarını Seç (50 Avatar)')}</div>
+                <div class="small text-secondary">${escapeHtml(STR.lobbyAvatarSubtitle || 'Her avatar tek bir oyuncuya özeldir. Seçtiğin avatar oyun içinde ve emojilerde görünür!')}</div>
+              </div>
+            </div>
+            <div class="my-active-avatar-badge" style="background: ${myAvatarObj.bg || '#38bdf8'}; box-shadow: 0 0 16px ${myAvatarObj.color}66;">
+              <span class="avatar-icon-large">${myAvatarObj.icon}</span>
+              <span class="avatar-name-large">${escapeHtml(myAvatarObj.name)}</span>
+            </div>
+          </div>
+          <div class="lobby-avatars-grid">
+      `;
+
+      avatars.forEach(av => {
+        const owner = avatarOwners[String(av.id)];
+        const isSelectedByMe = owner ? (owner.email === myEmail || String(owner.user_id) === myUid) : (String(av.id) === String(myAvatarId));
+        const isTakenByOther = owner && !isSelectedByMe;
+
+        let extraClass = '';
+        let badgeHtml = '';
+        let disabledAttr = '';
+
+        if (isSelectedByMe) {
+          extraClass = ' is-mine';
+          badgeHtml = `<span class="avatar-status-badge badge-mine">✓ Sen</span>`;
+        } else if (isTakenByOther) {
+          extraClass = ' is-taken';
+          disabledAttr = 'disabled';
+          const ownerName = getPlayerDisplayName(owner);
+          badgeHtml = `<span class="avatar-status-badge badge-taken" title="${escapeHtml(ownerName)}">${escapeHtml(ownerName)}</span>`;
+        }
+
+        html += `
+          <button type="button" 
+                  class="avatar-tile-btn${extraClass}" 
+                  data-avatar-id="${av.id}"
+                  ${disabledAttr}
+                  style="--avatar-color: ${av.color}; --avatar-bg: ${av.bg};"
+                  title="${escapeHtml(av.name)}${isTakenByOther ? ' (' + escapeHtml(getPlayerDisplayName(owner)) + ' tarafından seçildi)' : ''}">
+            <span class="avatar-tile-icon">${av.icon}</span>
+            <span class="avatar-tile-name">${escapeHtml(av.name)}</span>
+            ${badgeHtml}
+          </button>
+        `;
+      });
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+
+      // Click handler
+      container.querySelectorAll('.avatar-tile-btn:not(.is-taken)').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const avId = btn.getAttribute('data-avatar-id');
+          if (avId) {
+            chooseAvatar(avId);
+          }
+        });
+      });
+    }
+
+    async function chooseAvatar(avatarId) {
+      playReactionSound('pop');
+      state.myAvatar = String(avatarId);
+      updateMyAvatarUI();
+
+      try {
+        const res = await fetch('api/rooms_avatar.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ guid: GUID, avatar: String(avatarId) })
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          if (Array.isArray(data.players)) {
+            state.players = data.players;
+            renderPlayers(data.players);
+          }
+          renderLobbyAvatars();
+          updateMyAvatarUI();
+          showToast('✨ Avatarın seçildi!', true);
+        } else {
+          showToast(data.msg || (STR.avatarTaken || 'Bu avatar başka bir oyuncu tarafından alındı!'), false);
+          if (typeof initRoom === 'function') initRoom();
+        }
+      } catch (err) {
+        RoomLogger.error('Avatar', 'Failed to update avatar', err);
+      }
+    }
+    window.chooseAvatar = chooseAvatar;
+
     function renderPlayers(players) {
       if (Array.isArray(players) && players.length > 0) {
         state.players = players;
@@ -3264,6 +3572,10 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const isMe = p.email === ME_EMAIL || String(p.user_id) === String(ME_ID);
         if (isMe && p.team) {
           state.myTeam = p.team;
+        }
+        if (isMe && p.avatar) {
+          state.myAvatar = String(p.avatar);
+          updateMyAvatarUI();
         }
         const isElim = p.status === 'eliminated';
         const isOnline = isPlayerOnline(p);
@@ -3283,6 +3595,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           dot.style.boxShadow = `0 0 6px ${tColor}99`;
         }
         tag.appendChild(dot);
+
+        // Player Avatar Icon Badge
+        const pAvObj = (state.avatars || ALL_AVATARS || []).find(a => String(a.id) === String(p.avatar));
+        if (pAvObj) {
+          const avSpan = document.createElement('span');
+          avSpan.className = 'player-pill-avatar me-1';
+          avSpan.textContent = pAvObj.icon;
+          avSpan.title = pAvObj.name;
+          tag.appendChild(avSpan);
+        }
 
         const nameSpan = document.createElement('span');
         let statusSuffix = '';
@@ -3317,6 +3639,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       if (state.phase === 'lobby') {
         renderLobbyTeams();
+        renderLobbyAvatars();
         if (state.isHost) {
           updateStartButtonState();
         }
@@ -4059,12 +4382,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
               ${awardList.map(a => {
                 const isMe = a.email === ME_EMAIL || String(a.user_id) === String(ME_ID);
                 const winnerName = getPlayerDisplayName(a);
+                const aAvObj = (state.avatars || ALL_AVATARS || []).find(av => String(av.id) === String(a.avatar));
                 return `
                   <div class="award-card ${isMe ? 'is-me' : ''}">
                     <div class="award-icon">${a.icon}</div>
                     <div class="award-content">
                       <div class="award-name">${escapeHtml(a.title)}</div>
                       <div class="award-winner">
+                        ${aAvObj ? `<span class="me-1" title="${escapeHtml(aAvObj.name)}">${aAvObj.icon}</span>` : ''}
                         <span>${escapeHtml(winnerName)}</span>
                         ${isMe ? `<span class="badge bg-warning text-dark fs-7 ms-1 py-0 px-1">${STR.you}</span>` : ''}
                       </div>
@@ -4099,12 +4424,15 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const name = getPlayerDisplayName(player);
         const score = Number(player.score) || 0;
         const medalIcon = rankNum === 1 ? '🥇' : (rankNum === 2 ? '🥈' : '🥉');
+        const pAvObj = (state.avatars || ALL_AVATARS || []).find(a => String(a.id) === String(player.avatar));
+        const avIcon = pAvObj ? pAvObj.icon : '';
 
         return `
           <div class="podium-col ${cssClass}">
             <div class="podium-player-info">
               ${rankNum === 1 ? '<div class="podium-crown">👑</div>' : ''}
-              <div class="podium-avatar">
+              <div class="podium-avatar" style="${pAvObj && pAvObj.bg ? `background: ${pAvObj.bg}; border-color: ${pAvObj.color || 'var(--accent)'};` : ''}">
+                ${avIcon ? `<span class="podium-avatar-icon me-1 fs-5">${avIcon}</span>` : ''}
                 <span>${medalIcon}</span>
               </div>
               <div class="podium-name" title="${escapeHtml(name)}">
@@ -4243,6 +4571,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                     const pName = getPlayerDisplayName(p);
                     const pScore = Number(p.score) || 0;
                     const pCorrect = typeof p.correct_count !== 'undefined' ? Number(p.correct_count) : '-';
+                    const pAvObj = (state.avatars || ALL_AVATARS || []).find(a => String(a.id) === String(p.avatar));
                     let rankBadge = '';
                     if (idx === 0) rankBadge = '<span class="rank-badge rank-1">🥇</span>';
                     else if (idx === 1) rankBadge = '<span class="rank-badge rank-2">🥈</span>';
@@ -4254,6 +4583,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                         <td class="col-rank">${rankBadge}</td>
                         <td class="col-player">
                           <div class="player-cell">
+                            ${pAvObj ? `<span class="player-cell-avatar me-1" title="${escapeHtml(pAvObj.name)}">${pAvObj.icon}</span>` : ''}
                             <span class="player-name">${escapeHtml(pName)}</span>
                             ${isMe ? `<span class="badge-you">${STR.you}</span>` : ''}
                           </div>
@@ -4692,7 +5022,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         if (state.gameMode === 'flags') backgroundPreloadAllFlags();
         if (room.rounds_total) state.roundsTotal = Number(room.rounds_total);
         state.isHost = (room.owner_id && ME_ID) ? (String(room.owner_id) === String(ME_ID)) : (String(room.owner_email || '').toLowerCase() === String(ME_EMAIL || '').toLowerCase());
+        if (Array.isArray(data.avatars) && data.avatars.length > 0) {
+          state.avatars = data.avatars;
+        }
         renderPlayers(data.players || []);
+        updateMyAvatarUI();
 
         const meRowInit = (data.players || []).find(p => p.email === ME_EMAIL || String(p.user_id) === String(ME_ID));
         if (meRowInit && meRowInit.status === 'eliminated' && room.status === 'active') {
@@ -4712,6 +5046,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           hudStatus.textContent = STR.waiting;
           hudStatus.className = 'hud-val text-info';
           renderLobbyRules();
+          renderLobbyAvatars();
         } else {
           hudStatus.textContent = STR.active;
           hudStatus.className = 'hud-val text-info';
@@ -4919,7 +5254,21 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     // Reaction UI Controls & Click Handlers
     updateReactionSoundUI();
 
-    document.querySelectorAll('.reaction-btn').forEach(btn => {
+    // User's custom chosen Avatar reaction sender
+    document.getElementById('myAvatarReactionBtn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const avatars = state.avatars || ALL_AVATARS || [];
+      const currentAv = avatars.find(a => String(a.id) === String(state.myAvatar)) || avatars[0];
+      if (currentAv) {
+        const btn = document.getElementById('myAvatarReactionBtn');
+        btn?.classList.add('bounce');
+        setTimeout(() => btn?.classList.remove('bounce'), 350);
+        sendReaction(currentAv.icon, 'party', currentAv.name);
+      }
+    });
+
+    document.querySelectorAll('.reaction-btn:not(#myAvatarReactionBtn)').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         const emoji = btn.getAttribute('data-emoji') || '🔥';

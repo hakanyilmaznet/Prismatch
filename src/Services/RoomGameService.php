@@ -124,6 +124,28 @@ class RoomGameService {
         $players = $this->roomRepo->listPlayers($roomId);
         Logger::room('joinRoom:success', $guid, ['players_count' => count($players), 'joined' => $email]);
 
+        // Oyuncuya henüz bir avatar atanmamışsa, alınmamış ilk avatarı otomatik ata
+        $takenAvatars = [];
+        $mePlayer = null;
+        foreach ($players as $p) {
+            if (!empty($p['avatar'])) {
+                $takenAvatars[] = (string)$p['avatar'];
+            }
+            if ((string)$p['user_id'] === $userId || (string)($p['email'] ?? '') === $email) {
+                $mePlayer = $p;
+            }
+        }
+        if ($mePlayer && empty($mePlayer['avatar'])) {
+            $conceptAvatars = self::getConceptAvatars();
+            foreach ($conceptAvatars as $av) {
+                if (!in_array((string)$av['id'], $takenAvatars, true)) {
+                    $this->roomRepo->setPlayerAvatar($roomId, $userId, (string)$av['id']);
+                    break;
+                }
+            }
+            $players = $this->roomRepo->listPlayers($roomId);
+        }
+
         // Realtime notification: Notify waiting room that a player joined
         if (function_exists('pusher_trigger')) {
             pusher_trigger('presence-room-' . $guid, 'room:update', [
@@ -148,6 +170,7 @@ class RoomGameService {
                 'game_mode' => $room['game_mode'] ?? 'elimination',
             ],
             'players' => $players,
+            'avatars' => self::getConceptAvatars(),
         ];
     }
 
@@ -1358,6 +1381,122 @@ class RoomGameService {
         }
 
         return ['ok' => true, 'team' => $team, 'players' => $players];
+    }
+
+    /**
+     * Konsepte uygun tasarlanmış 50 özel Prismatch avatarı.
+     * Renkler, prizmalar, kristaller ve enerjik kromatik temalar içerir.
+     *
+     * @return array<int, array{id: string, icon: string, name: string, color: string, bg: string}>
+     */
+    public static function getConceptAvatars(): array {
+        return [
+            ['id' => '1', 'icon' => '💎', 'name' => 'Elmas Prizma', 'color' => '#00e5ff', 'bg' => 'linear-gradient(135deg, #00e5ff, #0077b6)'],
+            ['id' => '2', 'icon' => '🔮', 'name' => 'Ametist Küre', 'color' => '#a855f7', 'bg' => 'linear-gradient(135deg, #a855f7, #6b21a8)'],
+            ['id' => '3', 'icon' => '🌈', 'name' => 'Gökkuşağı', 'color' => '#ff007f', 'bg' => 'linear-gradient(135deg, #ff007f, #ffe600)'],
+            ['id' => '4', 'icon' => '⚡', 'name' => 'Neon Şimşek', 'color' => '#ffe600', 'bg' => 'linear-gradient(135deg, #ffe600, #ff6b00)'],
+            ['id' => '5', 'icon' => '🔥', 'name' => 'Kromik Alev', 'color' => '#ff3d00', 'bg' => 'linear-gradient(135deg, #ff3d00, #d50000)'],
+            ['id' => '6', 'icon' => '💧', 'name' => 'Akvamarin', 'color' => '#00f5d4', 'bg' => 'linear-gradient(135deg, #00f5d4, #00bbf9)'],
+            ['id' => '7', 'icon' => '🌟', 'name' => 'Süpernova', 'color' => '#ffd166', 'bg' => 'linear-gradient(135deg, #ffd166, #f72585)'],
+            ['id' => '8', 'icon' => '🦄', 'name' => 'Tekboynuz', 'color' => '#f72585', 'bg' => 'linear-gradient(135deg, #f72585, #7209b7)'],
+            ['id' => '9', 'icon' => '🐉', 'name' => 'Zümrüt Ejder', 'color' => '#10b981', 'bg' => 'linear-gradient(135deg, #10b981, #065f46)'],
+            ['id' => '10', 'icon' => '🦊', 'name' => 'Kızıl Tilki', 'color' => '#fb923c', 'bg' => 'linear-gradient(135deg, #fb923c, #c2410c)'],
+            ['id' => '11', 'icon' => '🦁', 'name' => 'Altın Aslan', 'color' => '#f59e0b', 'bg' => 'linear-gradient(135deg, #f59e0b, #b45309)'],
+            ['id' => '12', 'icon' => '🐯', 'name' => 'Amber Kaplan', 'color' => '#ea580c', 'bg' => 'linear-gradient(135deg, #ea580c, #9a3412)'],
+            ['id' => '13', 'icon' => '🐼', 'name' => 'Biyo Panda', 'color' => '#38bdf8', 'bg' => 'linear-gradient(135deg, #38bdf8, #1e293b)'],
+            ['id' => '14', 'icon' => '🐨', 'name' => 'Pastel Koala', 'color' => '#94a3b8', 'bg' => 'linear-gradient(135deg, #94a3b8, #475569)'],
+            ['id' => '15', 'icon' => '🦜', 'name' => 'Renk Papağanı', 'color' => '#22c55e', 'bg' => 'linear-gradient(135deg, #22c55e, #eab308)'],
+            ['id' => '16', 'icon' => '🦚', 'name' => 'Safir Tavuskuşu', 'color' => '#3b82f6', 'bg' => 'linear-gradient(135deg, #3b82f6, #1d4ed8)'],
+            ['id' => '17', 'icon' => '🦋', 'name' => 'Lila Kelebek', 'color' => '#c084fc', 'bg' => 'linear-gradient(135deg, #c084fc, #7e22ce)'],
+            ['id' => '18', 'icon' => '🐝', 'name' => 'Güneş Arısı', 'color' => '#eab308', 'bg' => 'linear-gradient(135deg, #eab308, #ca8a04)'],
+            ['id' => '19', 'icon' => '🐞', 'name' => 'Yakut Böcek', 'color' => '#ef4444', 'bg' => 'linear-gradient(135deg, #ef4444, #991b1b)'],
+            ['id' => '20', 'icon' => '🐙', 'name' => 'Mor Kraken', 'color' => '#8b5cf6', 'bg' => 'linear-gradient(135deg, #8b5cf6, #5b21b6)'],
+            ['id' => '21', 'icon' => '🐬', 'name' => 'Turkuaz Yunus', 'color' => '#06b6d4', 'bg' => 'linear-gradient(135deg, #06b6d4, #0e7490)'],
+            ['id' => '22', 'icon' => '🦈', 'name' => 'Okyanus Köpekbalığı', 'color' => '#0284c7', 'bg' => 'linear-gradient(135deg, #0284c7, #075985)'],
+            ['id' => '23', 'icon' => '🪐', 'name' => 'Kozmik Satürn', 'color' => '#f43f5e', 'bg' => 'linear-gradient(135deg, #f43f5e, #881337)'],
+            ['id' => '24', 'icon' => '🚀', 'name' => 'Prizma Roket', 'color' => '#ec4899', 'bg' => 'linear-gradient(135deg, #ec4899, #be185d)'],
+            ['id' => '25', 'icon' => '🛸', 'name' => 'Galaksi Gemisi', 'color' => '#14b8a6', 'bg' => 'linear-gradient(135deg, #14b8a6, #0f766e)'],
+            ['id' => '26', 'icon' => '👾', 'name' => 'Piksel İstilacı', 'color' => '#84cc16', 'bg' => 'linear-gradient(135deg, #84cc16, #4d7c0f)'],
+            ['id' => '27', 'icon' => '🎭', 'name' => 'Renk Maskesi', 'color' => '#f472b6', 'bg' => 'linear-gradient(135deg, #f472b6, #db2777)'],
+            ['id' => '28', 'icon' => '👑', 'name' => 'Prizma Tacı', 'color' => '#eab308', 'bg' => 'linear-gradient(135deg, #eab308, #b45309)'],
+            ['id' => '29', 'icon' => '🏆', 'name' => 'Şampiyon Kupa', 'color' => '#f59e0b', 'bg' => 'linear-gradient(135deg, #f59e0b, #d97706)'],
+            ['id' => '30', 'icon' => '🎨', 'name' => 'Sanat Paleti', 'color' => '#ec4899', 'bg' => 'linear-gradient(135deg, #ec4899, #8b5cf6)'],
+            ['id' => '31', 'icon' => '🪄', 'name' => 'Sihir Değneği', 'color' => '#d946ef', 'bg' => 'linear-gradient(135deg, #d946ef, #a21caf)'],
+            ['id' => '32', 'icon' => '🧪', 'name' => 'Simya İksiri', 'color' => '#22c55e', 'bg' => 'linear-gradient(135deg, #22c55e, #15803d)'],
+            ['id' => '33', 'icon' => '🧬', 'name' => 'Kromozom', 'color' => '#06b6d4', 'bg' => 'linear-gradient(135deg, #06b6d4, #4338ca)'],
+            ['id' => '34', 'icon' => '🌺', 'name' => 'Neon Nilüfer', 'color' => '#f43f5e', 'bg' => 'linear-gradient(135deg, #f43f5e, #e11d48)'],
+            ['id' => '35', 'icon' => '🍀', 'name' => 'Şans Yoncası', 'color' => '#10b981', 'bg' => 'linear-gradient(135deg, #10b981, #047857)'],
+            ['id' => '36', 'icon' => '🍄', 'name' => 'Siber Mantar', 'color' => '#ef4444', 'bg' => 'linear-gradient(135deg, #ef4444, #b91c1c)'],
+            ['id' => '37', 'icon' => '🍒', 'name' => 'Yakut Kiraz', 'color' => '#e11d48', 'bg' => 'linear-gradient(135deg, #e11d48, #9f1239)'],
+            ['id' => '38', 'icon' => '🍉', 'name' => 'Karpuz Dilimi', 'color' => '#f43f5e', 'bg' => 'linear-gradient(135deg, #f43f5e, #10b981)'],
+            ['id' => '39', 'icon' => '🥑', 'name' => 'Lime Avokado', 'color' => '#84cc16', 'bg' => 'linear-gradient(135deg, #84cc16, #365314)'],
+            ['id' => '40', 'icon' => '🍋', 'name' => 'Sitrin Limon', 'color' => '#facc15', 'bg' => 'linear-gradient(135deg, #facc15, #ca8a04)'],
+            ['id' => '41', 'icon' => '🍇', 'name' => 'Ametist Salkım', 'color' => '#9333ea', 'bg' => 'linear-gradient(135deg, #9333ea, #6b21a8)'],
+            ['id' => '42', 'icon' => '🫐', 'name' => 'İndigo Yabanmersini', 'color' => '#4f46e5', 'bg' => 'linear-gradient(135deg, #4f46e5, #312e81)'],
+            ['id' => '43', 'icon' => '🍭', 'name' => 'Gökkuşağı Şeker', 'color' => '#fb7185', 'bg' => 'linear-gradient(135deg, #fb7185, #38bdf8)'],
+            ['id' => '44', 'icon' => '🍩', 'name' => 'Galaksi Donut', 'color' => '#a855f7', 'bg' => 'linear-gradient(135deg, #a855f7, #ec4899)'],
+            ['id' => '45', 'icon' => '🧁', 'name' => 'Pastel Kapkek', 'color' => '#f472b6', 'bg' => 'linear-gradient(135deg, #f472b6, #fb923c)'],
+            ['id' => '46', 'icon' => '🍦', 'name' => 'Neon Dondurma', 'color' => '#38bdf8', 'bg' => 'linear-gradient(135deg, #38bdf8, #f43f5e)'],
+            ['id' => '47', 'icon' => '🧊', 'name' => 'Kristal Buz', 'color' => '#67e8f9', 'bg' => 'linear-gradient(135deg, #67e8f9, #0284c7)'],
+            ['id' => '48', 'icon' => '☀️', 'name' => 'Güneş Halesi', 'color' => '#f59e0b', 'bg' => 'linear-gradient(135deg, #f59e0b, #ea580c)'],
+            ['id' => '49', 'icon' => '🌙', 'name' => 'Ay Işığı', 'color' => '#818cf8', 'bg' => 'linear-gradient(135deg, #818cf8, #3730a3)'],
+            ['id' => '50', 'icon' => '💫', 'name' => 'Kozmik Kıvılcım', 'color' => '#fbbf24', 'bg' => 'linear-gradient(135deg, #fbbf24, #d946ef)'],
+        ];
+    }
+
+    /**
+     * ID'ye göre avatar detayını döndürür.
+     */
+    public static function getAvatarById(string $avatarId): ?array {
+        foreach (self::getConceptAvatars() as $av) {
+            if ((string)$av['id'] === (string)$avatarId) {
+                return $av;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Oyuncu avatar seçimi. Seçilmiş bir avatarı başka bir oyuncu seçemez.
+     *
+     * @param string $guid Room GUID
+     * @param string $userId Player user ID
+     * @param string $avatarId Seçilen avatar ID'si (1 - 50)
+     * @return array{ok: bool, error?: string, code?: int, avatar?: string, players?: array<int, array<string, mixed>>}
+     */
+    public function chooseAvatar(string $guid, string $userId, string $avatarId): array {
+        $room = $this->roomRepo->getRoomByGuid($guid);
+        if (!$room) {
+            return ['ok' => false, 'code' => 404, 'error' => 'room_not_found'];
+        }
+
+        $allAvatars = self::getConceptAvatars();
+        $validIds = array_column($allAvatars, 'id');
+        if (!in_array($avatarId, $validIds, true)) {
+            return ['ok' => false, 'code' => 400, 'error' => 'invalid_avatar'];
+        }
+
+        $roomId = (string)$room['id'];
+        $ok = $this->roomRepo->setPlayerAvatar($roomId, $userId, $avatarId);
+        if (!$ok) {
+            return [
+                'ok' => false,
+                'code' => 409,
+                'error' => 'avatar_already_taken',
+                'msg' => 'Bu avatar başka bir oyuncu tarafından seçildi! Lütfen başka bir avatar seçin.'
+            ];
+        }
+
+        $players = $this->roomRepo->listPlayers($roomId);
+
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:update', [
+                'guid' => $guid,
+                'players' => $players,
+            ]);
+        }
+
+        return ['ok' => true, 'avatar' => $avatarId, 'players' => $players];
     }
 
     /**

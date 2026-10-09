@@ -12,6 +12,7 @@ interface RoomRepositoryInterface {
     public function addPlayer(string $roomId, string $userId, string $email): bool;
     public function listPlayers(string $roomId): array;
     public function setPlayerTeam(string $roomId, string $userId, string $team): bool;
+    public function setPlayerAvatar(string $roomId, string $userId, string $avatar): bool;
     public function touchPlayer(string $roomId, string $userId, bool $reactivate = false): void;
     public function removePlayer(string $roomId, string $userId): bool;
     public function cleanupStalePlayers(string $roomId, string $ownerId, int $staleSeconds = 8): int;

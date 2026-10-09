@@ -156,6 +156,7 @@ class SchemaManager {
                 score INT NOT NULL DEFAULT 0,
                 correct INT NOT NULL DEFAULT 0,
                 team VARCHAR(16) NULL,
+                avatar VARCHAR(64) NULL,
                 last_active DATETIME(3) NULL,
                 PRIMARY KEY (id),
                 UNIQUE KEY uq_room_player (room_id, user_id),
@@ -268,6 +269,11 @@ class SchemaManager {
         try {
             $pdo->exec("ALTER TABLE daily_rounds MODIFY COLUMN target_color VARCHAR(128) NOT NULL");
             $pdo->exec("ALTER TABLE daily_rounds MODIFY COLUMN picked_color VARCHAR(128) NOT NULL");
+        } catch (\Throwable $e) {}
+
+        // Ensure avatar column exists in room_players
+        try {
+            $pdo->exec("ALTER TABLE room_players ADD COLUMN avatar VARCHAR(64) NULL");
         } catch (\Throwable $e) {}
 
         // Migrate any legacy @local.player emails to @prismatch
