@@ -237,67 +237,6 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       justify-content:center;
       gap: 14px;
     }
-    .center.game-active,
-    .center:has(.play-game-wrap) {
-      height: 100%;
-      flex: 1;
-      gap: 0;
-      justify-content: center;
-    }
-    .play-game-wrap {
-      width: 100%;
-      height: 100%;
-      min-height: 100%;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-    .play-header-wrap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 4px;
-      padding: 0 12px;
-      pointer-events: none;
-      z-index: 2;
-    }
-    .play-header-wrap * {
-      pointer-events: auto;
-    }
-    .play-center-slot {
-      width: 100%;
-      margin: auto 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      z-index: 1;
-    }
-    .play-footer-wrap {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 4px;
-      padding: 0 12px;
-      pointer-events: none;
-      z-index: 2;
-    }
-    .play-footer-wrap * {
-      pointer-events: auto;
-    }
 
     .title{
       font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
