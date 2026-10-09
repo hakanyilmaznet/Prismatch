@@ -27,14 +27,19 @@ class RoomGameService {
         $countdownMs = ($lvl > 1) ? 1000 : 3000;
         $answerMs = 5000;
 
-        if ($lvl === 21 || $lvl === 41) {
+        if ($gameMode === 'flash_memory') {
+            $showMs = 400; // Ultra hızlı hafıza parlaması
+            $answerMs = 5000;
+        } elseif ($gameMode === 'alchemy') {
+            $showMs = 3000; // 2 renk karışımı hedefi için süre
+            $answerMs = 7000; // 2 renk seçimi için 7 saniye
+        } elseif ($gameMode === 'hot_potato') {
+            $showMs = 1500;
+            $answerMs = 5000; // Bomba geri sayımı
+        } elseif ($lvl === 21 || $lvl === 41) {
             $showMs = 5000;
         } else {
             // Gelişmiş hedef renk/bayrak görüntüleme süresi algoritması:
-            // 250ms gibi çok kısa süreler insan gözü, mobil DOM render ve ağ gecikmesi nedeniyle hedefin görünmeden geçilmesine neden oluyordu.
-            // Yeni dengeli süre eğrisi:
-            // - Bayrak modunda armaları/desenleri net algılamak için taban 1600ms, tavan 3200ms
-            // - Renk modunda gözün net odaklanabilmesi için taban 1200ms, tavan 2800ms
             if ($gameMode === 'flags') {
                 $showMs = max(1600, (int)round(3200 - ($lvl - 1) * 70));
             } else {
@@ -93,7 +98,40 @@ class RoomGameService {
         return $flags;
     }
 
+    public const ALCHEMY_RECIPES = [
+        ['target' => '#800080', 'name' => 'Mor', 'components' => ['#FF0000', '#0000FF']],
+        ['target' => '#FF8000', 'name' => 'Turuncu', 'components' => ['#FF0000', '#FFFF00']],
+        ['target' => '#008000', 'name' => 'Yeşil', 'components' => ['#0000FF', '#FFFF00']],
+        ['target' => '#FF8080', 'name' => 'Pembe', 'components' => ['#FF0000', '#FFFFFF']],
+        ['target' => '#808080', 'name' => 'Gri', 'components' => ['#000000', '#FFFFFF']],
+        ['target' => '#00FFFF', 'name' => 'Camgöbeği', 'components' => ['#0000FF', '#00FF00']],
+        ['target' => '#8B4513', 'name' => 'Kahverengi', 'components' => ['#FF8000', '#000000']],
+        ['target' => '#E6E6FA', 'name' => 'Lila', 'components' => ['#800080', '#FFFFFF']],
+    ];
+
     public function generateQuestion(int $roundIndex, int $roundsTotal = 25, string $gameMode = 'elimination'): array {
+        if ($gameMode === 'alchemy') {
+            $recipes = self::ALCHEMY_RECIPES;
+            $recipe = $recipes[array_rand($recipes)];
+            $components = $recipe['components'];
+            $distractors = ['#FF0000', '#0000FF', '#FFFF00', '#FFFFFF', '#000000', '#00FF00', '#FF8000', '#800080', '#00FFFF', '#FF00FF'];
+            $grid = array_values(array_unique(array_merge($components, $distractors)));
+            shuffle($grid);
+            $grid = array_slice($grid, 0, 8);
+            if (!in_array($components[0], $grid, true)) $grid[0] = $components[0];
+            if (!in_array($components[1], $grid, true)) $grid[1] = $components[1];
+            shuffle($grid);
+
+            return [
+                'target' => $recipe['target'],
+                'target_name' => $recipe['name'],
+                'components' => $components,
+                'grid' => $grid,
+                'gridCount' => count($grid),
+                'mode' => 'alchemy'
+            ];
+        }
+
         if ($gameMode === 'flags') {
             $palette = self::getFlagPalette();
         } else {
@@ -103,7 +141,15 @@ class RoomGameService {
         shuffle($palette);
         $grid = array_slice($palette, 0, min($count, count($palette)));
         $target = $grid[array_rand($grid)];
-        return ['target' => $target, 'grid' => $grid, 'gridCount' => count($grid)];
+
+        $res = ['target' => $target, 'grid' => $grid, 'gridCount' => count($grid)];
+        if ($gameMode === 'flash_memory') {
+            $res['mode'] = 'flash_memory';
+            $res['flash_ms'] = 400;
+        } elseif ($gameMode === 'hot_potato') {
+            $res['mode'] = 'hot_potato';
+        }
+        return $res;
     }
 
     public function joinRoom(string $guid, string $userId, string $email): array {
@@ -514,7 +560,21 @@ class RoomGameService {
         $gameMode = (string)($room['game_mode'] ?? 'elimination');
         $isElimination = ($gameMode === 'elimination');
 
-        $isCorrect = (!$isTimeout && $picked !== '' && $picked === $target);
+        $isCorrect = false;
+        if ($gameMode === 'alchemy') {
+            $components = $question['components'] ?? [];
+            $pickedParts = explode('+', $picked);
+            if (count($pickedParts) === 2) {
+                $isCorrect = (!$isTimeout && (
+                    ($pickedParts[0] === ($components[0] ?? '') && $pickedParts[1] === ($components[1] ?? '')) ||
+                    ($pickedParts[0] === ($components[1] ?? '') && $pickedParts[1] === ($components[0] ?? ''))
+                ));
+            } else {
+                $isCorrect = (!$isTimeout && $picked !== '' && $picked === $target);
+            }
+        } else {
+            $isCorrect = (!$isTimeout && $picked !== '' && $picked === $target);
+        }
         $scoreDelta = 0;
         $streak = 0;
         $streakMultiplier = 1.0;
@@ -749,6 +809,11 @@ class RoomGameService {
         // Fetch players sorted by: (status = 'active') DESC, score DESC, correct DESC, joined_at ASC
         $players = $this->roomRepo->listPlayers($roomId);
         $winner = !empty($players) ? $players[0] : null;
+
+        // Settle any spectator predictions for the match winner
+        if ($winner && !empty($winner['user_id'])) {
+            $this->roomRepo->settlePredictions($roomId, $round, (string)$winner['user_id']);
+        }
 
         // Award 5000 win bonus points to the winner if eligible and not already awarded:
         // A player is eligible for the win bonus if they are the active survivor OR they scored points (> 0).
@@ -1206,7 +1271,7 @@ class RoomGameService {
         ?string $targetUserId = null,
         ?string $color = null
     ): array {
-        $allowed = ['fifty_fifty', 'ink_splat'];
+        $allowed = ['fifty_fifty', 'lens', 'shield', 'ink_splat', 'mirror', 'freeze', 'blackout'];
         if (!in_array($type, $allowed, true)) {
             return ['ok' => false, 'code' => 400, 'error' => 'invalid_powerup'];
         }
@@ -1252,8 +1317,21 @@ class RoomGameService {
         $targetPlayer = null;
         $targetName = null;
         $splatColor = null;
-        if ($type === 'ink_splat') {
-            // Mürekkep sıçratmada oyuncu seçimi iptal: SADECE lider rakip oyuncuya gönderilir
+        $isReflected = false;
+        $absorbedByName = null;
+
+        if ($type === 'shield') {
+            // Activate shield for self
+            $this->roomRepo->setPlayerShield($roomId, $userId, true);
+            $targetUserId = $userId;
+            $targetName = $userName;
+        } elseif ($type === 'fifty_fifty' || $type === 'lens') {
+            // Joker for self
+            $type = 'fifty_fifty';
+            $targetUserId = $userId;
+            $targetName = $userName;
+        } else {
+            // Offensive sabotages: ink_splat, mirror, freeze, blackout
             $rivals = array_values(array_filter($players, function ($p) use ($userId, $userEmail) {
                 return (string)$p['user_id'] !== $userId
                     && (string)($p['email'] ?? '') !== $userEmail
@@ -1262,24 +1340,49 @@ class RoomGameService {
             if (empty($rivals)) {
                 return ['ok' => false, 'code' => 400, 'error' => 'no_target_available'];
             }
-            usort($rivals, fn($a, $b) => ((int)($b['score'] ?? 0)) <=> ((int)($a['score'] ?? 0)));
-            $targetPlayer = $rivals[0];
-            $targetUserId = (string)$targetPlayer['user_id'];
 
-            if ($targetPlayer) {
-                $targetName = (string)($targetPlayer['user_name'] ?? '');
-                if ($targetName === '' && !empty($targetPlayer['email'])) {
-                    $parts = explode('@', (string)$targetPlayer['email']);
-                    $targetName = $parts[0] !== '' ? $parts[0] : (string)$targetPlayer['email'];
-                }
-                if ($targetName === '') {
-                    $targetName = 'Lider';
+            if ($targetUserId !== null && $targetUserId !== '') {
+                foreach ($rivals as $r) {
+                    if ((string)$r['user_id'] === $targetUserId) {
+                        $targetPlayer = $r;
+                        break;
+                    }
                 }
             }
 
-            // Rastgele canlı mürekkep rengi
-            $inkPalette = ['#ff007f', '#00e5ff', '#39ff14', '#ffe600', '#a855f7', '#ff3d00', '#00ff88', '#ec4899', '#3b82f6', '#ff5722', '#8a2be2', '#00f5d4'];
-            $splatColor = ($color !== null && preg_match('/^#[0-9a-fA-F]{6}$/', $color)) ? $color : $inkPalette[array_rand($inkPalette)];
+            if (!$targetPlayer) {
+                // Default target is the leader
+                usort($rivals, fn($a, $b) => ((int)($b['score'] ?? 0)) <=> ((int)($a['score'] ?? 0)));
+                $targetPlayer = $rivals[0];
+                $targetUserId = (string)$targetPlayer['user_id'];
+            }
+
+            $targetName = (string)($targetPlayer['user_name'] ?? '');
+            if ($targetName === '' && !empty($targetPlayer['email'])) {
+                $parts = explode('@', (string)$targetPlayer['email']);
+                $targetName = $parts[0] !== '' ? $parts[0] : (string)$targetPlayer['email'];
+            }
+            if ($targetName === '') {
+                $targetName = 'Rakip';
+            }
+
+            // Check if target has an active shield!
+            if (!empty($targetPlayer['has_shield'])) {
+                // Shield absorbs and reflects attack back to attacker!
+                $isReflected = true;
+                $absorbedByName = $targetName;
+                $this->roomRepo->setPlayerShield($roomId, (string)$targetPlayer['user_id'], false);
+
+                // Target is redirected to original attacker
+                $targetPlayer = $attacker;
+                $targetUserId = $userId;
+                $targetName = $userName;
+            }
+
+            if ($type === 'ink_splat') {
+                $inkPalette = ['#ff007f', '#00e5ff', '#39ff14', '#ffe600', '#a855f7', '#ff3d00', '#00ff88', '#ec4899', '#3b82f6', '#ff5722', '#8a2be2', '#00f5d4'];
+                $splatColor = ($color !== null && preg_match('/^#[0-9a-fA-F]{6}$/', $color)) ? $color : $inkPalette[array_rand($inkPalette)];
+            }
         }
 
         // Record in room_events
@@ -1289,9 +1392,11 @@ class RoomGameService {
             'from_user_id' => $userId,
             'from_name' => $userName,
             'from_email' => $userEmail,
-            'target_user_id' => $targetPlayer ? (string)$targetPlayer['user_id'] : null,
+            'target_user_id' => $targetPlayer ? (string)$targetPlayer['user_id'] : $targetUserId,
             'target_name' => $targetName,
             'target_email' => $targetPlayer ? (string)($targetPlayer['email'] ?? '') : null,
+            'reflected' => $isReflected,
+            'absorbed_by_name' => $absorbedByName,
             'color' => $splatColor,
             'round' => (int)($room['current_round'] ?? 1),
             'ts' => (int)(microtime(true) * 1000),
@@ -1782,7 +1887,7 @@ class RoomGameService {
                 $currentStreak = 0;
             } elseif ($eType === 'powerup') {
                 $pType = (string)($payload['type'] ?? '');
-                if ($pType === $type) {
+                if ($pType === $type || ($type === 'lens' && $pType === 'fifty_fifty') || ($type === 'fifty_fifty' && $pType === 'lens')) {
                     // This specific powerup was consumed; streak counter resets for next renewal
                     $hasItem = false;
                     $currentStreak = 0;
@@ -1795,6 +1900,77 @@ class RoomGameService {
             'current_streak' => $currentStreak,
             'required_streak' => self::POWERUP_STREAK_REQUIREMENT,
         ];
+    }
+
+    /**
+     * Submit a spectator prediction/bet on who will win the upcoming round.
+     *
+     * @param string $guid Room GUID
+     * @param string $spectatorId Spectator user ID
+     * @param string $spectatorEmail Spectator email
+     * @param string $predictedUserId Targeted player ID predicted to win
+     * @return array{ok: bool, round?: int, error?: string, code?: int}
+     */
+    public function submitPrediction(string $guid, string $spectatorId, string $spectatorEmail, string $predictedUserId): array {
+        $room = $this->roomRepo->getRoomByGuid($guid);
+        if (!$room) {
+            return ['ok' => false, 'code' => 404, 'error' => 'room_not_found'];
+        }
+
+        $roomId = (string)$room['id'];
+        $currentRound = (int)($room['current_round'] ?? 0);
+        $targetRound = $currentRound + 1;
+
+        $ok = $this->roomRepo->savePrediction($roomId, $targetRound, $spectatorId, $spectatorEmail, $predictedUserId);
+        if ($ok && function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:prediction', [
+                'spectator_id' => $spectatorId,
+                'predicted_user_id' => $predictedUserId,
+                'round' => $targetRound,
+            ]);
+        }
+
+        return ['ok' => $ok, 'round' => $targetRound];
+    }
+
+    /**
+     * Send a spectator cheer / support balloon to an active player.
+     *
+     * @param string $guid Room GUID
+     * @param string $spectatorId Spectator user ID
+     * @param string $spectatorEmail Spectator email
+     * @param string $spectatorName Spectator display name
+     * @param string $targetUserId Target player ID receiving cheer
+     * @param string $cheerType Cheer type ('balloon', 'sparkles', 'shield_cheer')
+     * @return array{ok: bool, payload?: array<string, mixed>, error?: string, code?: int}
+     */
+    public function sendCheer(
+        string $guid,
+        string $spectatorId,
+        string $spectatorEmail,
+        string $spectatorName,
+        string $targetUserId,
+        string $cheerType = 'balloon'
+    ): array {
+        $room = $this->roomRepo->getRoomByGuid($guid);
+        if (!$room) {
+            return ['ok' => false, 'code' => 404, 'error' => 'room_not_found'];
+        }
+
+        $payload = [
+            'from_id' => $spectatorId,
+            'from_name' => $spectatorName,
+            'from_email' => $spectatorEmail,
+            'target_id' => $targetUserId,
+            'cheer_type' => $cheerType,
+            'ts' => (int)(microtime(true) * 1000),
+        ];
+
+        if (function_exists('pusher_trigger')) {
+            pusher_trigger('presence-room-' . $guid, 'room:cheer', $payload);
+        }
+
+        return ['ok' => true, 'payload' => $payload];
     }
 }
 

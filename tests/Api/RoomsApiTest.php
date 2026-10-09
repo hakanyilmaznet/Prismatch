@@ -700,5 +700,202 @@ class RoomsApiTest extends ApiTestCase {
         $this->assertTrue($res['json']['ok']);
         $this->assertSame('blue', $res['json']['team']);
     }
+
+    public function testRoomsCreateNewGameModes(): void {
+        foreach (['hot_potato', 'flash_memory', 'alchemy'] as $mode) {
+            $res = $this->callApi('api/rooms_create.php', [
+                'method' => 'POST',
+                'use_sqlite' => true,
+                'session' => [
+                    'user_id' => 'u-owner-api',
+                    'user_email' => 'owner@test.com',
+                ],
+                'body' => [
+                    'name' => 'Crazy Mode ' . $mode,
+                    'game_mode' => $mode,
+                    'is_private' => false,
+                ],
+            ]);
+
+            $this->assertSame(200, $res['status']);
+            $this->assertTrue($res['json']['ok']);
+            $this->assertSame($mode, $res['json']['game_mode']);
+        }
+    }
+
+    public function testRoomsPowerupShieldAndSabotages(): void {
+        $activeRoom = $this->sampleRoomSeed;
+        $activeRoom['status'] = 'active';
+        $activeRoom['current_round'] = 3;
+
+        $opponentSeed = [
+            'id' => 'rp-api-2',
+            'room_id' => 'r-api-room-1',
+            'user_id' => 'u-player-2',
+            'email' => 'p2@test.com',
+            'status' => 'active',
+            'score' => 2000,
+            'correct' => 2,
+            'is_online' => 1,
+            'has_shield' => 0,
+            'joined_at' => '2026-10-01 12:00:00',
+            'last_active' => '2026-10-01 12:00:00',
+        ];
+
+        $eventsSeed = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $eventsSeed[] = [
+                'id' => 'ev-streak-' . $i,
+                'room_id' => 'r-api-room-1',
+                'round_index' => $i,
+                'user_id' => 'u-owner-api',
+                'email' => 'owner@test.com',
+                'event_type' => 'answer',
+                'payload_json' => json_encode(['correct' => true, 'response_ms' => 500]),
+                'created_at' => '2026-10-01 12:00:0' . $i,
+            ];
+        }
+
+        // Test Shield activation
+        $resShield = $this->callApi('api/rooms_powerup.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+                'user_name' => 'Host User',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'type' => 'shield',
+            ],
+            'seeds' => [
+                'rooms' => [$activeRoom],
+                'room_players' => [$this->samplePlayerSeed, $opponentSeed],
+                'room_events' => $eventsSeed,
+            ],
+        ]);
+
+        $this->assertSame(200, $resShield['status']);
+        $this->assertTrue($resShield['json']['ok']);
+        $this->assertSame('shield', $resShield['json']['payload']['type']);
+
+        // Test Freeze sabotage
+        $resFreeze = $this->callApi('api/rooms_powerup.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-owner-api',
+                'user_email' => 'owner@test.com',
+                'user_name' => 'Host User',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'type' => 'freeze',
+                'target_user_id' => 'u-player-2',
+            ],
+            'seeds' => [
+                'rooms' => [$activeRoom],
+                'room_players' => [$this->samplePlayerSeed, $opponentSeed],
+                'room_events' => $eventsSeed,
+            ],
+        ]);
+
+        $this->assertSame(200, $resFreeze['status']);
+        $this->assertTrue($resFreeze['json']['ok']);
+        $this->assertSame('freeze', $resFreeze['json']['payload']['type']);
+    }
+
+    public function testRoomsPredictEndpoint(): void {
+        // Unauthorized
+        $resUnauth = $this->callApi('api/rooms_predict.php', [
+            'method' => 'POST',
+            'body' => ['guid' => 'guid-api-room-1', 'predicted_user_id' => 'u-owner-api'],
+        ]);
+        $this->assertSame(403, $resUnauth['status']);
+        $this->assertSame('login_required', $resUnauth['json']['error']);
+
+        // Bad request
+        $resBad = $this->callApi('api/rooms_predict.php', [
+            'method' => 'POST',
+            'session' => ['user_id' => 'u-spec-1', 'user_email' => 'spec@test.com'],
+            'body' => ['guid' => '', 'predicted_user_id' => ''],
+        ]);
+        $this->assertSame(400, $resBad['status']);
+        $this->assertSame('bad_request', $resBad['json']['error']);
+
+        // Success
+        $activeRoom = $this->sampleRoomSeed;
+        $activeRoom['status'] = 'active';
+
+        $resSuccess = $this->callApi('api/rooms_predict.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-spec-1',
+                'user_email' => 'spec@test.com',
+                'user_name' => 'Spectator One',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'predicted_user_id' => 'u-owner-api',
+            ],
+            'seeds' => [
+                'rooms' => [$activeRoom],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $resSuccess['status']);
+        $this->assertTrue($resSuccess['json']['ok']);
+        $this->assertSame('u-owner-api', $resSuccess['json']['predicted_user_id']);
+    }
+
+    public function testRoomsCheerEndpoint(): void {
+        // Unauthorized
+        $resUnauth = $this->callApi('api/rooms_cheer.php', [
+            'method' => 'POST',
+            'body' => ['guid' => 'guid-api-room-1', 'target_user_id' => 'u-owner-api'],
+        ]);
+        $this->assertSame(403, $resUnauth['status']);
+        $this->assertSame('login_required', $resUnauth['json']['error']);
+
+        // Bad request
+        $resBad = $this->callApi('api/rooms_cheer.php', [
+            'method' => 'POST',
+            'session' => ['user_id' => 'u-spec-1', 'user_email' => 'spec@test.com'],
+            'body' => ['guid' => '', 'target_user_id' => ''],
+        ]);
+        $this->assertSame(400, $resBad['status']);
+        $this->assertSame('bad_request', $resBad['json']['error']);
+
+        // Success
+        $activeRoom = $this->sampleRoomSeed;
+        $activeRoom['status'] = 'active';
+
+        $resSuccess = $this->callApi('api/rooms_cheer.php', [
+            'method' => 'POST',
+            'use_sqlite' => true,
+            'session' => [
+                'user_id' => 'u-spec-1',
+                'user_email' => 'spec@test.com',
+                'user_name' => 'Spectator One',
+            ],
+            'body' => [
+                'guid' => 'guid-api-room-1',
+                'target_user_id' => 'u-owner-api',
+                'emoji' => '🎈',
+            ],
+            'seeds' => [
+                'rooms' => [$activeRoom],
+                'room_players' => [$this->samplePlayerSeed],
+            ],
+        ]);
+
+        $this->assertSame(200, $resSuccess['status']);
+        $this->assertTrue($resSuccess['json']['ok']);
+        $this->assertSame('u-owner-api', $resSuccess['json']['target_user_id']);
+        $this->assertSame('🎈', $resSuccess['json']['emoji']);
+    }
 }
 

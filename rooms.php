@@ -243,7 +243,47 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                 <?= htmlspecialchars(tt('rooms_mode_teams_desc', '🔴 Kırmızı vs 🔵 Mavi Takım! Bireysel puanlar takım havuzuna yazılır, en çok puanı toplayan takım kazanır.')) ?>
               </div>
             </div>
-      </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 p-3 mode-select-card" id="modeCardHotPotato" style="cursor: pointer; border: 2px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.2s ease;">
+              <div class="form-check m-0">
+                <input class="form-check-input" type="radio" name="roomGameMode" id="modeHotPotato" value="hot_potato" style="cursor: pointer;">
+                <label class="form-check-label fw-bold user-select-none" for="modeHotPotato" style="cursor: pointer;">
+                  💣 <?= htmlspecialchars(tt('rooms_mode_hotpotato_title', 'Sıcak Patates / Renk Bombası')) ?>
+                </label>
+              </div>
+              <div class="small text-secondary mt-1 ps-4">
+                <?= htmlspecialchars(tt('rooms_mode_hotpotato_desc', 'Bomba rastgele bir oyuncuda başlar! Doğru bilen bombayı diğerine fırlatır; sürede elinde patlayan elenir.')) ?>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 p-3 mode-select-card" id="modeCardFlashMemory" style="cursor: pointer; border: 2px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.2s ease;">
+              <div class="form-check m-0">
+                <input class="form-check-input" type="radio" name="roomGameMode" id="modeFlashMemory" value="flash_memory" style="cursor: pointer;">
+                <label class="form-check-label fw-bold user-select-none" for="modeFlashMemory" style="cursor: pointer;">
+                  ⚡ <?= htmlspecialchars(tt('rooms_mode_flash_title', 'Flaş Hafıza (Körlemece)')) ?>
+                </label>
+              </div>
+              <div class="small text-secondary mt-1 ps-4">
+                <?= htmlspecialchars(tt('rooms_mode_flash_desc', 'Hedef renk ekranda sadece 0.4 saniye parlayıp kaybolur! Gözüne ve hafızana güvenip eşleşeni bulmalısın.')) ?>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 p-3 mode-select-card" id="modeCardAlchemy" style="cursor: pointer; border: 2px solid rgba(255,255,255,0.12); border-radius: 12px; transition: all 0.2s ease;">
+              <div class="form-check m-0">
+                <input class="form-check-input" type="radio" name="roomGameMode" id="modeAlchemy" value="alchemy" style="cursor: pointer;">
+                <label class="form-check-label fw-bold user-select-none" for="modeAlchemy" style="cursor: pointer;">
+                  🧪 <?= htmlspecialchars(tt('rooms_mode_alchemy_title', 'Renk Simyası (Karışım)')) ?>
+                </label>
+              </div>
+              <div class="small text-secondary mt-1 ps-4">
+                <?= htmlspecialchars(tt('rooms_mode_alchemy_desc', 'Hedef rengi elde etmek için seçeneklerden 2 doğru rengi karıştır! (Örn: Mavi + Sarı = Yeşil).')) ?>
+              </div>
+            </div>
+          </div>
+        </div>
 
       <!-- Teams Configuration (Revealed when Teams mode is chosen) -->
       <div id="teamsConfigWrap" class="mt-3 p-3 rounded-3 border bg-body-tertiary" style="display: none; border-left: 4px solid #f59e0b !important;">
@@ -382,7 +422,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                   <span class="fw-semibold"><?= htmlspecialchars($pr['name'] ?: tt('room_prefix', 'Room #') . substr($pGuid, 0, 8)) ?></span>
                   <?php if (($pr['game_mode'] ?? 'elimination') === 'points'): ?>
                     <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill room-badge-mode">
-                      ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?>
+                       ⚡ <?= htmlspecialchars(tt('rooms_mode_points_short', 'Puan')) ?>
                     </span>
                   <?php elseif (($pr['game_mode'] ?? 'elimination') === 'flags'): ?>
                     <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill room-badge-mode">
@@ -391,6 +431,18 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                   <?php elseif (($pr['game_mode'] ?? 'elimination') === 'teams'): ?>
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
                       ⚔️ <?= htmlspecialchars(tt('rooms_mode_teams_short', 'Takım')) ?>
+                    </span>
+                  <?php elseif (($pr['game_mode'] ?? 'elimination') === 'hot_potato'): ?>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
+                      💣 <?= htmlspecialchars(tt('rooms_mode_hotpotato_short', 'Bomba')) ?>
+                    </span>
+                  <?php elseif (($pr['game_mode'] ?? 'elimination') === 'flash_memory'): ?>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill room-badge-mode">
+                      ⚡ <?= htmlspecialchars(tt('rooms_mode_flash_short', 'Flaş')) ?>
+                    </span>
+                  <?php elseif (($pr['game_mode'] ?? 'elimination') === 'alchemy'): ?>
+                    <span class="badge rounded-pill room-badge-mode" style="background: rgba(168,85,247,0.18); color: #c084fc; border: 1px solid rgba(168,85,247,0.4);">
+                      🧪 <?= htmlspecialchars(tt('rooms_mode_alchemy_short', 'Simya')) ?>
                     </span>
                   <?php else: ?>
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
@@ -469,6 +521,18 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
                   <?php elseif (($r['game_mode'] ?? 'elimination') === 'teams'): ?>
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
                       ⚔️ <?= htmlspecialchars(tt('rooms_mode_teams_short', 'Takım')) ?>
+                    </span>
+                  <?php elseif (($r['game_mode'] ?? 'elimination') === 'hot_potato'): ?>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
+                      💣 <?= htmlspecialchars(tt('rooms_mode_hotpotato_short', 'Bomba')) ?>
+                    </span>
+                  <?php elseif (($r['game_mode'] ?? 'elimination') === 'flash_memory'): ?>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill room-badge-mode">
+                      ⚡ <?= htmlspecialchars(tt('rooms_mode_flash_short', 'Flaş')) ?>
+                    </span>
+                  <?php elseif (($r['game_mode'] ?? 'elimination') === 'alchemy'): ?>
+                    <span class="badge rounded-pill room-badge-mode" style="background: rgba(168,85,247,0.18); color: #c084fc; border: 1px solid rgba(168,85,247,0.4);">
+                      🧪 <?= htmlspecialchars(tt('rooms_mode_alchemy_short', 'Simya')) ?>
                     </span>
                   <?php else: ?>
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill room-badge-mode">
@@ -552,10 +616,16 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     const modeCardElimination = document.getElementById('modeCardElimination');
     const modeCardFlags = document.getElementById('modeCardFlags');
     const modeCardTeams = document.getElementById('modeCardTeams');
+    const modeCardHotPotato = document.getElementById('modeCardHotPotato');
+    const modeCardFlashMemory = document.getElementById('modeCardFlashMemory');
+    const modeCardAlchemy = document.getElementById('modeCardAlchemy');
     const radioPoints = document.getElementById('modePoints');
     const radioElimination = document.getElementById('modeElimination');
     const radioFlags = document.getElementById('modeFlags');
     const radioTeams = document.getElementById('modeTeams');
+    const radioHotPotato = document.getElementById('modeHotPotato');
+    const radioFlashMemory = document.getElementById('modeFlashMemory');
+    const radioAlchemy = document.getElementById('modeAlchemy');
 
     const teamsConfigWrap = document.getElementById('teamsConfigWrap');
     const teamWrapGreen = document.getElementById('teamWrapGreen');
@@ -575,7 +645,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         { card: modeCardPoints, radio: radioPoints, color: 'var(--bs-primary)' },
         { card: modeCardElimination, radio: radioElimination, color: 'var(--bs-danger)' },
         { card: modeCardFlags, radio: radioFlags, color: '#0dcaf0' },
-        { card: modeCardTeams, radio: radioTeams, color: '#f59e0b' }
+        { card: modeCardTeams, radio: radioTeams, color: '#f59e0b' },
+        { card: modeCardHotPotato, radio: radioHotPotato, color: '#ef4444' },
+        { card: modeCardFlashMemory, radio: radioFlashMemory, color: '#06b6d4' },
+        { card: modeCardAlchemy, radio: radioAlchemy, color: '#a855f7' }
       ];
       cards.forEach(item => {
         if (item.radio && item.radio.checked) {
@@ -608,10 +681,25 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       if (radioTeams) radioTeams.checked = true;
       syncModeCards();
     });
+    modeCardHotPotato?.addEventListener('click', () => {
+      if (radioHotPotato) radioHotPotato.checked = true;
+      syncModeCards();
+    });
+    modeCardFlashMemory?.addEventListener('click', () => {
+      if (radioFlashMemory) radioFlashMemory.checked = true;
+      syncModeCards();
+    });
+    modeCardAlchemy?.addEventListener('click', () => {
+      if (radioAlchemy) radioAlchemy.checked = true;
+      syncModeCards();
+    });
     radioPoints?.addEventListener('change', syncModeCards);
     radioElimination?.addEventListener('change', syncModeCards);
     radioFlags?.addEventListener('change', syncModeCards);
     radioTeams?.addEventListener('change', syncModeCards);
+    radioHotPotato?.addEventListener('change', syncModeCards);
+    radioFlashMemory?.addEventListener('change', syncModeCards);
+    radioAlchemy?.addEventListener('change', syncModeCards);
 
     createBtn?.addEventListener('click', async () => {
       setMsg(createMsg, '');

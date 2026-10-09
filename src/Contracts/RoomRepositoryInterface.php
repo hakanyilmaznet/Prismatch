@@ -13,6 +13,10 @@ interface RoomRepositoryInterface {
     public function listPlayers(string $roomId): array;
     public function setPlayerTeam(string $roomId, string $userId, string $team): bool;
     public function setPlayerAvatar(string $roomId, string $userId, string $avatar): bool;
+    public function setPlayerShield(string $roomId, string $userId, bool $hasShield): bool;
+    public function savePrediction(string $roomId, int $round, string $spectatorId, string $spectatorEmail, string $predictedUserId): bool;
+    public function settlePredictions(string $roomId, int $round, string $winnerUserId): array;
+    public function awardSpectatorPoints(string $roomId, string $spectatorId, int $points): bool;
     public function touchPlayer(string $roomId, string $userId, bool $reactivate = false): void;
     public function removePlayer(string $roomId, string $userId): bool;
     public function cleanupStalePlayers(string $roomId, string $ownerId, int $staleSeconds = 8): int;

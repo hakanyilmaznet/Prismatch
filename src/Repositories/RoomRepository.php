@@ -222,10 +222,19 @@ class RoomRepository implements RoomRepositoryInterface {
         return $ok;
     }
 
+    public function setPlayerShield(string $roomId, string $userId, bool $hasShield): bool {
+        $stmt = $this->pdo->prepare("UPDATE room_players SET has_shield = :shield WHERE room_id = :rid AND user_id = :uid");
+        $ok = $stmt->execute([':shield' => $hasShield ? 1 : 0, ':rid' => $roomId, ':uid' => $userId]);
+        if ($ok) {
+            $this->touchRoom($roomId);
+        }
+        return $ok;
+    }
+
     public function listPlayers(string $roomId): array {
         $cutoff = (new \DateTimeImmutable('-8 seconds', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s.v');
         $stmt = $this->pdo->prepare("
-            SELECT user_id, email, status, eliminated_round, score, correct, joined_at, last_active, team, avatar,
+            SELECT user_id, email, status, eliminated_round, score, correct, joined_at, last_active, team, avatar, has_shield, powerup,
                    CASE WHEN last_active IS NOT NULL AND last_active >= :cutoff THEN 1 ELSE 0 END AS is_online
             FROM room_players
             WHERE room_id = :rid
@@ -235,6 +244,8 @@ class RoomRepository implements RoomRepositoryInterface {
         $rows = $stmt->fetchAll() ?: [];
         foreach ($rows as &$r) {
             $r['is_online'] = (int)($r['is_online'] ?? 0);
+            $r['has_shield'] = (int)($r['has_shield'] ?? 0);
+            $r['powerup'] = !empty($r['powerup']) ? (string)$r['powerup'] : null;
             $email = trim((string)($r['email'] ?? ''));
             $displayName = ($email !== '' && str_contains($email, '@')) ? explode('@', $email)[0] : ($email !== '' ? $email : 'Player');
             $r['name'] = $displayName;
@@ -429,5 +440,73 @@ class RoomRepository implements RoomRepositoryInterface {
             ':created_at' => Database::nowUtc(),
         ]);
         $this->touchRoom($roomId);
+    }
+
+    public function savePrediction(string $roomId, int $round, string $spectatorId, string $spectatorEmail, string $predictedUserId): bool {
+        // One active prediction per spectator per round
+        $stmt = $this->pdo->prepare("
+            INSERT INTO room_predictions (id, room_id, round_index, spectator_id, spectator_email, predicted_user_id, is_settled, won, points_awarded, created_at)
+            VALUES (:id, :rid, :rnd, :sid, :semail, :puid, 0, 0, 0, :created_at)
+            ON DUPLICATE KEY UPDATE predicted_user_id = :puid2
+        ");
+        return $stmt->execute([
+            ':id' => Database::generateUuid(),
+            ':rid' => $roomId,
+            ':rnd' => $round,
+            ':sid' => $spectatorId,
+            ':semail' => $spectatorEmail,
+            ':puid' => $predictedUserId,
+            ':puid2' => $predictedUserId,
+            ':created_at' => Database::nowUtc(),
+        ]);
+    }
+
+    public function settlePredictions(string $roomId, int $round, string $winnerUserId): array {
+        $stmt = $this->pdo->prepare("
+            SELECT id, spectator_id, spectator_email, predicted_user_id
+            FROM room_predictions
+            WHERE room_id = :rid AND round_index = :rnd AND is_settled = 0
+        ");
+        $stmt->execute([':rid' => $roomId, ':rnd' => $round]);
+        $predictions = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $settled = [];
+
+        $update = $this->pdo->prepare("
+            UPDATE room_predictions
+            SET is_settled = 1, won = :won, points_awarded = :pts
+            WHERE id = :id
+        ");
+
+        foreach ($predictions as $pred) {
+            $isWinner = ((string)$pred['predicted_user_id'] === $winnerUserId);
+            $points = $isWinner ? 250 : 0;
+            $update->execute([
+                ':won' => $isWinner ? 1 : 0,
+                ':pts' => $points,
+                ':id' => $pred['id'],
+            ]);
+
+            if ($isWinner) {
+                $this->awardSpectatorPoints($roomId, (string)$pred['spectator_id'], $points);
+            }
+
+            $settled[] = [
+                'spectator_id' => $pred['spectator_id'],
+                'predicted_user_id' => $pred['predicted_user_id'],
+                'won' => $isWinner,
+                'points' => $points,
+            ];
+        }
+
+        return $settled;
+    }
+
+    public function awardSpectatorPoints(string $roomId, string $spectatorId, int $points): bool {
+        $stmt = $this->pdo->prepare("
+            UPDATE room_players
+            SET score = score + :pts
+            WHERE room_id = :rid AND user_id = :uid
+        ");
+        return $stmt->execute([':pts' => $points, ':rid' => $roomId, ':uid' => $spectatorId]);
     }
 }

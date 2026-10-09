@@ -2054,6 +2054,304 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       background: rgba(0, 0, 0, 0.03);
       color: #1e293b;
     }
+
+    /* === JUICE: LIVING AVATARS === */
+    @keyframes avatarBounceGlow {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.45) translateY(-8px) rotate(-8deg); filter: drop-shadow(0 0 16px #ffe600); }
+      60% { transform: scale(1.25) translateY(2px) rotate(8deg); }
+      100% { transform: scale(1) translateY(0) rotate(0deg); }
+    }
+    .avatar-bounce-glow {
+      animation: avatarBounceGlow 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+      display: inline-block;
+    }
+
+    @keyframes avatarDizzy {
+      0% { transform: rotate(0deg); }
+      20% { transform: rotate(-18deg) scale(0.9); }
+      40% { transform: rotate(18deg) scale(0.85); filter: grayscale(80%); }
+      60% { transform: rotate(-12deg); }
+      80% { transform: rotate(12deg); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+    .avatar-dizzy {
+      animation: avatarDizzy 0.8s ease forwards !important;
+      display: inline-block;
+    }
+
+    /* === SCREEN SHAKE & COMBO FLAME BORDERS === */
+    @keyframes screenShakeLight {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-3px, 2px); }
+      40% { transform: translate(3px, -2px); }
+      60% { transform: translate(-2px, -1px); }
+      80% { transform: translate(2px, 1px); }
+    }
+    body.screen-shake-light {
+      animation: screenShakeLight 0.32s ease-in-out;
+    }
+
+    @keyframes screenShakeHeavy {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      15% { transform: translate(-7px, 5px) rotate(-0.5deg); }
+      30% { transform: translate(7px, -5px) rotate(0.5deg); }
+      50% { transform: translate(-5px, -4px) rotate(-0.3deg); }
+      70% { transform: translate(5px, 4px) rotate(0.3deg); }
+      85% { transform: translate(-2px, 2px); }
+    }
+    body.screen-shake-heavy {
+      animation: screenShakeHeavy 0.45s ease-in-out;
+    }
+
+    body.combo-border-3::after,
+    body.combo-border-5::after,
+    body.combo-border-10::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9980;
+      transition: opacity 0.4s ease;
+    }
+    body.combo-border-3::after {
+      box-shadow: inset 0 0 24px rgba(56, 189, 248, 0.45);
+    }
+    body.combo-border-5::after {
+      box-shadow: inset 0 0 45px rgba(249, 115, 22, 0.7), inset 0 0 90px rgba(239, 68, 68, 0.35);
+      animation: flamePulse 1.2s infinite alternate;
+    }
+    body.combo-border-10::after {
+      box-shadow: inset 0 0 60px rgba(168, 85, 247, 0.8), inset 0 0 120px rgba(236, 72, 153, 0.5);
+      animation: rainbowLightning 1s infinite alternate;
+    }
+    @keyframes flamePulse {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    @keyframes rainbowLightning {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    /* === DYNAMIC TOP ANNOUNCER BANNER === */
+    .announcer-banner {
+      position: fixed;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      z-index: 10050;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
+      opacity: 0;
+      max-width: 90vw;
+      width: max-content;
+    }
+    .announcer-banner.is-showing {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .announcer-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .announcer-primary { background: linear-gradient(135deg, #0284c7, #2563eb); }
+    .announcer-warning { background: linear-gradient(135deg, #ea580c, #dc2626); }
+    .announcer-success { background: linear-gradient(135deg, #059669, #0284c7); }
+    .announcer-purple { background: linear-gradient(135deg, #7c3aed, #db2777); }
+    .announcer-icon { font-size: 24px; animation: bounce 0.6s infinite alternate; }
+    .announcer-title { font-size: 15px; letter-spacing: 0.5px; }
+    .announcer-sub { font-size: 12px; opacity: 0.88; font-weight: 600; }
+
+    /* === SABOTAGES: MIRROR, FREEZE, BLACKOUT, SHIELD === */
+    /* 1. Mirror Mode */
+    .arena-stage.mirror-active,
+    .choice-grid.mirror-active {
+      transform: scaleX(-1) rotate(180deg) !important;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .mirror-alert-tag {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(168, 85, 247, 0.9);
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13px;
+      z-index: 20;
+      animation: alertBounce 0.3s ease;
+    }
+
+    /* 2. Freeze Overlay */
+    .freeze-overlay {
+      position: absolute;
+      inset: -4px;
+      background: rgba(186, 230, 253, 0.35);
+      backdrop-filter: blur(4px);
+      border: 2px solid #38bdf8;
+      border-radius: 18px;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #0369a1;
+      font-weight: 800;
+      cursor: pointer;
+      user-select: none;
+      animation: alertBounce 0.25s ease;
+      box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.5);
+    }
+    .freeze-cracks {
+      font-size: 32px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+    .freeze-hint {
+      background: #0284c7;
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      margin-top: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    /* 3. Blackout Flashlight Overlay */
+    .blackout-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9995;
+      background: radial-gradient(circle 120px at var(--mouse-x, 50%) var(--mouse-y, 50%), transparent 0%, rgba(0, 0, 0, 0.96) 100%);
+      transition: opacity 0.3s ease;
+    }
+
+    /* 4. Prism Shield */
+    .shield-badge-active {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.6);
+      animation: shieldPulse 1.4s infinite alternate;
+    }
+    @keyframes shieldPulse {
+      0% { box-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
+      100% { box-shadow: 0 0 24px rgba(6, 182, 212, 0.95); }
+    }
+
+    /* === NEW GAME MODES UI === */
+    /* Hot Potato Bomb Banner */
+    .hot-potato-banner {
+      background: linear-gradient(135deg, #b91c1c, #ea580c);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+      margin-bottom: 12px;
+      animation: alertBounce 0.3s ease;
+    }
+    .hot-potato-banner.is-mine {
+      animation: bombPulse 0.5s infinite alternate;
+      border: 2px solid #fff;
+    }
+    @keyframes bombPulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 4px #ef4444); }
+      100% { transform: scale(1.06); filter: drop-shadow(0 0 18px #f97316); }
+    }
+
+    /* Alchemy Blend Helper */
+    .alchemy-blend-preview {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .alchemy-slot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px dashed rgba(255, 255, 255, 0.4);
+      display: inline-block;
+      vertical-align: middle;
+      transition: all 0.2s ease;
+    }
+    .alchemy-slot.is-filled {
+      border: 2px solid #fff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Spectator Bet & Cheer Bar */
+    .spectator-bar {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 10px 16px;
+      margin: 10px auto;
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+    }
+    .spectator-bar-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+    .spectator-bets-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+    .spectator-bet-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .spectator-bet-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+    }
+    .spectator-bet-btn.is-voted {
+      background: #0284c7;
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    }
   </style>
 </head>
 <body class="pm-has-fixed-header">
@@ -2102,6 +2400,41 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <span><?= htmlspecialchars(tt('powerup_ink_label', 'Mürekkep')) ?></span>
         <span id="badgeInk" class="powerup-badge">🔒 0/5</span>
       </button>
+      <button type="button" id="powerupMirrorBtn" class="powerup-btn btn-mirror is-locked" disabled title="<?= htmlspecialchars(tt('powerup_mirror_title_locked', 'Ayna Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span>🪞</span>
+        <span><?= htmlspecialchars(tt('powerup_mirror_label', 'Ayna')) ?></span>
+        <span id="badgeMirror" class="powerup-badge">🔒 0/5</span>
+      </button>
+      <button type="button" id="powerupFreezeBtn" class="powerup-btn btn-freeze is-locked" disabled title="<?= htmlspecialchars(tt('powerup_freeze_title_locked', 'Buz Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span>🧊</span>
+        <span><?= htmlspecialchars(tt('powerup_freeze_label', 'Buz')) ?></span>
+        <span id="badgeFreeze" class="powerup-badge">🔒 0/5</span>
+      </button>
+      <button type="button" id="powerupBlackoutBtn" class="powerup-btn btn-blackout is-locked" disabled title="<?= htmlspecialchars(tt('powerup_blackout_title_locked', 'Fener Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span>🔦</span>
+        <span><?= htmlspecialchars(tt('powerup_blackout_label', 'Fener')) ?></span>
+        <span id="badgeBlackout" class="powerup-badge">🔒 0/5</span>
+      </button>
+      <button type="button" id="powerupShieldBtn" class="powerup-btn btn-shield is-locked" disabled title="<?= htmlspecialchars(tt('powerup_shield_title_locked', 'Prizma Kalkanı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span>🛡️</span>
+        <span><?= htmlspecialchars(tt('powerup_shield_label', 'Kalkan')) ?></span>
+        <span id="badgeShield" class="powerup-badge">🔒 0/5</span>
+      </button>
+    </div>
+
+    <!-- Dynamic Top Announcer Banner -->
+    <div id="announcerBanner" class="announcer-banner d-none" aria-live="assertive"></div>
+
+    <!-- Hot Potato Bomb Banner (Hot potato mode only) -->
+    <div id="hotPotatoBanner" class="hot-potato-banner d-none">
+      <span class="fs-5">💣</span>
+      <span id="hotPotatoText">Bomba bekleniyor...</span>
+    </div>
+
+    <!-- Spectator Betting & Cheer Bar (Eliminated/Spectator players only) -->
+    <div id="spectatorBar" class="spectator-bar d-none">
+      <div class="spectator-bar-title">🍿 <?= htmlspecialchars(tt('spectator_bets_title', 'İzleyici Arenası: Bir Sonraki Turun Galibini Tahmin Et (+250 Puan)')) ?></div>
+      <div id="spectatorBetsGrid" class="spectator-bets-grid"></div>
     </div>
 
     <!-- Step 4: Live Team vs Team Battle Bar (Teams mode only) -->
@@ -2124,6 +2457,14 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     <!-- Main Live Game Stage -->
     <main class="arena-stage" id="arenaStage">
+      <!-- Sabotage Overlays -->
+      <div id="freezeOverlay" class="freeze-overlay d-none">
+        <div class="freeze-cracks">🧊💥</div>
+        <div class="freeze-title fw-bold fs-5 text-white">DONMA SABOTAJI!</div>
+        <div class="freeze-hint">Buzu kırmak için 2 kez tıkla! 🔨</div>
+      </div>
+      <div id="blackoutOverlay" class="blackout-overlay d-none"></div>
+
       <div class="stage-center" id="stageContent">
         <!-- Default: Waiting Room / Lobby -->
         <div class="fs-1">⏳</div>
@@ -2140,6 +2481,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           <?php elseif (($room['game_mode'] ?? 'elimination') === 'teams'): ?>
             <span class="badge bg-danger-subtle text-danger fs-6 text-nowrap align-middle border border-danger-subtle ms-1">
               ⚔️ <?= htmlspecialchars(tt('rooms_mode_teams_short', 'Takım Savaşı')) ?>
+            </span>
+          <?php elseif (($room['game_mode'] ?? 'elimination') === 'hot_potato'): ?>
+            <span class="badge bg-danger-subtle text-danger fs-6 text-nowrap align-middle border border-danger-subtle ms-1">
+              💣 <?= htmlspecialchars(tt('rooms_mode_hotpotato_short', 'Sıcak Patates')) ?>
+            </span>
+          <?php elseif (($room['game_mode'] ?? 'elimination') === 'flash_memory'): ?>
+            <span class="badge bg-info-subtle text-info fs-6 text-nowrap align-middle border border-info-subtle ms-1">
+              ⚡ <?= htmlspecialchars(tt('rooms_mode_flash_short', 'Flaş Hafıza')) ?>
+            </span>
+          <?php elseif (($room['game_mode'] ?? 'elimination') === 'alchemy'): ?>
+            <span class="badge rounded-pill fs-6 text-nowrap align-middle ms-1" style="background: rgba(168,85,247,0.18); color: #c084fc; border: 1px solid rgba(168,85,247,0.4);">
+              🧪 <?= htmlspecialchars(tt('rooms_mode_alchemy_short', 'Renk Simyası')) ?>
             </span>
           <?php else: ?>
             <span class="badge bg-danger-subtle text-danger fs-6 text-nowrap align-middle border border-danger-subtle ms-1">
@@ -2625,7 +2978,20 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         fifty_fifty_streak: 0,
         ink_available: false,
         ink_streak: 0,
+        mirror_available: false,
+        mirror_streak: 0,
+        freeze_available: false,
+        freeze_streak: 0,
+        blackout_available: false,
+        blackout_streak: 0,
+        shield_available: false,
+        shield_streak: 0,
+        has_shield: false,
       },
+      bombHolderId: null,
+      alchemyPick1: null,
+      alchemyPick2: null,
+      myPredictionUserId: null,
       teams: (Array.isArray(ROOM_TEAMS) && ROOM_TEAMS.length > 0) ? ROOM_TEAMS : [
         { id: 'red', name: 'Red', color: '#ef4444' },
         { id: 'blue', name: 'Blue', color: '#3b82f6' }
@@ -2818,6 +3184,151 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             });
             break;
           }
+          case 'shield': {
+            [523.25, 659.25, 1046.50, 1318.51].forEach((freq, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+              gain.gain.setValueAtTime(0.09, now + idx * 0.06);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.06 + 0.35);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now + idx * 0.06);
+              osc.stop(now + idx * 0.06 + 0.36);
+            });
+            break;
+          }
+          case 'reflect': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(1200, now);
+            osc.frequency.exponentialRampToValueAtTime(2400, now + 0.15);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.3);
+            break;
+          }
+          case 'freeze': {
+            [1400, 1850, 2200].forEach((freq, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sawtooth';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+              gain.gain.setValueAtTime(0.08, now + idx * 0.04);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.04 + 0.18);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now + idx * 0.04);
+              osc.stop(now + idx * 0.04 + 0.2);
+            });
+            break;
+          }
+          case 'mirror': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.linearRampToValueAtTime(900, now + 0.18);
+            osc.frequency.linearRampToValueAtTime(200, now + 0.35);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.4);
+            break;
+          }
+          case 'blackout': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(240, now);
+            osc.frequency.exponentialRampToValueAtTime(45, now + 0.4);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.45);
+            break;
+          }
+          case 'bomb_tick': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(800, now);
+            gain.gain.setValueAtTime(0.09, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.05);
+            break;
+          }
+          case 'bomb_boom': {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.6);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.7);
+            break;
+          }
+          case 'combo_3': {
+            [660, 880, 1100].forEach((freq, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+              gain.gain.setValueAtTime(0.1, now + idx * 0.07);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.07 + 0.22);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now + idx * 0.07);
+              osc.stop(now + idx * 0.07 + 0.23);
+            });
+            break;
+          }
+          case 'combo_5': {
+            [523, 659, 784, 1046, 1318].forEach((freq, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+              gain.gain.setValueAtTime(0.12, now + idx * 0.06);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.06 + 0.28);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now + idx * 0.06);
+              osc.stop(now + idx * 0.06 + 0.3);
+            });
+            break;
+          }
+          case 'announcer_leader_down': {
+            [740, 659, 587, 440].forEach((freq, idx) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sawtooth';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+              gain.gain.setValueAtTime(0.1, now + idx * 0.1);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.1 + 0.25);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now + idx * 0.1);
+              osc.stop(now + idx * 0.1 + 0.26);
+            });
+            break;
+          }
           case 'ink_splat': {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -2956,12 +3467,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     function updatePowerupUI() {
       const bar = document.getElementById('powerupBar');
-      const btn5050 = document.getElementById('powerup5050Btn');
-      const badge5050 = document.getElementById('badge5050');
-      const btnInk = document.getElementById('powerupInkBtn');
-      const badgeInk = document.getElementById('badgeInk');
-
-      if (!bar || !btn5050 || !btnInk) return;
+      if (!bar) return;
 
       const isGameActive = state.phase === 'question' || state.phase === 'show' || state.phase === 'countdown';
       if (!isGameActive || state.eliminated) {
@@ -2971,37 +3477,37 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       bar.classList.remove('d-none');
 
-      // 50/50 Joker UI
-      const streak5050 = Math.min(5, Math.max(0, state.powerups.fifty_fifty_streak || 0));
-      if (state.powerups.fifty_fifty_available) {
-        btn5050.disabled = false;
-        btn5050.classList.remove('is-used', 'is-locked');
-        btn5050.classList.add('is-ready');
-        if (badge5050) badge5050.textContent = '1';
-        btn5050.title = STR.powerup5050Ready || '50/50 Joker: Yanlış şıkların yarısını eler (Hazır!)';
-      } else {
-        btn5050.disabled = true;
-        btn5050.classList.remove('is-ready', 'is-used');
-        btn5050.classList.add('is-locked');
-        if (badge5050) badge5050.textContent = `🔒 ${streak5050}/5`;
-        btn5050.title = (STR.powerup5050Locked || '50/50 Joker: 5 tur üst üste doğru cevap vererek aç ({streak}/5)').replace('{streak}', streak5050);
-      }
+      const items = [
+        { id: '5050', key: 'fifty_fifty', readyTitle: STR.powerup5050Ready || '50/50 Joker: Yanlış şıkların yarısını eler (Hazır!)', lockedTitle: STR.powerup5050Locked || '50/50 Joker: 5 tur üst üste doğru cevap vererek aç ({streak}/5)' },
+        { id: 'Ink', key: 'ink', readyTitle: STR.powerupInkReady || 'Mürekkep Sabotajı: Rakibin ekranını karala! (Hazır!)', lockedTitle: STR.powerupInkLocked || 'Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)' },
+        { id: 'Mirror', key: 'mirror', readyTitle: STR.powerupMirrorReady || 'Ayna Sabotajı: Liderin ekranını ters çevir! (Hazır!)', lockedTitle: STR.powerupMirrorLocked || 'Ayna Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)' },
+        { id: 'Freeze', key: 'freeze', readyTitle: STR.powerupFreezeReady || 'Buz Sabotajı: Liderin şıklarını dondur! (Hazır!)', lockedTitle: STR.powerupFreezeLocked || 'Buz Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)' },
+        { id: 'Blackout', key: 'blackout', readyTitle: STR.powerupBlackoutReady || 'Fener Sabotajı: Liderin ekranını karart! (Hazır!)', lockedTitle: STR.powerupBlackoutLocked || 'Fener Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)' },
+        { id: 'Shield', key: 'shield', readyTitle: STR.powerupShieldReady || 'Prizma Kalkanı: Gelecek ilk sabotajı geri yansıtır! (Hazır!)', lockedTitle: STR.powerupShieldLocked || 'Prizma Kalkanı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)' },
+      ];
 
-      // Ink Splat Sabotage UI
-      const streakInk = Math.min(5, Math.max(0, state.powerups.ink_streak || 0));
-      if (state.powerups.ink_available) {
-        btnInk.disabled = false;
-        btnInk.classList.remove('is-used', 'is-locked');
-        btnInk.classList.add('is-ready');
-        if (badgeInk) badgeInk.textContent = '1';
-        btnInk.title = STR.powerupInkReady || 'Mürekkep Sabotajı: Rakibin ekranını karala! (Hazır!)';
-      } else {
-        btnInk.disabled = true;
-        btnInk.classList.remove('is-ready', 'is-used');
-        btnInk.classList.add('is-locked');
-        if (badgeInk) badgeInk.textContent = `🔒 ${streakInk}/5`;
-        btnInk.title = (STR.powerupInkLocked || 'Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç ({streak}/5)').replace('{streak}', streakInk);
-      }
+      items.forEach(it => {
+        const btn = document.getElementById(`powerup${it.id}Btn`);
+        const badge = document.getElementById(`badge${it.id}`);
+        if (!btn) return;
+
+        const isAvail = Boolean(state.powerups[`${it.key}_available`]);
+        const streak = Math.min(5, Math.max(0, state.powerups[`${it.key}_streak`] || 0));
+
+        if (isAvail) {
+          btn.disabled = false;
+          btn.classList.remove('is-used', 'is-locked');
+          btn.classList.add('is-ready');
+          if (badge) badge.textContent = '1';
+          btn.title = it.readyTitle;
+        } else {
+          btn.disabled = true;
+          btn.classList.remove('is-ready', 'is-used');
+          btn.classList.add('is-locked');
+          if (badge) badge.textContent = `🔒 ${streak}/5`;
+          btn.title = it.lockedTitle.replace('{streak}', String(streak));
+        }
+      });
     }
 
     function useFiftyFifty() {
@@ -3177,6 +3683,354 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       setTimeout(() => {
         clearInkOverlay();
       }, 3400);
+    }
+
+    function getLeaderRival() {
+      const rivals = (state.players || []).filter(p => 
+        p.email !== ME_EMAIL && 
+        String(p.user_id) !== String(ME_ID) && 
+        p.status !== 'eliminated'
+      );
+      if (rivals.length === 0) return null;
+      const sortedRivals = [...rivals].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+      return sortedRivals[0];
+    }
+
+    function fireMirrorSabotage() {
+      if (!state.powerups.mirror_available) {
+        const streak = state.powerups.mirror_streak || 0;
+        showToast((STR.powerupMirrorStreakReq || 'Ayna sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)').replace('{streak}', String(streak)));
+        return;
+      }
+      if (state.eliminated) return;
+      const leader = getLeaderRival();
+      if (!leader) {
+        showToast(STR.sabotageNoRivals || 'Sabote edilecek aktif rakip yok!');
+        return;
+      }
+      const leaderName = leader.user_name || (leader.email ? leader.email.split('@')[0] : (STR.player || 'Lider'));
+      state.powerups.mirror_available = false;
+      state.powerups.mirror_streak = 0;
+      updatePowerupUI();
+      playReactionSound('mirror');
+      showToast((STR.powerupMirrorFired || '🪞 Lider {target} hedeflendi! Ayna fırlatıldı!').replace('{target}', leaderName.split('@')[0]));
+
+      fetch('api/rooms_powerup.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          guid: GUID,
+          type: 'mirror',
+          target_user_id: leader.user_id
+        })
+      }).catch(e => RoomLogger.warn('Powerup', 'Mirror sabotage report error', e));
+    }
+
+    function fireFreezeSabotage() {
+      if (!state.powerups.freeze_available) {
+        const streak = state.powerups.freeze_streak || 0;
+        showToast((STR.powerupFreezeStreakReq || 'Buz sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)').replace('{streak}', String(streak)));
+        return;
+      }
+      if (state.eliminated) return;
+      const leader = getLeaderRival();
+      if (!leader) {
+        showToast(STR.sabotageNoRivals || 'Sabote edilecek aktif rakip yok!');
+        return;
+      }
+      const leaderName = leader.user_name || (leader.email ? leader.email.split('@')[0] : (STR.player || 'Lider'));
+      state.powerups.freeze_available = false;
+      state.powerups.freeze_streak = 0;
+      updatePowerupUI();
+      playReactionSound('freeze');
+      showToast((STR.powerupFreezeFired || '🧊 Lider {target} hedeflendi! Buz fırlatıldı!').replace('{target}', leaderName.split('@')[0]));
+
+      fetch('api/rooms_powerup.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          guid: GUID,
+          type: 'freeze',
+          target_user_id: leader.user_id
+        })
+      }).catch(e => RoomLogger.warn('Powerup', 'Freeze sabotage report error', e));
+    }
+
+    function fireBlackoutSabotage() {
+      if (!state.powerups.blackout_available) {
+        const streak = state.powerups.blackout_streak || 0;
+        showToast((STR.powerupBlackoutStreakReq || 'Fener sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)').replace('{streak}', String(streak)));
+        return;
+      }
+      if (state.eliminated) return;
+      const leader = getLeaderRival();
+      if (!leader) {
+        showToast(STR.sabotageNoRivals || 'Sabote edilecek aktif rakip yok!');
+        return;
+      }
+      const leaderName = leader.user_name || (leader.email ? leader.email.split('@')[0] : (STR.player || 'Lider'));
+      state.powerups.blackout_available = false;
+      state.powerups.blackout_streak = 0;
+      updatePowerupUI();
+      playReactionSound('blackout');
+      showToast((STR.powerupBlackoutFired || '🔦 Lider {target} hedeflendi! Fener karartması fırlatıldı!').replace('{target}', leaderName.split('@')[0]));
+
+      fetch('api/rooms_powerup.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          guid: GUID,
+          type: 'blackout',
+          target_user_id: leader.user_id
+        })
+      }).catch(e => RoomLogger.warn('Powerup', 'Blackout sabotage report error', e));
+    }
+
+    function activateShield() {
+      if (!state.powerups.shield_available) {
+        const streak = state.powerups.shield_streak || 0;
+        showToast((STR.powerupShieldStreakReq || 'Prizma kalkanı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)').replace('{streak}', String(streak)));
+        return;
+      }
+      if (state.eliminated) return;
+      state.powerups.shield_available = false;
+      state.powerups.shield_streak = 0;
+      state.powerups.has_shield = true;
+      updatePowerupUI();
+      playReactionSound('shield');
+      showToast(STR.powerupShieldActivated || '🛡️ Prizma Kalkanı Aktif! Gelecek ilk sabotaj yansıtılacak!', true);
+      showAnnouncer('🛡️ PRİZMA KALKANI AKTİF!', 'Gelecek ilk sabotaj düşmana geri yansıtılacak!', 'primary', 2600);
+
+      fetch('api/rooms_powerup.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          guid: GUID,
+          type: 'shield'
+        })
+      }).catch(e => RoomLogger.warn('Powerup', 'Shield activation error', e));
+    }
+
+    let announcerTimeout = null;
+    function showAnnouncer(title, sub = '', variant = 'primary', duration = 3000) {
+      const el = document.getElementById('announcerBanner');
+      if (!el) return;
+      el.className = 'announcer-banner is-showing';
+      el.innerHTML = `
+        <div class="announcer-inner announcer-${variant}">
+          <span class="announcer-icon">📢</span>
+          <div class="d-flex flex-column text-start">
+            <span class="announcer-title">${escapeHtml(title)}</span>
+            ${sub ? `<span class="announcer-sub">${escapeHtml(sub)}</span>` : ''}
+          </div>
+        </div>
+      `;
+      clearTimeout(announcerTimeout);
+      announcerTimeout = setTimeout(() => {
+        el.classList.remove('is-showing');
+      }, duration);
+    }
+
+    function triggerMirrorEffect(attackerName) {
+      playReactionSound('mirror');
+      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+      const stage = document.getElementById('arenaStage');
+      const grid = document.getElementById('choiceGrid');
+      if (stage) stage.classList.add('mirror-active');
+      if (grid) grid.classList.add('mirror-active');
+
+      const existing = document.getElementById('mirrorAlertTag');
+      if (existing) existing.remove();
+
+      const banner = document.createElement('div');
+      banner.className = 'mirror-alert-tag';
+      banner.id = 'mirrorAlertTag';
+      banner.textContent = `🪞 ${attackerName} ekranını ters çevirdi!`;
+      document.body.appendChild(banner);
+
+      setTimeout(() => {
+        if (stage) stage.classList.remove('mirror-active');
+        if (grid) grid.classList.remove('mirror-active');
+        const el = document.getElementById('mirrorAlertTag');
+        if (el) el.remove();
+      }, 3500);
+    }
+
+    function triggerFreezeEffect(attackerName) {
+      playReactionSound('freeze');
+      if (navigator.vibrate) navigator.vibrate([150, 70, 150]);
+      const existing = document.getElementById('freezeOverlay');
+      if (existing) existing.remove();
+
+      const grid = document.getElementById('choiceGrid') || document.getElementById('arenaStage');
+      if (!grid) return;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'freezeOverlay';
+      overlay.className = 'freeze-overlay';
+      overlay.innerHTML = `
+        <div class="freeze-cracks">🧊❄️</div>
+        <div class="fw-bold mt-1">${escapeHtml(attackerName)} seni dondurdu!</div>
+        <div class="freeze-hint" id="freezeHint">Kırmak için 2 kez dokun! (2)</div>
+      `;
+
+      let clicksLeft = 2;
+      const shatter = () => {
+        clicksLeft--;
+        playReactionSound('freeze');
+        const hint = document.getElementById('freezeHint');
+        if (hint) hint.textContent = `Kırmak için dokun! (${clicksLeft})`;
+        if (clicksLeft <= 0) {
+          overlay.style.transition = 'opacity 0.2s, transform 0.2s';
+          overlay.style.opacity = '0';
+          overlay.style.transform = 'scale(1.1)';
+          playReactionSound('ink_pop');
+          setTimeout(() => overlay.remove(), 200);
+        }
+      };
+
+      overlay.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        shatter();
+      });
+
+      grid.style.position = 'relative';
+      grid.appendChild(overlay);
+
+      setTimeout(() => {
+        if (overlay.parentNode) overlay.remove();
+      }, 3500);
+    }
+
+    function triggerBlackoutEffect(attackerName) {
+      playReactionSound('blackout');
+      if (navigator.vibrate) navigator.vibrate(200);
+      const existing = document.getElementById('blackoutOverlay');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.id = 'blackoutOverlay';
+      overlay.className = 'blackout-overlay';
+      document.body.appendChild(overlay);
+
+      const moveHandler = (e) => {
+        const x = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : window.innerWidth / 2);
+        const y = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : window.innerHeight / 2);
+        overlay.style.setProperty('--mouse-x', `${x}px`);
+        overlay.style.setProperty('--mouse-y', `${y}px`);
+      };
+
+      window.addEventListener('pointermove', moveHandler);
+      window.addEventListener('touchmove', moveHandler);
+
+      showToast(`🔦 ${attackerName} ekranını kararttı! Feneri hareket ettir!`);
+
+      setTimeout(() => {
+        window.removeEventListener('pointermove', moveHandler);
+        window.removeEventListener('touchmove', moveHandler);
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 300);
+      }, 3500);
+    }
+
+    function triggerAvatarAnimation(userId, animType) {
+      const cssClass = animType === 'bounce' ? 'avatar-bounce-glow' : 'avatar-dizzy';
+      const el = document.getElementById(`playerAvatar-${userId}`) ||
+                 document.querySelector(`[data-user-id="${userId}"] .player-pill-avatar`) ||
+                 document.querySelector(`[data-user-id="${userId}"]`);
+      if (el) {
+        el.classList.remove('avatar-bounce-glow', 'avatar-dizzy');
+        void el.offsetWidth;
+        el.classList.add(cssClass);
+        setTimeout(() => {
+          el.classList.remove(cssClass);
+        }, 900);
+      }
+    }
+
+    function renderSpectatorBar() {
+      const bar = document.getElementById('spectatorBar');
+      const grid = document.getElementById('spectatorBetsGrid');
+      if (!bar || !grid) return;
+
+      if (!state.eliminated && state.phase !== 'leaderboard') {
+        bar.classList.add('d-none');
+        return;
+      }
+
+      const aliveRivals = (state.players || []).filter(p => p.status !== 'eliminated');
+      if (aliveRivals.length === 0) {
+        bar.classList.add('d-none');
+        return;
+      }
+
+      bar.classList.remove('d-none');
+      grid.innerHTML = aliveRivals.map(p => {
+        const pName = getPlayerDisplayName(p);
+        const av = (state.avatars || ALL_AVATARS || []).find(a => String(a.id) === String(p.avatar));
+        const icon = av ? av.icon : '👤';
+        const isPredicted = state.myPredictionUserId && String(state.myPredictionUserId) === String(p.user_id);
+        return `
+          <div class="spectator-card d-flex align-items-center justify-content-between p-2 rounded-3 my-1" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-5">${icon}</span>
+              <span class="fw-bold">${escapeHtml(pName)}</span>
+              <span class="badge bg-secondary-subtle text-light">${p.score || 0} p</span>
+            </div>
+            <div class="d-flex align-items-center gap-1.5">
+              <button type="button" class="btn btn-sm ${isPredicted ? 'btn-success' : 'btn-outline-warning'} spectator-bet-btn" data-user-id="${p.user_id}">
+                ${isPredicted ? '✓ Tahminin' : '🍿 Kazanır (+250)'}
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-info spectator-cheer-btn" data-user-id="${p.user_id}" title="Alkışla!">
+                🎈
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      grid.querySelectorAll('.spectator-bet-btn').forEach(btn => {
+        btn.onclick = () => {
+          const uid = btn.dataset.userId;
+          submitSpectatorBet(uid);
+        };
+      });
+      grid.querySelectorAll('.spectator-cheer-btn').forEach(btn => {
+        btn.onclick = () => {
+          const uid = btn.dataset.userId;
+          sendSpectatorCheer(uid, '🎈');
+        };
+      });
+    }
+
+    async function submitSpectatorBet(targetUserId) {
+      state.myPredictionUserId = targetUserId;
+      playReactionSound('pop');
+      showToast('🍿 Galip tahminin kaydedildi! Tur sonunda doğruysa +250 puan!', true);
+      renderSpectatorBar();
+      try {
+        await fetch('api/rooms_predict.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guid: GUID, predicted_user_id: targetUserId })
+        });
+      } catch (err) {
+        RoomLogger.warn('Spectator', 'Failed to submit bet', err);
+      }
+    }
+
+    async function sendSpectatorCheer(targetUserId, emoji) {
+      playReactionSound('pop');
+      showToast('🎈 Tezahürat gönderildi!');
+      try {
+        await fetch('api/rooms_cheer.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guid: GUID, target_user_id: targetUserId, emoji: emoji })
+        });
+      } catch (err) {
+        RoomLogger.warn('Spectator', 'Failed to send cheer', err);
+      }
     }
 
     function updateTeamBattleUI() {
@@ -3582,6 +4436,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         const tag = document.createElement('div');
         tag.className = 'player-tag' + (isMe ? ' self' : '') + (isElim ? ' eliminated' : '') + (!isOnline ? ' offline' : '');
+        tag.dataset.userId = String(p.user_id || '');
 
         const dot = document.createElement('span');
         dot.className = 'live-dot';
@@ -3600,6 +4455,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const pAvObj = (state.avatars || ALL_AVATARS || []).find(a => String(a.id) === String(p.avatar));
         if (pAvObj) {
           const avSpan = document.createElement('span');
+          avSpan.id = `playerAvatar-${p.user_id}`;
           avSpan.className = 'player-pill-avatar me-1';
           avSpan.textContent = pAvObj.icon;
           avSpan.title = pAvObj.name;
@@ -3812,11 +4668,33 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       hudStatus.textContent = state.eliminated ? STR.spectating : pickUpper;
       hudStatus.className = 'hud-val ' + (state.eliminated ? 'text-secondary' : 'text-success');
 
-      stageContent.innerHTML = `
-        <h2 class="stage-title">${pickTitle}</h2>
-        <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : STR.chooseFast}</div>
-        <div class="choice-grid ${isFlag ? 'grid-loading' : ''}" id="choiceGrid"></div>
-      `;
+      if (state.gameMode === 'alchemy') {
+        const recipeName = state.targetName || 'Karışım';
+        stageContent.innerHTML = `
+          <h2 class="stage-title">🧪 ${escapeHtml(recipeName)} Rengini Oluştur!</h2>
+          <div class="stage-subtitle">Hedef: <strong style="color: ${state.targetColor}">${escapeHtml(recipeName)}</strong> — Karıştırmak için 2 renk seç!</div>
+          <div class="alchemy-blend-preview my-2">
+            <span>Bileşen 1: <span id="alchemySlot1" class="alchemy-slot"></span></span>
+            <span class="mx-1">+</span>
+            <span>Bileşen 2: <span id="alchemySlot2" class="alchemy-slot"></span></span>
+          </div>
+          <div class="choice-grid" id="choiceGrid"></div>
+        `;
+        state.alchemyPick1 = null;
+        state.alchemyPick2 = null;
+      } else if (state.gameMode === 'flash_memory') {
+        stageContent.innerHTML = `
+          <h2 class="stage-title">⚡ Flaş Rengi Hatırla!</h2>
+          <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : '❓ Gördüğün rengi hemen işaretle!'}</div>
+          <div class="choice-grid" id="choiceGrid"></div>
+        `;
+      } else {
+        stageContent.innerHTML = `
+          <h2 class="stage-title">${pickTitle}</h2>
+          <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : STR.chooseFast}</div>
+          <div class="choice-grid ${isFlag ? 'grid-loading' : ''}" id="choiceGrid"></div>
+        `;
+      }
 
       // Emoji panelini renk seçim ekranında da sayfanın alt tarafına sabitle
       const rBarQuest = document.getElementById('reactionBar');
@@ -3896,17 +4774,57 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
     async function onChoicePick(color, btn, cells) {
       if (state.answered || state.eliminated || state.phase !== 'question') return;
+
+      if (state.gameMode === 'alchemy') {
+        if (!state.alchemyPick1) {
+          state.alchemyPick1 = color;
+          btn.classList.add('border-4', 'border-warning');
+          btn.disabled = true;
+          const slot1 = document.getElementById('alchemySlot1');
+          if (slot1) {
+            slot1.style.background = color;
+            slot1.classList.add('is-filled');
+          }
+          playTone(523, 0.1, 'triangle');
+          return;
+        } else {
+          state.alchemyPick2 = color;
+          btn.classList.add('border-4', 'border-warning');
+          const slot2 = document.getElementById('alchemySlot2');
+          if (slot2) {
+            slot2.style.background = color;
+            slot2.classList.add('is-filled');
+          }
+          color = state.alchemyPick1 + '+' + state.alchemyPick2;
+        }
+      }
+
       state.answered = true;
       cells.forEach(c => c.disabled = true);
       if (state.activeTimer) clearInterval(state.activeTimer);
 
-      const isCorrect = color === state.targetColor;
+      let isCorrect = false;
+      if (state.gameMode === 'alchemy') {
+        const comps = state.components || [];
+        const pickedParts = color.split('+');
+        if (pickedParts.length === 2 && comps.length === 2) {
+          isCorrect = (
+            (pickedParts[0] === comps[0] && pickedParts[1] === comps[1]) ||
+            (pickedParts[0] === comps[1] && pickedParts[1] === comps[0])
+          );
+        } else {
+          isCorrect = color === state.targetColor;
+        }
+      } else {
+        isCorrect = color === state.targetColor;
+      }
       const responseMs = Math.round(performance.now() - state.questionStartTs);
 
       if (isCorrect) {
         state.streak = (state.streak || 0) + 1;
         if (state.streak > (state.maxStreak || 0)) state.maxStreak = state.streak;
         btn.classList.add('correct');
+        triggerAvatarAnimation(ME_ID, 'bounce');
 
         const pitchMult = Math.min(5, state.streak);
         playTone(660 + pitchMult * 40, 0.1, 'triangle');
@@ -3914,34 +4832,65 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
         updateStreakUI(state.streak);
 
-        if (state.streak >= 3) {
+        if (state.streak >= 10) {
+          document.body.classList.remove('combo-border-3', 'combo-border-5');
+          document.body.classList.add('combo-border-10', 'screen-shake-heavy');
+          setTimeout(() => document.body.classList.remove('screen-shake-heavy'), 450);
+          playReactionSound('combo_5');
+          showAnnouncer('⚡ 10X EFSANEVİ KOMBO!', 'Durdurulamaz bir seridesin!', 'purple', 3500);
+        } else if (state.streak >= 5) {
+          document.body.classList.remove('combo-border-3');
+          document.body.classList.add('combo-border-5', 'screen-shake-light');
+          setTimeout(() => document.body.classList.remove('screen-shake-light'), 350);
+          playReactionSound('combo_5');
+          showAnnouncer('🔥 5X ALEV SERİSİ!', 'Ortalığı yakıyorsun!', 'warning', 2500);
+        } else if (state.streak >= 3) {
+          document.body.classList.add('combo-border-3');
+          playReactionSound('combo_3');
           document.getElementById('arenaStage')?.classList.add('stage-on-fire');
         }
 
-        // Power-ups: 5 consecutive correct answers unlock/renew fifty-fifty & ink sabotage
-        let unlockedPowerup = null;
-        if (!state.powerups.fifty_fifty_available) {
-          state.powerups.fifty_fifty_streak = (state.powerups.fifty_fifty_streak || 0) + 1;
-          if (state.powerups.fifty_fifty_streak >= 5) {
-            state.powerups.fifty_fifty_available = true;
-            state.powerups.fifty_fifty_streak = 5;
-            unlockedPowerup = STR.powerup5050Unlocked || '🎯 50/50 Jokeri';
+        // Power-ups: 5 consecutive correct answers unlock/renew cards
+        const pKeys = [
+          { key: 'fifty_fifty', name: '🎯 50/50' },
+          { key: 'ink', name: '🦑 Mürekkep' },
+          { key: 'mirror', name: '🪞 Ayna' },
+          { key: 'freeze', name: '🧊 Buz' },
+          { key: 'blackout', name: '🔦 Fener' },
+          { key: 'shield', name: '🛡️ Kalkan' },
+        ];
+        const newlyUnlocked = [];
+        pKeys.forEach(p => {
+          if (!state.powerups[p.key + '_available']) {
+            state.powerups[p.key + '_streak'] = (state.powerups[p.key + '_streak'] || 0) + 1;
+            if (state.powerups[p.key + '_streak'] >= 5) {
+              state.powerups[p.key + '_available'] = true;
+              state.powerups[p.key + '_streak'] = 5;
+              newlyUnlocked.push(p.name);
+            }
           }
-        }
-        if (!state.powerups.ink_available) {
-          state.powerups.ink_streak = (state.powerups.ink_streak || 0) + 1;
-          if (state.powerups.ink_streak >= 5) {
-            state.powerups.ink_available = true;
-            state.powerups.ink_streak = 5;
-            unlockedPowerup = unlockedPowerup ? (STR.powerupBothUnlocked || '🎯 50/50 ve 🦑 Mürekkep Jokerleri') : (STR.powerupInkUnlocked || '🦑 Mürekkep Sabotajı');
-          }
-        }
+        });
         updatePowerupUI();
-        if (unlockedPowerup) {
+        if (newlyUnlocked.length > 0) {
           setTimeout(() => {
             playTone(880, 0.25, 'triangle');
-            showToast((STR.powerupEarnedToast || '🎉 5 tur üst üste doğru! {item} Kazandın!').replace('{item}', unlockedPowerup), true);
+            showToast('🎉 5 tur doğru! ' + newlyUnlocked.join(', ') + ' Kazandın!', true);
           }, 350);
+        }
+
+        // Hot potato bomb pass on correct
+        if (state.gameMode === 'hot_potato' && String(state.bombHolderId) === String(ME_ID)) {
+          const aliveRivals = (state.players || []).filter(p => String(p.user_id) !== String(ME_ID) && p.status !== 'eliminated');
+          if (aliveRivals.length > 0) {
+            const nextHolder = aliveRivals[Math.floor(Math.random() * aliveRivals.length)];
+            state.bombHolderId = nextHolder.user_id;
+            const hpText = document.getElementById('hotPotatoText');
+            const hpBanner = document.getElementById('hotPotatoBanner');
+            if (hpBanner) hpBanner.classList.remove('is-mine');
+            if (hpText) hpText.textContent = `💣 Bomba: ${getPlayerDisplayName(nextHolder)} oyuncusuna paslandı!`;
+            showToast(`💣 Bombayı ${getPlayerDisplayName(nextHolder)} oyuncusuna pasladın!`, true);
+            playReactionSound('bomb_tick');
+          }
         }
 
         let toastMsg = STR.correct;
@@ -3952,19 +4901,21 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       } else {
         btn.classList.add('wrong');
         playTone(220, 0.2, 'sawtooth');
+        triggerAvatarAnimation(ME_ID, 'dizzy');
 
-        // Streak broken: reset locked powerups progress (already earned powerups are kept)
-        if (!state.powerups.fifty_fifty_available) {
-          state.powerups.fifty_fifty_streak = 0;
-        }
-        if (!state.powerups.ink_available) {
-          state.powerups.ink_streak = 0;
-        }
+        // Streak broken: reset locked powerups & combo borders
+        document.body.classList.remove('combo-border-3', 'combo-border-5', 'combo-border-10');
+        document.body.classList.add('screen-shake-heavy');
+        setTimeout(() => document.body.classList.remove('screen-shake-heavy'), 450);
+
+        ['fifty_fifty', 'ink', 'mirror', 'freeze', 'blackout', 'shield'].forEach(k => {
+          if (!state.powerups[k + '_available']) {
+            state.powerups[k + '_streak'] = 0;
+          }
+        });
         updatePowerupUI();
 
         if (state.streak >= 2) {
-          document.getElementById('arenaStage')?.classList.add('screen-shake');
-          setTimeout(() => document.getElementById('arenaStage')?.classList.remove('screen-shake'), 450);
           showToast(`${STR.streakBroken || 'Kombo Kırıldı!'} (${state.streak}x) 💔`, false);
         }
 
@@ -3972,7 +4923,11 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         updateStreakUI(0);
         document.getElementById('arenaStage')?.classList.remove('stage-on-fire');
 
-        if (state.gameMode === 'elimination') {
+        if (state.gameMode === 'hot_potato' && String(state.bombHolderId) === String(ME_ID)) {
+          playReactionSound('bomb_boom');
+          showAnnouncer('💥 BOMBA SENDE PATLADI!', '-500 Ceza Puanı!', 'warning', 3500);
+          showToast('💥 BOMBA SENDE PATLADI!', false);
+        } else if (state.gameMode === 'elimination') {
           showToast(STR.wrong, false);
           state.eliminated = false;
         } else {
@@ -4061,23 +5016,31 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       cells.forEach(c => c.disabled = true);
       playTone(200, 0.25, 'sawtooth');
 
+      triggerAvatarAnimation(ME_ID, 'dizzy');
+      document.body.classList.remove('combo-border-3', 'combo-border-5', 'combo-border-10');
+      document.body.classList.add('screen-shake-heavy');
+      setTimeout(() => document.body.classList.remove('screen-shake-heavy'), 450);
+
       if (state.streak >= 2) {
-        document.getElementById('arenaStage')?.classList.add('screen-shake');
-        setTimeout(() => document.getElementById('arenaStage')?.classList.remove('screen-shake'), 450);
         showToast(`${STR.streakBroken || 'Kombo Kırıldı!'} (${state.streak}x) 💔`, false);
       }
       state.streak = 0;
       updateStreakUI(0);
       document.getElementById('arenaStage')?.classList.remove('stage-on-fire');
 
-      // Streak broken: reset locked powerups progress (already earned powerups are kept)
-      if (!state.powerups.fifty_fifty_available) {
-        state.powerups.fifty_fifty_streak = 0;
-      }
-      if (!state.powerups.ink_available) {
-        state.powerups.ink_streak = 0;
-      }
+      // Streak broken: reset locked powerups progress
+      ['fifty_fifty', 'ink', 'mirror', 'freeze', 'blackout', 'shield'].forEach(k => {
+        if (!state.powerups[k + '_available']) {
+          state.powerups[k + '_streak'] = 0;
+        }
+      });
       updatePowerupUI();
+
+      if (state.gameMode === 'hot_potato' && String(state.bombHolderId) === String(ME_ID)) {
+        playReactionSound('bomb_boom');
+        showAnnouncer('💥 BOMBA SENDE PATLADI!', 'Süre doldu, patlama yaşandı!', 'warning', 3500);
+        showToast('💥 BOMBA SENDE PATLADI!', false);
+      }
 
       state.myRoundStats.push({
         round: state.round,
@@ -4281,9 +5244,19 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.targetColor = data.question?.target;
       state.gridColors = data.question?.grid || [];
 
-      // Minimum güvenli hedef görüntüleme süresi garantisi (bayrak: 1600ms, renk: 1200ms)
-      const minShow = (state.gameMode === 'flags' || isFlagTarget(state.targetColor)) ? 1600 : 1200;
-      state.showMs = Math.max(minShow, Number(data.show_ms) || minShow);
+      // Minimum güvenli hedef görüntüleme süresi garantisi (flash_memory: 400ms, bayrak: 1600ms, renk: 1200ms)
+      if (state.gameMode === 'flash_memory') {
+        state.showMs = Number(data.show_ms) || 400;
+      } else {
+        const minShow = (state.gameMode === 'flags' || isFlagTarget(state.targetColor)) ? 1600 : 1200;
+        state.showMs = Math.max(minShow, Number(data.show_ms) || minShow);
+      }
+      if (data.question?.target_name) {
+        state.targetName = data.question.target_name;
+      }
+      if (data.question?.components) {
+        state.components = data.question.components;
+      }
       state.answerMs = Number(data.answer_ms) || 5000;
       state.countdownMs = Number(data.countdown_ms) || (state.round > 1 ? 1000 : 3000);
       state.answered = false;
@@ -4300,16 +5273,40 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         state.gridPreloadPromise = Promise.resolve();
       }
 
+      // Hot potato bomb setup
+      if (state.gameMode === 'hot_potato') {
+        const hpBanner = document.getElementById('hotPotatoBanner');
+        if (hpBanner) {
+          hpBanner.classList.remove('d-none');
+          if (!state.bombHolderId) {
+            const active = (state.players || []).filter(p => p.status !== 'eliminated');
+            if (active.length > 0) state.bombHolderId = active[Math.floor(Math.random() * active.length)].user_id;
+          }
+          const isMine = String(state.bombHolderId) === String(ME_ID);
+          hpBanner.classList.toggle('is-mine', isMine);
+          const holderObj = (state.players || []).find(p => String(p.user_id) === String(state.bombHolderId));
+          const holderName = holderObj ? getPlayerDisplayName(holderObj) : 'Lider';
+          const hpText = document.getElementById('hotPotatoText');
+          if (hpText) hpText.textContent = isMine ? '💣 BOMBA SENDE! Çabuk doğru rengi seç ve pasla!' : `💣 Bomba: ${holderName} oyuncusunda!`;
+        }
+      } else {
+        document.getElementById('hotPotatoBanner')?.classList.add('d-none');
+      }
+
       if (data.round === 1 || data.is_restart) {
         state.score = 0;
         state.myRoundStats = [];
-        state.powerups.fifty_fifty_available = false;
-        state.powerups.fifty_fifty_streak = 0;
-        state.powerups.ink_available = false;
-        state.powerups.ink_streak = 0;
+        ['fifty_fifty', 'ink', 'mirror', 'freeze', 'blackout', 'shield'].forEach(k => {
+          state.powerups[k + '_available'] = false;
+          state.powerups[k + '_streak'] = 0;
+        });
+        state.powerups.has_shield = false;
+        state.bombHolderId = null;
+        document.body.classList.remove('combo-border-3', 'combo-border-5', 'combo-border-10');
         hudScore.textContent = '0';
       }
       updatePowerupUI();
+      renderSpectatorBar();
 
       if (Array.isArray(data.players) && data.players.length > 0) {
         renderPlayers(data.players);
@@ -5216,8 +6213,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         RoomLogger.info('Pusher', 'Event room:powerup received', data);
         if (!data || !data.type) return;
 
+        const isMeVictim = (String(data.target_user_id) === String(ME_ID) || data.target_email === ME_EMAIL);
+        const isMeAttacker = (String(data.from_user_id) === String(ME_ID) || data.from_email === ME_EMAIL);
+
+        if (data.reflected) {
+          playReactionSound('reflect');
+          showAnnouncer('🛡️ KALKAN YANSITTI!', (data.absorbed_by_name || 'Rakip') + ' saldırıyı ' + (data.from_name || 'saldırgana') + ' geri tepti!', 'warning', 3500);
+        }
+
         if (data.type === 'ink_splat') {
-          if (String(data.target_user_id) === String(ME_ID) || data.target_email === ME_EMAIL) {
+          if (isMeVictim) {
             triggerInkSplatEffect(data.from_name || (STR.player || 'Player'), data.color);
           } else {
             const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
@@ -5225,16 +6230,64 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
             showToast((STR.powerupInkBrdcst || '🦑 {attacker}, lider {victim} oyuncusuna mürekkep fırlattı!').replace('{attacker}', attackerName).replace('{victim}', victimName));
             playReactionSound('ink_splat');
           }
+        } else if (data.type === 'mirror') {
+          if (isMeVictim) {
+            triggerMirrorEffect(data.from_name || (STR.player || 'Player'));
+          } else {
+            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
+            const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
+            showToast(`🪞 ${attackerName}, ${victimName} ekranını ters çevirdi!`);
+            playReactionSound('mirror');
+          }
+        } else if (data.type === 'freeze') {
+          if (isMeVictim) {
+            triggerFreezeEffect(data.from_name || (STR.player || 'Player'));
+          } else {
+            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
+            const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
+            showToast(`🧊 ${attackerName}, ${victimName} şıklarını dondurdu!`);
+            playReactionSound('freeze');
+          }
+        } else if (data.type === 'blackout') {
+          if (isMeVictim) {
+            triggerBlackoutEffect(data.from_name || (STR.player || 'Player'));
+          } else {
+            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
+            const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
+            showToast(`🔦 ${attackerName}, ${victimName} ekranını kararttı!`);
+            playReactionSound('blackout');
+          }
+        } else if (data.type === 'shield') {
+          if (!isMeAttacker) {
+            const userName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
+            showToast(`🛡️ ${userName} Prizma Kalkanı kuşandı!`);
+          }
         } else if (data.type === 'fifty_fifty') {
-          if (String(data.from_user_id) !== String(ME_ID)) {
+          if (!isMeAttacker) {
             const userName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
             showToast((STR.powerup5050Brdcst || '🎯 {user} 50/50 jokerini kullandı!').replace('{user}', userName));
           }
         }
       });
+
+      channel.bind('room:cheer', (data) => {
+        if (!data) return;
+        if (String(data.target_user_id) === String(ME_ID)) {
+          spawnFloatingReaction(data.emoji || '🎈', data.from_name || 'İzleyici', 'pop', 'Tezahürat!', false);
+          playReactionSound('pop');
+          showToast(`🎈 ${data.from_name} sana tezahürat gönderdi!`, true);
+        }
+      });
+
+      channel.bind('room:prediction', (data) => {
+        if (!data) return;
+        if (String(data.predicted_user_id) === String(ME_ID)) {
+          showToast(`🍿 ${data.spectator_name} senin kazanacağını tahmin etti!`, true);
+        }
+      });
     }
 
-    // Step 3 Power-up & Sabotage Controls
+    // Power-up & Sabotage Bar Button Listeners
     document.getElementById('powerup5050Btn')?.addEventListener('click', (e) => {
       e.preventDefault();
       useFiftyFifty();
@@ -5243,6 +6296,26 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     document.getElementById('powerupInkBtn')?.addEventListener('click', (e) => {
       e.preventDefault();
       fireInkSabotage();
+    });
+
+    document.getElementById('powerupMirrorBtn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      fireMirrorSabotage();
+    });
+
+    document.getElementById('powerupFreezeBtn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      fireFreezeSabotage();
+    });
+
+    document.getElementById('powerupBlackoutBtn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      fireBlackoutSabotage();
+    });
+
+    document.getElementById('powerupShieldBtn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      activateShield();
     });
 
     document.getElementById('closeSabotageModalBtn')?.addEventListener('click', (e) => {

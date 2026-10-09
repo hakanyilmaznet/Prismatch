@@ -25,7 +25,7 @@ if (trim($name) === '') {
 
 $isPrivate = !empty($input['is_private']) || !empty($_POST['is_private']);
 $gameMode = (string)($input['game_mode'] ?? ($_POST['game_mode'] ?? 'elimination'));
-if (!in_array($gameMode, ['elimination', 'points', 'flags', 'teams'], true)) {
+if (!in_array($gameMode, ['elimination', 'points', 'flags', 'teams', 'hot_potato', 'flash_memory', 'alchemy'], true)) {
     $gameMode = 'elimination';
 }
 

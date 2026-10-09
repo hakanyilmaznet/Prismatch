@@ -519,6 +519,164 @@ class RoomGameServiceTest extends BaseTestCase {
         $this->assertSame(1200, $result['team_summary']['scores']['yellow']);
         $this->assertCount(4, $result['team_summary']['teams']);
     }
+
+    public function testNewGameModesTimingAndQuestions(): void {
+        $service = new RoomGameService($this->createMockPdo());
+
+        // Flash memory timing: 400ms flash
+        $tFlash = $service->getTimingForRound(3, 'flash_memory');
+        $this->assertSame(400, $tFlash['show_ms']);
+
+        // Hot potato timing: 5s answer
+        $tPotato = $service->getTimingForRound(2, 'hot_potato');
+        $this->assertSame(5000, $tPotato['answer_ms']);
+        $this->assertSame(1200, $tPotato['show_ms']);
+
+        // Alchemy timing: 7s answer
+        $tAlchemy = $service->getTimingForRound(2, 'alchemy');
+        $this->assertSame(7000, $tAlchemy['answer_ms']);
+        $this->assertSame(1200, $tAlchemy['show_ms']);
+
+        // Generate question for Alchemy
+        $qAlchemy = $service->generateQuestion(1, 25, 'alchemy');
+        $this->assertSame('alchemy', $qAlchemy['mode']);
+        $this->assertNotEmpty($qAlchemy['target']);
+        $this->assertNotEmpty($qAlchemy['target_name']);
+        $this->assertCount(2, $qAlchemy['components']);
+        $this->assertCount(8, $qAlchemy['grid']);
+        $this->assertContains($qAlchemy['components'][0], $qAlchemy['grid']);
+        $this->assertContains($qAlchemy['components'][1], $qAlchemy['grid']);
+
+        // Generate question for Flash Memory
+        $qFlash = $service->generateQuestion(1, 25, 'flash_memory');
+        $this->assertSame('flash_memory', $qFlash['mode']);
+        $this->assertSame(400, $qFlash['flash_ms']);
+        $this->assertNotEmpty($qFlash['target']);
+
+        // Generate question for Hot Potato
+        $qPotato = $service->generateQuestion(1, 25, 'hot_potato');
+        $this->assertSame('hot_potato', $qPotato['mode']);
+        $this->assertNotEmpty($qPotato['target']);
+    }
+
+    public function testProcessAnswerAlchemyRecipes(): void {
+        $alchemyRoom = $this->sampleRoom;
+        $alchemyRoom['game_mode'] = 'alchemy';
+        $alchemyRoom['status'] = 'active';
+        $alchemyRoom['current_round'] = 1;
+
+        $questionJson = json_encode([
+            'target' => '#800080',
+            'target_name' => 'Mor',
+            'components' => ['#FF0000', '#0000FF'],
+            'grid' => ['#FF0000', '#0000FF', '#FFFF00', '#FFFFFF', '#000000', '#00FF00', '#FF8000', '#00FFFF'],
+        ]);
+
+        $pdo = $this->createMockPdo([
+            'WHERE guid = :guid' => [$alchemyRoom],
+            'FROM room_players' => [$this->samplePlayer1, $this->samplePlayer2],
+            'SELECT question_json FROM room_rounds' => [['question_json' => $questionJson]],
+            'SELECT COUNT(*) FROM room_events' => [['0']],
+            'INSERT INTO room_events' => [],
+            'UPDATE room_players' => [],
+        ]);
+
+        $service = new RoomGameService($pdo);
+
+        // Standard combination order: Red + Blue
+        $res1 = $service->processAnswer('g-srv-1', 'u-owner-1', 'owner@test.com', 1, '#FF0000+#0000FF', false, 950);
+        $this->assertTrue($res1['ok']);
+        $this->assertTrue($res1['correct']);
+
+        // Reverse combination order: Blue + Red
+        $res2 = $service->processAnswer('g-srv-1', 'u-player-2', 'p2@test.com', 1, '#0000FF+#FF0000', false, 820);
+        $this->assertTrue($res2['ok']);
+        $this->assertTrue($res2['correct']);
+
+        // Wrong combination: Red + Yellow
+        $res3 = $service->processAnswer('g-srv-1', 'u-owner-1', 'owner@test.com', 1, '#FF0000+#FFFF00', false, 700);
+        $this->assertTrue($res3['ok']);
+        $this->assertFalse($res3['correct']);
+    }
+
+    public function testPowerupShieldActivationAndReflection(): void {
+        $activeRoom = $this->sampleRoom;
+        $activeRoom['status'] = 'active';
+        $activeRoom['current_round'] = 2;
+
+        $fiveStreakEvents = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $fiveStreakEvents[] = [
+                'round_index' => $i,
+                'event_type' => 'answer',
+                'payload_json' => json_encode(['correct' => true, 'response_ms' => 700]),
+            ];
+        }
+
+        // 1. Player 1 activates Shield
+        $pdoShield = $this->createMockPdo([
+            'WHERE guid = :guid' => [$activeRoom],
+            'FROM room_players' => [$this->samplePlayer1, $this->samplePlayer2],
+            'FROM room_events' => $fiveStreakEvents,
+            'UPDATE room_players SET has_shield' => [],
+            'INSERT INTO room_events' => [],
+        ]);
+
+        $serviceShield = new RoomGameService($pdoShield);
+        $resShield = $serviceShield->usePowerup('g-srv-1', 'u-owner-1', 'owner@test.com', 'Owner', 'shield');
+        $this->assertTrue($resShield['ok']);
+        $this->assertSame('shield', $resShield['payload']['type']);
+        $this->assertSame('u-owner-1', $resShield['payload']['target_user_id']);
+
+        // 2. Player 2 fires Mirror sabotage at Player 1, but Player 1 has shield active!
+        $shieldedPlayer1 = $this->samplePlayer1;
+        $shieldedPlayer1['has_shield'] = 1;
+        $shieldedPlayer1['score'] = 2500; // Leader
+
+        $attackerPlayer2 = $this->samplePlayer2;
+        $attackerPlayer2['score'] = 1000;
+
+        $pdoAttack = $this->createMockPdo([
+            'WHERE guid = :guid' => [$activeRoom],
+            'FROM room_players' => [$shieldedPlayer1, $attackerPlayer2],
+            'FROM room_events' => $fiveStreakEvents,
+            'UPDATE room_players SET has_shield = 0' => [],
+            'INSERT INTO room_events' => [],
+        ]);
+
+        $serviceAttack = new RoomGameService($pdoAttack);
+        $resAttack = $serviceAttack->usePowerup('g-srv-1', 'u-player-2', 'p2@test.com', 'Player2', 'mirror');
+        $this->assertTrue($resAttack['ok']);
+        $this->assertSame('mirror', $resAttack['payload']['type']);
+        // Attack deflected and reflected back to attacker (Player 2)
+        $this->assertTrue($resAttack['payload']['reflected']);
+        $this->assertSame('u-player-2', $resAttack['payload']['target_user_id']);
+    }
+
+    public function testSpectatorPredictionsAndCheers(): void {
+        $activeRoom = $this->sampleRoom;
+        $activeRoom['status'] = 'active';
+
+        $pdo = $this->createMockPdo([
+            'WHERE guid = :guid' => [$activeRoom],
+            'INSERT INTO room_predictions' => [],
+            'INSERT INTO room_events' => [],
+        ]);
+
+        $service = new RoomGameService($pdo);
+
+        // Submit prediction
+        $resPred = $service->submitPrediction('g-srv-1', 'u-spec-1', 'spec@test.com', 'u-owner-1');
+        $this->assertTrue($resPred['ok']);
+        $this->assertSame('u-owner-1', $resPred['predicted_user_id']);
+
+        // Send cheer
+        $resCheer = $service->sendCheer('g-srv-1', 'u-spec-1', 'spec@test.com', 'Spectator', 'u-owner-1', '🎈');
+        $this->assertTrue($resCheer['ok']);
+        $this->assertSame('u-owner-1', $resCheer['target_user_id']);
+        $this->assertSame('🎈', $resCheer['emoji']);
+    }
 }
+
 
 

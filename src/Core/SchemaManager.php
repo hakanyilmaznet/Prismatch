@@ -157,6 +157,8 @@ class SchemaManager {
                 correct INT NOT NULL DEFAULT 0,
                 team VARCHAR(16) NULL,
                 avatar VARCHAR(64) NULL,
+                has_shield TINYINT(1) NOT NULL DEFAULT 0,
+                powerup VARCHAR(32) NULL,
                 last_active DATETIME(3) NULL,
                 PRIMARY KEY (id),
                 UNIQUE KEY uq_room_player (room_id, user_id),
@@ -274,6 +276,35 @@ class SchemaManager {
         // Ensure avatar column exists in room_players
         try {
             $pdo->exec("ALTER TABLE room_players ADD COLUMN avatar VARCHAR(64) NULL");
+        } catch (\Throwable $e) {}
+
+        // Ensure has_shield & powerup columns in room_players
+        try {
+            $pdo->exec("ALTER TABLE room_players ADD COLUMN has_shield TINYINT(1) NOT NULL DEFAULT 0");
+        } catch (\Throwable $e) {}
+        try {
+            $pdo->exec("ALTER TABLE room_players ADD COLUMN powerup VARCHAR(32) NULL");
+        } catch (\Throwable $e) {}
+
+        // Ensure room_predictions table exists for spectator bets/predictions
+        try {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS room_predictions (
+                    id CHAR(36) NOT NULL,
+                    room_id CHAR(36) NOT NULL,
+                    round_index INT NOT NULL,
+                    spectator_id CHAR(36) NOT NULL,
+                    spectator_email VARCHAR(320) NOT NULL,
+                    predicted_user_id CHAR(36) NOT NULL,
+                    is_settled TINYINT(1) NOT NULL DEFAULT 0,
+                    won TINYINT(1) NOT NULL DEFAULT 0,
+                    points_awarded INT NOT NULL DEFAULT 0,
+                    created_at DATETIME(3) NOT NULL,
+                    PRIMARY KEY (id),
+                    KEY idx_room_predictions (room_id, round_index),
+                    KEY idx_room_predictions_spectator (spectator_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
         } catch (\Throwable $e) {}
 
         // Migrate any legacy @local.player emails to @prismatch
