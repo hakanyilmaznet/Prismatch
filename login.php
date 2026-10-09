@@ -17,14 +17,7 @@ function is_safe_next_path(string $path): bool {
   return true;
 }
 
-if (isset($_GET['next'])) {
-  $next = trim((string)$_GET['next']);
-  if (is_safe_next_path($next)) {
-    $_SESSION['login_next'] = $next;
-  } else {
-    unset($_SESSION['login_next']);
-  }
-}
+unset($_SESSION['login_next']);
 
 // Direct Google login
 $provider = $_GET['provider'] ?? '';
@@ -256,7 +249,7 @@ $seoTitle = t('home_cta_login') . ' - ' . t('app_name');
       const data = await res.json();
       if (data && data.ok && data.user_id) {
         try { localStorage.setItem('prismatchUserId', data.user_id); } catch(e) {}
-        window.location.href = NEXT_URL || 'index.php';
+        window.location.href = 'index.php';
         return;
       }
       setMsg((data && data.error) ? data.error : MSG_FAILED, 'error');

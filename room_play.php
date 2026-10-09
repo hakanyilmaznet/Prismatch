@@ -20,14 +20,13 @@ function tt(string $key, string $fallback = ''): string {
 
 $guid = trim((string)($_GET['guid'] ?? ''));
 if (!$userEmail || !$userId) {
-    $next = 'room_play.php?guid=' . rawurlencode($guid);
-    header('Location: login.php?next=' . rawurlencode($next));
+    header('Location: login.php');
     exit;
 }
 
 $room = get_room_by_guid($guid);
 if (!$room) {
-    header('Location: rooms.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -2765,6 +2764,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       roundComplete: <?= json_encode(tt('room_round_complete', 'Round {round} Complete')) ?>,
       winnerEveryone: <?= json_encode(tt('room_winner_everyone', 'Everyone')) ?>,
       concludedDesc: <?= json_encode(tt('room_concluded_desc', 'The match has concluded. Great performance by all players!')) ?>,
+      backHome: <?= json_encode(tt('btn_back_home', 'Ana Sayfaya Dön')) ?>,
       backToRooms: <?= json_encode(tt('rooms_back', 'Back to Rooms')) ?>,
       errorJoining: <?= json_encode(tt('room_error_joining', 'Error Joining')) ?>,
       connError: <?= json_encode(tt('room_conn_error', 'Connection Error')) ?>,
@@ -5690,7 +5690,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                 ⏳ ${STR.backToLobby}
               </button>
             ` : ''}
-            <a class="btn btn-outline-secondary" href="rooms.php">← ${STR.backToRooms}</a>
+            <a class="btn btn-outline-secondary" href="index.php">🏠 ${STR.backHome || 'Ana Sayfa'}</a>
           </div>
 
           <div id="personalStatsSection" class="personal-stats-section">
@@ -6411,7 +6411,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const btn = document.getElementById('myAvatarReactionBtn');
         btn?.classList.add('bounce');
         setTimeout(() => btn?.classList.remove('bounce'), 350);
-        sendReaction(currentAv.icon, 'party', currentAv.name);
+        sendReaction(currentAv.icon, 'party', null);
       }
     });
 
@@ -6557,7 +6557,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
                 body: JSON.stringify({guid: GUID})
               });
             } catch(e) {}
-            window.location.href = 'rooms.php';
+            window.location.href = 'index.php';
           }
           return;
         }
@@ -6580,9 +6580,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
           showToast(STR.spectatorNotice || 'Elendiniz. İzleyici modundasınız.', false);
           renderPlayers(state.players);
 
-          const stayAsSpectator = confirm(STR.confirmExitToRooms || 'İzleyici olarak odada kalıp maçı izlemek istiyor musunuz? (İptal: Oda listesine dön)');
+          const stayAsSpectator = confirm(STR.confirmExitToRooms || 'İzleyici olarak odada kalıp maçı izlemek istiyor musunuz? (İptal: Ana sayfaya dön)');
           if (!stayAsSpectator) {
-            window.location.href = 'rooms.php';
+            window.location.href = 'index.php';
           }
         }
       });

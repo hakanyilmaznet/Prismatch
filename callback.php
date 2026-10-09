@@ -120,14 +120,9 @@ if ($uid !== '') {
   }
 }
 
-$next = $_SESSION['login_next'] ?? '';
 unset($_SESSION['login_next']);
-if ($next && is_safe_next_path($next)) {
-  header('Location: ' . $next);
-  exit;
-}
 
-// Ana sayfaya dön
+// Her girişten sonra her zaman ana sayfaya dön
 header('Location: ' . APP_BASE_URL . '');
 exit;
 
