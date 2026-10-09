@@ -259,74 +259,87 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       text-align: center;
       gap: 14px;
       animation: fadeIn 0.3s ease;
-    }
-    /* Fixed Vertical Center Arena Game Board Layout */
+    /* Stable Vertical Center Arena Game Board Layout */
     .stage-center.game-active,
     .stage-center:has(.stage-game-wrap) {
-      height: 100%;
-      flex: 1;
-      max-width: 100%;
+      width: 100%;
       gap: 0;
-      justify-content: center;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
     }
     .stage-game-wrap {
       width: 100%;
-      height: 100%;
-      min-height: 100%;
-      flex: 1;
+      max-width: 520px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
+      margin: 0 auto;
     }
     .stage-header-wrap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       text-align: center;
+      min-height: 58px;
+      margin-bottom: 10px;
       gap: 4px;
-      padding: 0 12px;
-      pointer-events: none;
-      z-index: 2;
+      padding: 0 8px;
+      position: relative;
     }
-    .stage-header-wrap * {
-      pointer-events: auto;
+    .stage-header-wrap .stage-title {
+      font-size: 22px;
+      line-height: 1.2;
+      margin: 0;
+    }
+    .stage-header-wrap .stage-subtitle {
+      font-size: 13.5px;
+      line-height: 1.35;
+      margin: 0;
     }
     .stage-center-slot {
-      width: 100%;
-      margin: auto 0;
+      width: min(440px, 92vw, calc(100dvh - 340px));
+      min-width: min(260px, 100%);
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      z-index: 1;
+      margin: 0 auto;
+    }
+    .stage-center-slot .target-box {
+      width: 100%;
+      aspect-ratio: 16/9;
+      max-height: 100%;
+      margin: auto 0;
+    }
+    .stage-center-slot .choice-grid {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+    .stage-center-slot .big-countdown {
+      margin: auto 0;
+    }
+    body:has(#powerupBar:not(.d-none)) .stage-center-slot {
+      width: min(440px, 92vw, calc(100dvh - 370px));
     }
     .stage-footer-wrap {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      width: 100%;
+      min-height: 20px;
+      margin-top: 10px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: center;
       text-align: center;
-      gap: 4px;
-      padding: 0 12px;
-      pointer-events: none;
-      z-index: 2;
-    }
-    .stage-footer-wrap * {
-      pointer-events: auto;
+      padding: 0 8px;
+      position: relative;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }

@@ -239,64 +239,93 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     }
     .center.game-active,
     .center:has(.play-game-wrap) {
-      height: 100%;
-      flex: 1;
+      width: 100%;
       gap: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
     }
     .play-game-wrap {
       width: 100%;
-      height: 100%;
-      min-height: 100%;
-      flex: 1;
+      max-width: 520px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       position: relative;
+      margin: 0 auto;
     }
     .play-header-wrap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       text-align: center;
+      min-height: 58px;
+      margin-bottom: 10px;
       gap: 4px;
-      padding: 0 12px;
-      pointer-events: none;
-      z-index: 2;
+      padding: 0 8px;
+      position: relative;
     }
-    .play-header-wrap * {
-      pointer-events: auto;
+    .play-header-wrap .title {
+      font-size: 20px;
+      line-height: 1.2;
+      margin: 0;
+    }
+    .play-header-wrap .subtitle {
+      font-size: 13.5px;
+      line-height: 1.35;
+      margin: 0;
+    }
+    .play-header-wrap .question {
+      margin: 0;
+      gap: 2px;
+    }
+    .play-header-wrap .question .q {
+      font-size: 14.5px;
+      line-height: 1.3;
+    }
+    .play-header-wrap .question .hint {
+      font-size: 11.5px;
+      line-height: 1.3;
     }
     .play-center-slot {
-      width: 100%;
-      margin: auto 0;
+      width: min(440px, 92vw, calc(100dvh - 340px));
+      min-width: min(260px, 100%);
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      z-index: 1;
+      margin: 0 auto;
+    }
+    .play-center-slot .target-card {
+      width: 100%;
+      aspect-ratio: 16/9;
+      max-height: 100%;
+      margin: auto 0;
+    }
+    .play-center-slot .grid {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+    .play-center-slot .countdown {
+      margin: auto 0;
     }
     .play-footer-wrap {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      width: 100%;
+      min-height: 20px;
+      margin-top: 10px;
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
       text-align: center;
-      gap: 4px;
-      padding: 0 12px;
-      pointer-events: none;
-      z-index: 2;
-    }
-    .play-footer-wrap * {
-      pointer-events: auto;
+      padding: 0 8px;
+      position: relative;
     }
 
     .title{
