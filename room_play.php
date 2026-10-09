@@ -2885,6 +2885,19 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       powerupBlackoutStreakReq: <?= json_encode(tt('powerup_blackout_streak_req', 'Fener sabotajı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)')) ?>,
       powerupBlackoutFired: <?= json_encode(tt('powerup_blackout_fired', '🔦 Lider {target} hedeflendi! Fener karartması fırlatıldı!')) ?>,
       powerupShieldStreakReq: <?= json_encode(tt('powerup_shield_streak_req', 'Prizma kalkanı için 5 tur üst üste doğru cevap gerekli! ({streak}/5)')) ?>,
+      powerupInkArmed: <?= json_encode(tt('powerup_ink_armed', '🦑 Lider {target} hedeflendi! Yeni tur başladığında mürekkep devreye girecek!')) ?>,
+      powerupMirrorArmed: <?= json_encode(tt('powerup_mirror_armed', '🪞 Lider {target} hedeflendi! Yeni tur başladığında ayna devreye girecek!')) ?>,
+      powerupFreezeArmed: <?= json_encode(tt('powerup_freeze_armed', '🧊 Lider {target} hedeflendi! Yeni tur başladığında buz devreye girecek!')) ?>,
+      powerupBlackoutArmed: <?= json_encode(tt('powerup_blackout_armed', '🔦 Lider {target} hedeflendi! Yeni tur başladığında fener devreye girecek!')) ?>,
+      sabotageQueuedRound: <?= json_encode(tt('sabotage_queued_round', '⚠️ {attacker} senin için {sabotage} hazırladı! Tur başladığında devreye girecek!')) ?>,
+      sabotageQueuedNextRound: <?= json_encode(tt('sabotage_queued_next_round', '⚠️ {attacker} senin için {sabotage} hazırladı! Sonraki turda devreye girecek!')) ?>,
+      sabotageBroadcastArmed: <?= json_encode(tt('sabotage_broadcast_armed', '⚡ {attacker}, lider {victim} için {sabotage} kurdu! (Tur başladığında aktif)')) ?>,
+      sabotageIncomingBanner: <?= json_encode(tt('sabotage_incoming_banner', 'Bu turda sana yönelik sabotaj devreye girecek! Hazır ol!')) ?>,
+      powerupInkLabel: <?= json_encode(tt('powerup_ink_unlocked', 'Mürekkep')) ?>,
+      powerupMirrorLabel: <?= json_encode(tt('powerup_mirror_label', 'Ayna')) ?>,
+      powerupFreezeLabel: <?= json_encode(tt('powerup_freeze_label', 'Buz')) ?>,
+      powerupBlackoutLabel: <?= json_encode(tt('powerup_blackout_label', 'Fener')) ?>,
+      shieldReflectTitle: <?= json_encode(tt('shield_active_title', '🛡️ KALKAN YANSITTI!')) ?>,
       mirrorAlert: <?= json_encode(tt('mirror_alert', '🪞 {attacker} ekranını ters çevirdi!')) ?>,
       freezeAlert: <?= json_encode(tt('freeze_alert', '🧊 {attacker} seni dondurdu!')) ?>,
       shieldActiveTitle: <?= json_encode(tt('shield_active_title', '🛡️ PRİZMA KALKANI AKTİF!')) ?>,
@@ -3104,6 +3117,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         shield_streak: 0,
         has_shield: false,
       },
+      pendingSabotages: [],
+      nextRoundSabotages: [],
       bombHolderId: null,
       alchemyPick1: null,
       alchemyPick2: null,
@@ -3699,7 +3714,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       updatePowerupUI();
 
       playReactionSound('ink_splat');
-      showToast((STR.powerupInkFired || '🦑 Lider {target} hedeflendi! Mürekkep fırlatıldı!').replace('{target}', leaderName.split('@')[0]));
+      showToast((STR.powerupInkArmed || STR.powerupInkFired || '🦑 Lider {target} hedeflendi! Yeni tur başladığında mürekkep devreye girecek!').replace('{target}', leaderName.split('@')[0]));
 
       fetch('api/rooms_powerup.php', {
         method: 'POST',
@@ -3829,7 +3844,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.powerups.mirror_streak = 0;
       updatePowerupUI();
       playReactionSound('mirror');
-      showToast((STR.powerupMirrorFired || '🪞 Lider {target} hedeflendi! Ayna fırlatıldı!').replace('{target}', leaderName.split('@')[0]));
+      showToast((STR.powerupMirrorArmed || STR.powerupMirrorFired || '🪞 Lider {target} hedeflendi! Yeni tur başladığında ayna devreye girecek!').replace('{target}', leaderName.split('@')[0]));
 
       fetch('api/rooms_powerup.php', {
         method: 'POST',
@@ -3859,7 +3874,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.powerups.freeze_streak = 0;
       updatePowerupUI();
       playReactionSound('freeze');
-      showToast((STR.powerupFreezeFired || '🧊 Lider {target} hedeflendi! Buz fırlatıldı!').replace('{target}', leaderName.split('@')[0]));
+      showToast((STR.powerupFreezeArmed || STR.powerupFreezeFired || '🧊 Lider {target} hedeflendi! Yeni tur başladığında buz devreye girecek!').replace('{target}', leaderName.split('@')[0]));
 
       fetch('api/rooms_powerup.php', {
         method: 'POST',
@@ -3889,7 +3904,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       state.powerups.blackout_streak = 0;
       updatePowerupUI();
       playReactionSound('blackout');
-      showToast((STR.powerupBlackoutFired || '🔦 Lider {target} hedeflendi! Fener karartması fırlatıldı!').replace('{target}', leaderName.split('@')[0]));
+      showToast((STR.powerupBlackoutArmed || STR.powerupBlackoutFired || '🔦 Lider {target} hedeflendi! Yeni tur başladığında fener devreye girecek!').replace('{target}', leaderName.split('@')[0]));
 
       fetch('api/rooms_powerup.php', {
         method: 'POST',
@@ -4047,6 +4062,48 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         overlay.style.opacity = '0';
         setTimeout(() => overlay.remove(), 300);
       }, 3500);
+    }
+
+    function getSabotageTitle(type) {
+      if (type === 'ink_splat') return STR.powerupInkLabel || 'Mürekkep';
+      if (type === 'mirror') return STR.powerupMirrorLabel || 'Ayna';
+      if (type === 'freeze') return STR.powerupFreezeLabel || 'Buz';
+      if (type === 'blackout') return STR.powerupBlackoutLabel || 'Fener';
+      return 'Sabotaj';
+    }
+
+    function executePendingSabotages() {
+      if (!Array.isArray(state.pendingSabotages) || state.pendingSabotages.length === 0) return;
+      if (state.eliminated) {
+        state.pendingSabotages = [];
+        return;
+      }
+
+      const list = [...state.pendingSabotages];
+      state.pendingSabotages = [];
+
+      list.forEach(data => {
+        if (!data || !data.type) return;
+        const isMeVictim = (String(data.target_user_id) === String(ME_ID) || data.target_email === ME_EMAIL);
+
+        if (data.reflected && isMeVictim) {
+          playReactionSound('reflect');
+          showAnnouncer(STR.shieldReflectTitle || '🛡️ KALKAN YANSITTI!', (data.absorbed_by_name || 'Rakip') + ' sabotajı sana geri tepti!', 'warning', 3500);
+        }
+
+        if (isMeVictim) {
+          RoomLogger.info('Powerup', `Executing queued sabotage at round ${state.round} start`, data);
+          if (data.type === 'ink_splat') {
+            triggerInkSplatEffect(data.from_name || (STR.player || 'Player'), data.color);
+          } else if (data.type === 'mirror') {
+            triggerMirrorEffect(data.from_name || (STR.player || 'Player'));
+          } else if (data.type === 'freeze') {
+            triggerFreezeEffect(data.from_name || (STR.player || 'Player'));
+          } else if (data.type === 'blackout') {
+            triggerBlackoutEffect(data.from_name || (STR.player || 'Player'));
+          }
+        }
+      });
     }
 
     function triggerAvatarAnimation(userId, animType) {
@@ -4880,6 +4937,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       updatePowerupUI();
 
+      // Sabotajlar tur başladığında (şıklar ekrana geldiğinde) devreye girer
+      executePendingSabotages();
+
       if (isFlag) {
         // Tüm bayraklar hazır, ızgarayı aynı anda pürüzsüzce görünür yap
         requestAnimationFrame(() => {
@@ -5432,9 +5492,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         document.getElementById('hotPotatoBanner')?.classList.add('d-none');
       }
 
+      if (Array.isArray(state.nextRoundSabotages) && state.nextRoundSabotages.length > 0) {
+        if (!Array.isArray(state.pendingSabotages)) state.pendingSabotages = [];
+        state.pendingSabotages.push(...state.nextRoundSabotages);
+        state.nextRoundSabotages = [];
+      }
+
       if (data.round === 1 || data.is_restart) {
         state.score = 0;
         state.myRoundStats = [];
+        state.pendingSabotages = [];
+        state.nextRoundSabotages = [];
         ['fifty_fifty', 'ink', 'mirror', 'freeze', 'blackout', 'shield'].forEach(k => {
           state.powerups[k + '_available'] = false;
           state.powerups[k + '_streak'] = 0;
@@ -5446,6 +5514,16 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
       updatePowerupUI();
       renderSpectatorBar();
+
+      // Bu turda kurbanı hedefleyen bir sabotaj varsa geri sayımda uyar
+      const hasMySabotage = (state.pendingSabotages || []).some(s => 
+        String(s.target_user_id) === String(ME_ID) || s.target_email === ME_EMAIL
+      );
+      if (hasMySabotage && !state.eliminated) {
+        setTimeout(() => {
+          showAnnouncer('⚠️ DİKKAT!', STR.sabotageIncomingBanner || 'Bu turda sana yönelik sabotaj devreye girecek! Hazır ol!', 'warning', 2400);
+        }, 400);
+      }
 
       if (Array.isArray(data.players) && data.players.length > 0) {
         renderPlayers(data.players);
@@ -6355,57 +6433,54 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         const isMeVictim = (String(data.target_user_id) === String(ME_ID) || data.target_email === ME_EMAIL);
         const isMeAttacker = (String(data.from_user_id) === String(ME_ID) || data.from_email === ME_EMAIL);
 
-        if (data.reflected) {
-          playReactionSound('reflect');
-          showAnnouncer('🛡️ KALKAN YANSITTI!', (data.absorbed_by_name || 'Rakip') + ' saldırıyı ' + (data.from_name || 'saldırgana') + ' geri tepti!', 'warning', 3500);
-        }
-
-        if (data.type === 'ink_splat') {
-          if (isMeVictim) {
-            triggerInkSplatEffect(data.from_name || (STR.player || 'Player'), data.color);
-          } else {
-            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
-            const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
-            showToast((STR.powerupInkBrdcst || '🦑 {attacker}, lider {victim} oyuncusuna mürekkep fırlattı!').replace('{attacker}', attackerName).replace('{victim}', victimName));
-            playReactionSound('ink_splat');
-          }
-        } else if (data.type === 'mirror') {
-          if (isMeVictim) {
-            triggerMirrorEffect(data.from_name || (STR.player || 'Player'));
-          } else {
-            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
-            const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
-            showToast(`🪞 ${attackerName}, ${victimName} ekranını ters çevirdi!`);
-            playReactionSound('mirror');
-          }
-        } else if (data.type === 'freeze') {
-          if (isMeVictim) {
-            triggerFreezeEffect(data.from_name || (STR.player || 'Player'));
-          } else {
-            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
-            const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
-            showToast(`🧊 ${attackerName}, ${victimName} şıklarını dondurdu!`);
-            playReactionSound('freeze');
-          }
-        } else if (data.type === 'blackout') {
-          if (isMeVictim) {
-            triggerBlackoutEffect(data.from_name || (STR.player || 'Player'));
-          } else {
-            const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
-            const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
-            showToast(`🔦 ${attackerName}, ${victimName} ekranını kararttı!`);
-            playReactionSound('blackout');
-          }
-        } else if (data.type === 'shield') {
+        if (data.type === 'shield') {
           if (!isMeAttacker) {
             const userName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
             showToast(`🛡️ ${userName} Prizma Kalkanı kuşandı!`);
           }
-        } else if (data.type === 'fifty_fifty') {
+          return;
+        }
+
+        if (data.type === 'fifty_fifty') {
           if (!isMeAttacker) {
             const userName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
             showToast((STR.powerup5050Brdcst || '🎯 {user} 50/50 jokerini kullandı!').replace('{user}', userName));
           }
+          return;
+        }
+
+        // Sabotaj nesneleri (ink_splat, mirror, freeze, blackout):
+        // Kural: Butona basıldığında DEĞİL, tur başladığında devreye girer
+        const victimName = data.target_name ? data.target_name.split('@')[0] : (STR.player || 'Lider');
+        const attackerName = data.from_name ? data.from_name.split('@')[0] : (STR.player || 'Player');
+        const sabotageTitle = getSabotageTitle(data.type);
+
+        if (isMeVictim) {
+          if (data.reflected) {
+            playReactionSound('reflect');
+            showAnnouncer(STR.shieldReflectTitle || '🛡️ KALKAN YANSITTI!', (data.absorbed_by_name || 'Rakip') + ' sabotajı sana geri tepti!', 'warning', 3500);
+          }
+
+          if (state.phase === 'question') {
+            // Soru turu zaten aktifken gelirse sonraki tura kuyrukla
+            if (!Array.isArray(state.nextRoundSabotages)) state.nextRoundSabotages = [];
+            state.nextRoundSabotages.push(data);
+            showToast((STR.sabotageQueuedNextRound || '⚠️ {attacker} senin için {sabotage} hazırladı! Sonraki turda devreye girecek!')
+              .replace('{attacker}', attackerName)
+              .replace('{sabotage}', sabotageTitle), true);
+          } else {
+            // Henüz soru başlamamışsa bu turun soru başlangıcına kuyrukla
+            if (!Array.isArray(state.pendingSabotages)) state.pendingSabotages = [];
+            state.pendingSabotages.push(data);
+            showToast((STR.sabotageQueuedRound || '⚠️ {attacker} senin için {sabotage} hazırladı! Tur başladığında devreye girecek!')
+              .replace('{attacker}', attackerName)
+              .replace('{sabotage}', sabotageTitle), true);
+          }
+        } else if (!isMeAttacker) {
+          showToast((STR.sabotageBroadcastArmed || '⚡ {attacker}, lider {victim} için {sabotage} kurdu! (Tur başladığında aktif)')
+            .replace('{attacker}', attackerName)
+            .replace('{victim}', victimName)
+            .replace('{sabotage}', sabotageTitle));
         }
       });
 
