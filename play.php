@@ -237,6 +237,96 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       justify-content:center;
       gap: 14px;
     }
+    .center.game-active,
+    .center:has(.play-game-wrap) {
+      width: 100%;
+      gap: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .play-game-wrap {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0 auto;
+    }
+    .play-header-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 58px;
+      margin-bottom: 10px;
+      gap: 4px;
+      padding: 0 8px;
+      position: relative;
+    }
+    .play-header-wrap .title {
+      font-size: 20px;
+      line-height: 1.2;
+      margin: 0;
+    }
+    .play-header-wrap .subtitle {
+      font-size: 13.5px;
+      line-height: 1.35;
+      margin: 0;
+    }
+    .play-header-wrap .question {
+      margin: 0;
+      gap: 2px;
+    }
+    .play-header-wrap .question .q {
+      font-size: 14.5px;
+      line-height: 1.3;
+    }
+    .play-header-wrap .question .hint {
+      font-size: 11.5px;
+      line-height: 1.3;
+    }
+    .play-center-slot {
+      width: min(440px, 92vw, calc(100dvh - 340px));
+      min-width: min(260px, 100%);
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0 auto;
+    }
+    .play-center-slot .target-card {
+      width: 100%;
+      aspect-ratio: 16/9;
+      max-height: 100%;
+      margin: auto 0;
+    }
+    .play-center-slot .grid {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+    .play-center-slot .countdown {
+      margin: auto 0;
+    }
+    .play-footer-wrap {
+      width: 100%;
+      min-height: 20px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 8px;
+      position: relative;
+    }
 
     .title{
       font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
@@ -373,13 +463,16 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     }
 
     .target-card{
-      width: min(420px, 90%);
+      width: min(440px, 92vw, calc(100dvh - 300px));
+      min-width: min(260px, 100%);
+      max-width: 100%;
       aspect-ratio: 16/9;
       border-radius: calc(var(--radius) + 6px);
       box-shadow: 0 16px 48px rgba(0,0,0,0.45);
       border: 2px solid rgba(255,255,255,0.10);
       transform: translateZ(0);
       animation: fadeScale 260ms ease both;
+      margin: 0 auto;
     }
     @keyframes fadeScale{
       from{ opacity:0; transform: scale(0.96); }
@@ -1349,8 +1442,35 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
   function toastQuick(msg){ toast(msg, TOAST_HIDE_MS); }
 
   function render(node){
+    if (!node?.classList?.contains('play-game-wrap')) {
+      elCenter.classList.remove('game-active');
+    }
     elCenter.innerHTML = "";
     elCenter.appendChild(node);
+  }
+
+  function makeGameStack(headerNodes, centerNode, footerNodes = []){
+    elCenter.classList.add('game-active');
+    const wrap = document.createElement("div");
+    wrap.className = "play-game-wrap";
+
+    const hWrap = document.createElement("div");
+    hWrap.className = "play-header-wrap";
+    (headerNodes || []).forEach(n => { if (n) hWrap.appendChild(n); });
+    wrap.appendChild(hWrap);
+
+    const cWrap = document.createElement("div");
+    cWrap.className = "play-center-slot";
+    if (centerNode) cWrap.appendChild(centerNode);
+    wrap.appendChild(cWrap);
+
+    if (footerNodes && footerNodes.length > 0) {
+      const fWrap = document.createElement("div");
+      fWrap.className = "play-footer-wrap";
+      footerNodes.forEach(n => { if (n) fWrap.appendChild(n); });
+      wrap.appendChild(fWrap);
+    }
+    return wrap;
   }
 
   function makeStack(...nodes){
@@ -1793,14 +1913,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       ? tjs('remember_flag', 'Remember this flag!')
       : tjs('countdown_help', 'Remember the shown color, then pick it from the grid.');
 
-    const boxArea = document.createElement("div");
-    boxArea.className = "target-box-area";
-    boxArea.appendChild(cd);
-
-    render(makeStack(
-      h1(tjs('app_name', 'Prismatch')),
-      p(helpText),
-      boxArea
+    render(makeGameStack(
+      [h1(tjs('app_name', 'Prismatch')), p(helpText)],
+      cd
     ));
 
     updateHUD(state.answerMs);
@@ -1840,10 +1955,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       boxArea.className = "target-box-area";
       boxArea.appendChild(card);
 
-      render(makeStack(
-        h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`),
-        p(tjs('remember_flag', 'Remember this flag!')),
-        boxArea
+      render(makeGameStack(
+        [h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`), p(tjs('remember_flag', 'Remember this flag!'))],
+        card
       ));
       setBadge(tjs('badge_showing_target_flag', 'Showing target flag...'));
     } else {
@@ -1857,10 +1971,9 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       boxArea.className = "target-box-area";
       boxArea.appendChild(card);
 
-      render(makeStack(
-        h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`),
-        p(tjs('remember_this', 'Remember this color.')),
-        boxArea
+      render(makeGameStack(
+        [h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`), p(tjs('remember_this', 'Remember this color.'))],
+        card
       ));
       setBadge(tjs('badge_showing_target', 'Showing target…'));
     }
@@ -1945,9 +2058,8 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     });
 
     const maxLvl = getMaxRoundsForMode(state.gameMode);
-    render(makeStack(
-      h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`),
-      qWrap,
+    render(makeGameStack(
+      [h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`), qWrap],
       grid
     ));
 

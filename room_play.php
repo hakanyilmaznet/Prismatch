@@ -259,6 +259,87 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       text-align: center;
       gap: 14px;
       animation: fadeIn 0.3s ease;
+    /* Stable Vertical Center Arena Game Board Layout */
+    .stage-center.game-active,
+    .stage-center:has(.stage-game-wrap) {
+      width: 100%;
+      gap: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .stage-game-wrap {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0 auto;
+    }
+    .stage-header-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 58px;
+      margin-bottom: 10px;
+      gap: 4px;
+      padding: 0 8px;
+      position: relative;
+    }
+    .stage-header-wrap .stage-title {
+      font-size: 22px;
+      line-height: 1.2;
+      margin: 0;
+    }
+    .stage-header-wrap .stage-subtitle {
+      font-size: 13.5px;
+      line-height: 1.35;
+      margin: 0;
+    }
+    .stage-center-slot {
+      width: min(440px, 92vw, calc(100dvh - 340px));
+      min-width: min(260px, 100%);
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin: 0 auto;
+    }
+    .stage-center-slot .target-box {
+      width: 100%;
+      aspect-ratio: 16/9;
+      max-height: 100%;
+      margin: auto 0;
+    }
+    .stage-center-slot .choice-grid {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+    .stage-center-slot .big-countdown {
+      margin: auto 0;
+    }
+    body:has(#powerupBar:not(.d-none)) .stage-center-slot {
+      width: min(440px, 92vw, calc(100dvh - 370px));
+    }
+    .stage-footer-wrap {
+      width: 100%;
+      min-height: 20px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 8px;
+      position: relative;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
@@ -291,36 +372,18 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       50% { transform: scale(1.1); }
       100% { transform: scale(1); opacity: 1; }
     }
-    /* Target Color Card */
-    .target-box-area {
+    /* Target Color Card - Always Centered */
+    .target-box {
       width: min(440px, 92vw, calc(100dvh - 310px));
       min-width: min(260px, 100%);
       max-width: 100%;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 6px auto 0 auto;
-    }
-    body:has(#powerupBar:not(.d-none)) .target-box-area {
-      width: min(440px, 92vw, calc(100dvh - 350px));
-    }
-    .target-box-area .target-box {
-      width: 100%;
-      margin: 0 auto;
-    }
-    .target-box-area .big-countdown {
-      margin: 0 auto;
-    }
-
-    .target-box {
-      width: min(440px, 92%);
       aspect-ratio: 16/9;
       border-radius: 20px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.4);
       border: 3px solid rgba(255, 255, 255, 0.2);
       animation: pop 0.4s ease both;
       position: relative;
+      margin: 0 auto;
     }
     .target-box-flag {
       background-color: #151922;
@@ -381,7 +444,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       text-overflow: ellipsis;
       max-width: 130px;
     }
-    /* Question Grid */
+    /* Question Grid - Always Centered */
     .choice-grid {
       width: min(440px, 92vw, calc(100dvh - 310px));
       min-width: min(260px, 100%);
@@ -390,7 +453,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      margin: 6px auto 0 auto;
+      margin: 0 auto;
     }
     .choice-grid.grid-loading {
       opacity: 0;
@@ -1517,7 +1580,8 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     body:has(#powerupBar:not(.d-none)) .arena-container {
       padding-bottom: calc(var(--pm-footer-offset, 0px) + 140px + env(safe-area-inset-bottom));
     }
-    body:has(#powerupBar:not(.d-none)) .choice-grid {
+    body:has(#powerupBar:not(.d-none)) .choice-grid,
+    body:has(#powerupBar:not(.d-none)) .target-box {
       width: min(440px, 92vw, calc(100dvh - 350px));
     }
     .powerup-btn {
@@ -4766,11 +4830,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
 
       // Sonraki tura geçişte (round > 1 veya countdownMs <= 1000):
       if (state.round > 1 || state.countdownMs <= 1000) {
+        stageContent.classList.add('game-active');
         stageContent.innerHTML = `
-          <h2 class="stage-title">${remTitle}</h2>
-          <div class="stage-subtitle">${STR.watchScreen}</div>
-          <div class="target-box-area">
-            <div class="fs-1 my-3">${isFlag ? '🚩' : '🎯'}</div>
+          <div class="stage-game-wrap">
+            <div class="stage-header-wrap">
+              <h2 class="stage-title">${remTitle}</h2>
+              <div class="stage-subtitle">${STR.watchScreen}</div>
+            </div>
+            <div class="stage-center-slot">
+              <div class="fs-1 my-3">${isFlag ? '🚩' : '🎯'}</div>
+            </div>
+            <div class="stage-footer-wrap"></div>
           </div>
         `;
 
@@ -4788,11 +4858,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       const elapsedSeconds = Math.floor(elapsedSinceStart / 1000);
       let remaining = Math.max(1, totalCountSeconds - elapsedSeconds);
 
+      stageContent.classList.add('game-active');
       stageContent.innerHTML = `
-        <h2 class="stage-title">${remTitle}</h2>
-        <div class="stage-subtitle">${STR.watchScreen}</div>
-        <div class="target-box-area">
-          <div class="big-countdown" id="countdownNum">${remaining}</div>
+        <div class="stage-game-wrap">
+          <div class="stage-header-wrap">
+            <h2 class="stage-title">${remTitle}</h2>
+            <div class="stage-subtitle">${STR.watchScreen}</div>
+          </div>
+          <div class="stage-center-slot">
+            <div class="big-countdown" id="countdownNum">${remaining}</div>
+          </div>
+          <div class="stage-footer-wrap"></div>
         </div>
       `;
 
@@ -4837,11 +4913,17 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         boxHtml = `<div class="target-box" style="background: ${state.targetColor}"></div>`;
       }
 
+      stageContent.classList.add('game-active');
       stageContent.innerHTML = `
-        <h2 class="stage-title">${remTitle}</h2>
-        <div class="stage-subtitle">${showSub}</div>
-        <div class="target-box-area">
-          ${boxHtml}
+        <div class="stage-game-wrap">
+          <div class="stage-header-wrap">
+            <h2 class="stage-title">${remTitle}</h2>
+            <div class="stage-subtitle">${showSub}</div>
+          </div>
+          <div class="stage-center-slot">
+            ${boxHtml}
+          </div>
+          <div class="stage-footer-wrap"></div>
         </div>
       `;
 
@@ -4887,31 +4969,53 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       hudStatus.textContent = state.eliminated ? STR.spectating : pickUpper;
       hudStatus.className = 'hud-val ' + (state.eliminated ? 'text-secondary' : 'text-success');
 
+      stageContent.classList.add('game-active');
       if (state.gameMode === 'alchemy') {
         const recipeName = state.targetName || 'Karışım';
         stageContent.innerHTML = `
-          <h2 class="stage-title">🧪 ${escapeHtml(recipeName)} Rengini Oluştur!</h2>
-          <div class="stage-subtitle">Hedef: <strong style="color: ${state.targetColor}">${escapeHtml(recipeName)}</strong> — Karıştırmak için 2 renk seç!</div>
-          <div class="alchemy-blend-preview my-2">
-            <span>Bileşen 1: <span id="alchemySlot1" class="alchemy-slot"></span></span>
-            <span class="mx-1">+</span>
-            <span>Bileşen 2: <span id="alchemySlot2" class="alchemy-slot"></span></span>
+          <div class="stage-game-wrap">
+            <div class="stage-header-wrap">
+              <h2 class="stage-title">🧪 ${escapeHtml(recipeName)} Rengini Oluştur!</h2>
+              <div class="stage-subtitle">Hedef: <strong style="color: ${state.targetColor}">${escapeHtml(recipeName)}</strong> — Karıştırmak için 2 renk seç!</div>
+              <div class="alchemy-blend-preview my-2">
+                <span>Bileşen 1: <span id="alchemySlot1" class="alchemy-slot"></span></span>
+                <span class="mx-1">+</span>
+                <span>Bileşen 2: <span id="alchemySlot2" class="alchemy-slot"></span></span>
+              </div>
+            </div>
+            <div class="stage-center-slot">
+              <div class="choice-grid" id="choiceGrid"></div>
+            </div>
+            <div class="stage-footer-wrap"></div>
           </div>
-          <div class="choice-grid" id="choiceGrid"></div>
         `;
         state.alchemyPick1 = null;
         state.alchemyPick2 = null;
       } else if (state.gameMode === 'flash_memory') {
         stageContent.innerHTML = `
-          <h2 class="stage-title">⚡ Flaş Rengi Hatırla!</h2>
-          <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : '❓ Gördüğün rengi hemen işaretle!'}</div>
-          <div class="choice-grid" id="choiceGrid"></div>
+          <div class="stage-game-wrap">
+            <div class="stage-header-wrap">
+              <h2 class="stage-title">⚡ Flaş Rengi Hatırla!</h2>
+              <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : '❓ Gördüğün rengi hemen işaretle!'}</div>
+            </div>
+            <div class="stage-center-slot">
+              <div class="choice-grid" id="choiceGrid"></div>
+            </div>
+            <div class="stage-footer-wrap"></div>
+          </div>
         `;
       } else {
         stageContent.innerHTML = `
-          <h2 class="stage-title">${pickTitle}</h2>
-          <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : STR.chooseFast}</div>
-          <div class="choice-grid ${isFlag ? 'grid-loading' : ''}" id="choiceGrid"></div>
+          <div class="stage-game-wrap">
+            <div class="stage-header-wrap">
+              <h2 class="stage-title">${pickTitle}</h2>
+              <div class="stage-subtitle">${state.eliminated ? STR.eliminatedSubtitle : STR.chooseFast}</div>
+            </div>
+            <div class="stage-center-slot">
+              <div class="choice-grid ${isFlag ? 'grid-loading' : ''}" id="choiceGrid"></div>
+            </div>
+            <div class="stage-footer-wrap"></div>
+          </div>
         `;
       }
 
@@ -5365,8 +5469,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
       const sorted = sortPlayers(players || state.players || []);
 
-      RoomLogger.info('GameState', `Rendering leaderboard for round ${state.round}`, { players_count: sorted.length });
-
+      stageContent.classList.remove('game-active');
       stageContent.innerHTML = `
         <div class="fs-1">🏆</div>
         <h2 class="stage-title">${STR.roundComplete.replace('{round}', state.round)}</h2>
@@ -5762,6 +5865,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         `;
       }
 
+      stageContent.classList.remove('game-active');
       stageContent.innerHTML = `
         <div class="victory-container">
           <div class="victory-header">
@@ -6147,6 +6251,7 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         modeBadge = `<span class="badge bg-danger-subtle text-danger fs-6 text-nowrap align-middle border border-danger-subtle ms-1">💀 ${STR.modeElimination}</span>`;
       }
 
+      stageContent.classList.remove('game-active');
       stageContent.innerHTML = `
         <div class="stage-center">
           <div class="fs-1">⏳</div>
