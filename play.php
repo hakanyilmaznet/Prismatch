@@ -237,6 +237,67 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       justify-content:center;
       gap: 14px;
     }
+    .center.game-active,
+    .center:has(.play-game-wrap) {
+      height: 100%;
+      flex: 1;
+      gap: 0;
+      justify-content: center;
+    }
+    .play-game-wrap {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .play-header-wrap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+      padding: 0 12px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .play-header-wrap * {
+      pointer-events: auto;
+    }
+    .play-center-slot {
+      width: 100%;
+      margin: auto 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+    .play-footer-wrap {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+      padding: 0 12px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .play-footer-wrap * {
+      pointer-events: auto;
+    }
 
     .title{
       font-family: "Baloo 2", "Rubik", "Segoe UI", "Helvetica Neue", sans-serif;
@@ -355,13 +416,16 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     }
 
     .target-card{
-      width: min(420px, 90%);
+      width: min(440px, 92vw, calc(100dvh - 300px));
+      min-width: min(260px, 100%);
+      max-width: 100%;
       aspect-ratio: 16/9;
       border-radius: calc(var(--radius) + 6px);
       box-shadow: 0 16px 48px rgba(0,0,0,0.45);
       border: 2px solid rgba(255,255,255,0.10);
       transform: translateZ(0);
       animation: fadeScale 260ms ease both;
+      margin: 0 auto;
     }
     @keyframes fadeScale{
       from{ opacity:0; transform: scale(0.96); }
@@ -1331,8 +1395,35 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
   function toastQuick(msg){ toast(msg, TOAST_HIDE_MS); }
 
   function render(node){
+    if (!node?.classList?.contains('play-game-wrap')) {
+      elCenter.classList.remove('game-active');
+    }
     elCenter.innerHTML = "";
     elCenter.appendChild(node);
+  }
+
+  function makeGameStack(headerNodes, centerNode, footerNodes = []){
+    elCenter.classList.add('game-active');
+    const wrap = document.createElement("div");
+    wrap.className = "play-game-wrap";
+
+    const hWrap = document.createElement("div");
+    hWrap.className = "play-header-wrap";
+    (headerNodes || []).forEach(n => { if (n) hWrap.appendChild(n); });
+    wrap.appendChild(hWrap);
+
+    const cWrap = document.createElement("div");
+    cWrap.className = "play-center-slot";
+    if (centerNode) cWrap.appendChild(centerNode);
+    wrap.appendChild(cWrap);
+
+    if (footerNodes && footerNodes.length > 0) {
+      const fWrap = document.createElement("div");
+      fWrap.className = "play-footer-wrap";
+      footerNodes.forEach(n => { if (n) fWrap.appendChild(n); });
+      wrap.appendChild(fWrap);
+    }
+    return wrap;
   }
 
   function makeStack(...nodes){
@@ -1775,9 +1866,8 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       ? tjs('remember_flag', 'Remember this flag!')
       : tjs('countdown_help', 'Remember the shown color, then pick it from the grid.');
 
-    render(makeStack(
-      h1(tjs('app_name', 'Prismatch')),
-      p(helpText),
+    render(makeGameStack(
+      [h1(tjs('app_name', 'Prismatch')), p(helpText)],
       cd
     ));
 
@@ -1814,9 +1904,8 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       card.className = "target-card target-box-flag";
       card.innerHTML = `<img src="${state.targetColor}" class="target-flag-img" alt="Target Flag" loading="eager">`;
 
-      render(makeStack(
-        h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`),
-        p(tjs('remember_flag', 'Remember this flag!')),
+      render(makeGameStack(
+        [h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`), p(tjs('remember_flag', 'Remember this flag!'))],
         card
       ));
       setBadge(tjs('badge_showing_target_flag', 'Showing target flag...'));
@@ -1827,9 +1916,8 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
       card.className = "target-card";
       card.style.background = state.targetColor;
 
-      render(makeStack(
-        h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`),
-        p(tjs('remember_this', 'Remember this color.')),
+      render(makeGameStack(
+        [h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`), p(tjs('remember_this', 'Remember this color.'))],
         card
       ));
       setBadge(tjs('badge_showing_target', 'Showing target…'));
@@ -1915,9 +2003,8 @@ $allFlags = \Prismatch\Services\RoomGameService::getFlagPalette();
     });
 
     const maxLvl = getMaxRoundsForMode(state.gameMode);
-    render(makeStack(
-      h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`),
-      qWrap,
+    render(makeGameStack(
+      [h1(`${tjs('hud_stage', 'Stage')} ${state.level} / ${maxLvl}`), qWrap],
       grid
     ));
 
