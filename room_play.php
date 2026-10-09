@@ -968,6 +968,20 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         font-size: 20px;
         border-radius: 10px;
       }
+      .powerup-bar {
+        bottom: calc(max(8px, env(safe-area-inset-bottom)) + 52px);
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 999px;
+      }
+      .powerup-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
+        font-size: 20px;
+        border-radius: 10px;
+      }
       .shout-pill {
         padding: 4px 10px;
         font-size: 11px;
@@ -982,6 +996,9 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       }
       .arena-container {
         padding-bottom: calc(var(--pm-footer-offset, 0px) + 78px + env(safe-area-inset-bottom));
+      }
+      body:has(#powerupBar:not(.d-none)) .arena-container {
+        padding-bottom: calc(var(--pm-footer-offset, 0px) + 124px + env(safe-area-inset-bottom));
       }
       .lobby-avatars-card {
         padding: 12px 10px;
@@ -1442,72 +1459,124 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       margin-top: 2px;
     }
 
-    /* Step 3: Power-ups & Sabotage Bar */
+    /* Step 3: Power-ups & Sabotage Bar (Fixed Bottom Dock) */
     .powerup-bar {
+      position: fixed;
+      bottom: calc(max(14px, env(safe-area-inset-bottom)) + 64px);
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      margin: 8px auto 10px;
-      max-width: 480px;
-      width: 100%;
-      transition: opacity 0.25s ease, transform 0.25s ease;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
+      z-index: 1040;
+      max-width: calc(100vw - 24px);
+      box-sizing: border-box;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    [data-bs-theme="light"] .powerup-bar {
+      background: rgba(255, 255, 255, 0.94);
+      border-color: rgba(0, 0, 0, 0.12);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+    body:has(#reactionBar.d-none) .powerup-bar {
+      bottom: max(14px, env(safe-area-inset-bottom));
+    }
+    @media (max-width: 576px) {
+      body:has(#reactionBar.d-none) .powerup-bar {
+        bottom: max(8px, env(safe-area-inset-bottom));
+      }
+    }
+    body:has(#powerupBar:not(.d-none)) .arena-container {
+      padding-bottom: calc(var(--pm-footer-offset, 0px) + 140px + env(safe-area-inset-bottom));
+    }
+    body:has(#powerupBar:not(.d-none)) .choice-grid {
+      width: min(440px, 92vw, calc(100dvh - 350px));
     }
     .powerup-btn {
       position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0;
+      border-radius: 14px;
+      font-size: 22px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--arena-border);
       color: #fff;
-      border-radius: 999px;
-      padding: 6px 14px;
-      min-height: 44px;
-      font-size: 13px;
-      font-weight: 700;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     [data-bs-theme="light"] .powerup-btn {
-      background: #ffffff;
+      background: rgba(0, 0, 0, 0.04);
+      border-color: rgba(0, 0, 0, 0.1);
       color: #0f172a;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
     .powerup-btn:hover:not(:disabled) {
-      transform: translateY(-2px) scale(1.03);
-      background: rgba(255, 255, 255, 0.16);
-      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px) scale(1.08);
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.45);
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
     }
     .powerup-btn:active:not(:disabled) {
-      transform: translateY(0) scale(0.97);
+      transform: translateY(0) scale(0.92);
     }
     .powerup-btn:disabled, .powerup-btn.is-used {
-      opacity: 0.45;
+      opacity: 0.35;
       cursor: not-allowed;
       pointer-events: none;
       box-shadow: none;
     }
     .powerup-btn.is-locked {
-      opacity: 0.65;
-      filter: grayscale(0.3);
+      opacity: 0.55;
+      filter: grayscale(0.5);
     }
     .powerup-btn.is-ready {
       animation: powerupPulse 2s infinite ease-in-out;
       border-color: #38bdf8 !important;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
+      opacity: 1;
+      filter: none;
     }
     .powerup-btn.btn-ink.is-ready {
       border-color: #a855f7 !important;
-      box-shadow: 0 0 12px rgba(168, 85, 247, 0.45);
+      box-shadow: 0 0 14px rgba(168, 85, 247, 0.55);
+    }
+    .powerup-btn.btn-mirror.is-ready {
+      border-color: #eab308 !important;
+      box-shadow: 0 0 14px rgba(234, 179, 8, 0.55);
+    }
+    .powerup-btn.btn-freeze.is-ready {
+      border-color: #06b6d4 !important;
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.55);
+    }
+    .powerup-btn.btn-blackout.is-ready {
+      border-color: #f97316 !important;
+      box-shadow: 0 0 14px rgba(249, 115, 22, 0.55);
+    }
+    .powerup-btn.btn-shield.is-ready {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.55);
     }
     @keyframes powerupPulse {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.04); }
+      50% { transform: scale(1.08); }
     }
     .powerup-btn.btn-5050 {
       border-color: rgba(56, 189, 248, 0.45);
@@ -1515,35 +1584,28 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
     .powerup-btn.btn-ink {
       border-color: rgba(168, 85, 247, 0.45);
     }
-    .powerup-badge {
+    .powerup-btn.btn-mirror {
+      border-color: rgba(234, 179, 8, 0.45);
+    }
+    .powerup-btn.btn-freeze {
+      border-color: rgba(6, 182, 212, 0.45);
+    }
+    .powerup-btn.btn-blackout {
+      border-color: rgba(249, 115, 22, 0.45);
+    }
+    .powerup-btn.btn-shield {
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+    .powerup-icon {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #10b981, #06b6d4);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 800;
-      min-width: 20px;
-      height: 20px;
-      padding: 0 6px;
-      border-radius: 999px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      line-height: 1;
+      font-size: inherit;
+      pointer-events: none;
     }
-    .powerup-btn.is-locked .powerup-badge {
-      background: rgba(148, 163, 184, 0.25);
-      color: #cbd5e1;
-      font-size: 10px;
-      font-weight: 700;
-      min-width: 36px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-    [data-bs-theme="light"] .powerup-btn.is-locked .powerup-badge {
-      color: #475569;
-      background: rgba(100, 116, 139, 0.15);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    .powerup-btn.is-used .powerup-badge {
-      background: #64748b;
+    .powerup-badge {
+      display: none !important;
     }
 
     /* 50/50 Dimmed Tiles */
@@ -2409,39 +2471,6 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
       </div>
     </div>
 
-    <!-- Step 3: Power-ups & Sabotage Bar (Active match only) -->
-    <div id="powerupBar" class="powerup-bar d-none" aria-label="<?= htmlspecialchars(tt('powerup_bar_aria', 'Joker ve Sabotaj Kartları')) ?>">
-      <button type="button" id="powerup5050Btn" class="powerup-btn btn-5050 is-locked" disabled title="<?= htmlspecialchars(tt('powerup_5050_title_locked', '50/50 Joker: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
-        <span>🎯</span>
-        <span><?= htmlspecialchars(tt('powerup_5050_label', '50/50')) ?></span>
-        <span id="badge5050" class="powerup-badge">🔒 0/5</span>
-      </button>
-      <button type="button" id="powerupInkBtn" class="powerup-btn btn-ink is-locked" disabled title="<?= htmlspecialchars(tt('powerup_ink_title_locked', 'Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
-        <span>🦑</span>
-        <span><?= htmlspecialchars(tt('powerup_ink_label', 'Mürekkep')) ?></span>
-        <span id="badgeInk" class="powerup-badge">🔒 0/5</span>
-      </button>
-      <button type="button" id="powerupMirrorBtn" class="powerup-btn btn-mirror is-locked" disabled title="<?= htmlspecialchars(tt('powerup_mirror_title_locked', 'Ayna Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
-        <span>🪞</span>
-        <span><?= htmlspecialchars(tt('powerup_mirror_label', 'Ayna')) ?></span>
-        <span id="badgeMirror" class="powerup-badge">🔒 0/5</span>
-      </button>
-      <button type="button" id="powerupFreezeBtn" class="powerup-btn btn-freeze is-locked" disabled title="<?= htmlspecialchars(tt('powerup_freeze_title_locked', 'Buz Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
-        <span>🧊</span>
-        <span><?= htmlspecialchars(tt('powerup_freeze_label', 'Buz')) ?></span>
-        <span id="badgeFreeze" class="powerup-badge">🔒 0/5</span>
-      </button>
-      <button type="button" id="powerupBlackoutBtn" class="powerup-btn btn-blackout is-locked" disabled title="<?= htmlspecialchars(tt('powerup_blackout_title_locked', 'Fener Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
-        <span>🔦</span>
-        <span><?= htmlspecialchars(tt('powerup_blackout_label', 'Fener')) ?></span>
-        <span id="badgeBlackout" class="powerup-badge">🔒 0/5</span>
-      </button>
-      <button type="button" id="powerupShieldBtn" class="powerup-btn btn-shield is-locked" disabled title="<?= htmlspecialchars(tt('powerup_shield_title_locked', 'Prizma Kalkanı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
-        <span>🛡️</span>
-        <span><?= htmlspecialchars(tt('powerup_shield_label', 'Kalkan')) ?></span>
-        <span id="badgeShield" class="powerup-badge">🔒 0/5</span>
-      </button>
-    </div>
 
     <!-- Dynamic Top Announcer Banner -->
     <div id="announcerBanner" class="announcer-banner d-none" aria-live="assertive"></div>
@@ -2552,6 +2581,34 @@ $wrongAnswerMessages = $dict[$lang]['wrong_answer_messages'] ?? ($dict['en']['wr
         <div id="lobbyRulesContainer"></div>
       </div>
     </main>
+
+    <!-- Step 3: Power-ups & Sabotage Bar (Fixed Bottom Dock - Active match only) -->
+    <div id="powerupBar" class="powerup-bar d-none" aria-label="<?= htmlspecialchars(tt('powerup_bar_aria', 'Joker ve Sabotaj Kartları')) ?>">
+      <button type="button" id="powerup5050Btn" class="powerup-btn btn-5050 is-locked" disabled aria-label="<?= htmlspecialchars(tt('powerup_5050_label', '50/50')) ?>" title="<?= htmlspecialchars(tt('powerup_5050_title_locked', '50/50 Joker: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span class="powerup-icon" aria-hidden="true">🎯</span>
+        <span id="badge5050" class="powerup-badge d-none">🔒 0/5</span>
+      </button>
+      <button type="button" id="powerupInkBtn" class="powerup-btn btn-ink is-locked" disabled aria-label="<?= htmlspecialchars(tt('powerup_ink_label', 'Mürekkep')) ?>" title="<?= htmlspecialchars(tt('powerup_ink_title_locked', 'Mürekkep Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span class="powerup-icon" aria-hidden="true">🦑</span>
+        <span id="badgeInk" class="powerup-badge d-none">🔒 0/5</span>
+      </button>
+      <button type="button" id="powerupMirrorBtn" class="powerup-btn btn-mirror is-locked" disabled aria-label="<?= htmlspecialchars(tt('powerup_mirror_label', 'Ayna')) ?>" title="<?= htmlspecialchars(tt('powerup_mirror_title_locked', 'Ayna Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span class="powerup-icon" aria-hidden="true">🪞</span>
+        <span id="badgeMirror" class="powerup-badge d-none">🔒 0/5</span>
+      </button>
+      <button type="button" id="powerupFreezeBtn" class="powerup-btn btn-freeze is-locked" disabled aria-label="<?= htmlspecialchars(tt('powerup_freeze_label', 'Buz')) ?>" title="<?= htmlspecialchars(tt('powerup_freeze_title_locked', 'Buz Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span class="powerup-icon" aria-hidden="true">🧊</span>
+        <span id="badgeFreeze" class="powerup-badge d-none">🔒 0/5</span>
+      </button>
+      <button type="button" id="powerupBlackoutBtn" class="powerup-btn btn-blackout is-locked" disabled aria-label="<?= htmlspecialchars(tt('powerup_blackout_label', 'Fener')) ?>" title="<?= htmlspecialchars(tt('powerup_blackout_title_locked', 'Fener Sabotajı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span class="powerup-icon" aria-hidden="true">🔦</span>
+        <span id="badgeBlackout" class="powerup-badge d-none">🔒 0/5</span>
+      </button>
+      <button type="button" id="powerupShieldBtn" class="powerup-btn btn-shield is-locked" disabled aria-label="<?= htmlspecialchars(tt('powerup_shield_label', 'Kalkan')) ?>" title="<?= htmlspecialchars(tt('powerup_shield_title_locked', 'Prizma Kalkanı: 5 tur üst üste doğru cevap vererek aç (0/5)')) ?>">
+        <span class="powerup-icon" aria-hidden="true">🛡️</span>
+        <span id="badgeShield" class="powerup-badge d-none">🔒 0/5</span>
+      </button>
+    </div>
 
     <!-- Live Team Reaction & Sound Effects Bar -->
     <div id="reactionBar" class="reaction-bar" aria-label="<?= htmlspecialchars(tt('reaction_bar_aria', 'Canlı Tepkiler')) ?>">
