@@ -26,8 +26,10 @@ abstract class ApiTestCase extends TestCase {
             'seeds' => $options['seeds'] ?? [],
         ]);
 
+        $binary = PHP_BINARY ?: 'php';
         $cmd = sprintf(
-            'php -d extension_dir="C:\tools\php85\ext" -d extension=php_mbstring.dll -d extension=php_openssl.dll -d extension=php_pdo_sqlite.dll %s',
+            '%s %s',
+            escapeshellarg($binary),
             escapeshellarg(__DIR__ . '/api_runner.php')
         );
 

@@ -16,12 +16,21 @@ if (!$email || !$userId) {
 
 $input = json_decode((string)file_get_contents('php://input'), true);
 $rounds = 25;
-$name = (string)($input['name'] ?? ($_POST['name'] ?? ''));
-if (trim($name) === '') {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'name_required']);
-    exit;
+$name = trim((string)($input['name'] ?? ($_POST['name'] ?? '')));
+if ($name === '') {
+    $userName = '';
+    if (!empty($_SESSION['user_name'])) {
+        $userName = (string)$_SESSION['user_name'];
+    } elseif (function_exists('user_display_name') && !empty($userId)) {
+        $userName = user_display_name((string)$userId);
+    }
+    if (trim($userName) === '' && function_exists('user_display_name_from_row') && !empty($email)) {
+        $userName = user_display_name_from_row(['email' => (string)$email]);
+    }
+    $userName = trim($userName);
+    $name = $userName !== '' ? ($userName . "'in Odası") : 'Oyun Odası';
 }
+$name = mb_substr($name, 0, 80);
 
 $isPrivate = !empty($input['is_private']) || !empty($_POST['is_private']);
 $gameMode = (string)($input['game_mode'] ?? ($_POST['game_mode'] ?? 'elimination'));

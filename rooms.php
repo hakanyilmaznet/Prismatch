@@ -170,21 +170,16 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     <?php else: ?>
     <!-- Create Room Card -->
     <div class="card-modern">
-      <h2 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
-        <span>🎮</span> <?= htmlspecialchars(tt('rooms_create_title', 'Create a New Room')) ?>
-      </h2>
-      <div class="row g-3 align-items-end">
-        <div class="col-md-7 col-lg-8">
-          <label class="form-label small fw-semibold text-secondary" for="roomNameInput">
-            <?= htmlspecialchars(tt('rooms_name_label', 'Room Name')) ?>
-          </label>
-          <input id="roomNameInput" class="form-control form-control-lg rounded-3" type="text" maxlength="80" placeholder="<?= htmlspecialchars(tt('rooms_name_placeholder', 'e.g. Arena Champions #1')) ?>" />
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+          <h2 class="h5 fw-bold mb-1 d-flex align-items-center gap-2">
+            <span>🎮</span> <?= htmlspecialchars(tt('rooms_create_title', 'Create a New Room')) ?>
+          </h2>
+          <div class="small text-secondary"><?= htmlspecialchars(tt('rooms_create_desc', 'Modu seçin ve doğrudan oda oluşturup arkadaşlarınızla yarışın.')) ?></div>
         </div>
-        <div class="col-md-5 col-lg-4 d-flex gap-2">
-          <button id="createRoomBtn" class="btn btn-create btn-lg w-100" type="button">
-            <?= htmlspecialchars(tt('rooms_create_btn', 'Create Room')) ?>
-          </button>
-        </div>
+        <button id="createRoomBtn" class="btn btn-create btn-lg px-4 d-inline-flex align-items-center gap-2 shadow-sm" type="button">
+          <span>🚀</span> <?= htmlspecialchars(tt('rooms_create_btn', 'Create Room')) ?>
+        </button>
       </div>
 
       <!-- Game Mode Selection -->
@@ -356,7 +351,12 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
           <?= htmlspecialchars(tt('rooms_private_hint', 'Public rooms appear in the lobby for everyone. Private rooms are hidden and accessible only via direct link.')) ?>
         </span>
       </div>
-      <div id="createMsg" class="small mt-2"></div>
+      <div class="mt-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div id="createMsg" class="small"></div>
+        <button id="createRoomBtnBottom" class="btn btn-create btn-lg px-4 d-inline-flex align-items-center gap-2 ms-auto shadow-sm" type="button">
+          <span>🚀</span> <?= htmlspecialchars(tt('rooms_create_btn', 'Create Room')) ?>
+        </button>
+      </div>
 
       <!-- Share Box (Revealed after creation) -->
       <div id="shareWrap" class="mt-4 pt-3 border-top" hidden>
@@ -586,8 +586,7 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
   <?php include __DIR__ . '/footer.php'; ?>
 
   <script>
-    const createBtn = document.getElementById('createRoomBtn');
-    const roomNameInput = document.getElementById('roomNameInput');
+    const createBtns = [document.getElementById('createRoomBtn'), document.getElementById('createRoomBtnBottom')].filter(Boolean);
     const createMsg = document.getElementById('createMsg');
     const shareWrap = document.getElementById('shareWrap');
     const shareLink = document.getElementById('shareLink');
@@ -703,14 +702,19 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
     radioFlashMemory?.addEventListener('change', syncModeCards);
     radioAlchemy?.addEventListener('change', syncModeCards);
 
-    createBtn?.addEventListener('click', async () => {
+    const setCreatingState = (isCreating) => {
+      createBtns.forEach(btn => {
+        btn.disabled = isCreating;
+        if (isCreating) {
+          btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> ' + STR.creating;
+        } else {
+          btn.innerHTML = '<span>🚀</span> ' + <?= json_encode(tt('rooms_create_btn', 'Create Room')) ?>;
+        }
+      });
+    };
+
+    async function handleCreateRoom() {
       setMsg(createMsg, '');
-      const name = (roomNameInput.value || '').trim();
-      if (!name) {
-        setMsg(createMsg, STR.nameRequired, 'error');
-        roomNameInput.focus();
-        return;
-      }
 
       const isPrivate = !!document.getElementById('roomIsPrivate')?.checked;
       const gameMode = document.querySelector('input[name="roomGameMode"]:checked')?.value || 'points';
@@ -735,11 +739,10 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
         }
       }
 
-      createBtn.disabled = true;
-      createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> ' + STR.creating;
+      setCreatingState(true);
 
       try {
-        const payload = {rounds_total: 25, name, is_private: isPrivate ? 1 : 0, game_mode: gameMode};
+        const payload = {rounds_total: 25, is_private: isPrivate ? 1 : 0, game_mode: gameMode};
         if (teams) {
           payload.teams = teams;
         }
@@ -773,10 +776,11 @@ $seoLangs = function_exists('supported_languages') ? array_keys(supported_langua
       } catch (e) {
         setMsg(createMsg, STR.errorGeneric, 'error');
       } finally {
-        createBtn.disabled = false;
-        createBtn.textContent = <?= json_encode(tt('rooms_create_btn', 'Create Room')) ?>;
+        setCreatingState(false);
       }
-    });
+    }
+
+    createBtns.forEach(btn => btn.addEventListener('click', handleCreateRoom));
 
     copyLinkBtn?.addEventListener('click', async () => {
       if (!shareLink || !shareLink.value) return;

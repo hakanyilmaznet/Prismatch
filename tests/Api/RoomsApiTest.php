@@ -47,9 +47,10 @@ class RoomsApiTest extends ApiTestCase {
         $this->assertSame('login_required', $res['json']['error']);
     }
 
-    public function testRoomsCreateMissingName(): void {
+    public function testRoomsCreateWithoutNameAutoGenerates(): void {
         $res = $this->callApi('api/rooms_create.php', [
             'method' => 'POST',
+            'use_sqlite' => true,
             'session' => [
                 'user_id' => 'u-1',
                 'user_email' => 'u1@test.com',
@@ -57,9 +58,9 @@ class RoomsApiTest extends ApiTestCase {
             'body' => ['name' => ''],
         ]);
 
-        $this->assertSame(400, $res['status']);
-        $this->assertFalse($res['json']['ok']);
-        $this->assertSame('name_required', $res['json']['error']);
+        $this->assertSame(200, $res['status']);
+        $this->assertTrue($res['json']['ok']);
+        $this->assertNotEmpty($res['json']['guid']);
     }
 
     public function testRoomsCreateSuccess(): void {
