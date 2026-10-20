@@ -4,7 +4,7 @@
  * network-first navigation with offline fallback, and background sync.
  */
 
-const CACHE_NAME = 'prismatch-pwa-v3';
+const CACHE_NAME = 'prismatch-pwa-v4';
 
 const PRECACHE_ASSETS = [
   '/',
